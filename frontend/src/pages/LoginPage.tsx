@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const { login, isLoading } = useAuthStore()
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +20,7 @@ export default function LoginPage() {
       await login(email, password)
       navigate('/collection')
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Credenciais inválidas')
+      setError(err.response?.data?.detail || t('auth.loginError'))
     }
   }
 
@@ -34,13 +37,14 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm relative z-10"
       >
+        <div className="flex justify-center mb-2"><LanguageSwitcher /></div>
         <div className="text-center mb-8">
           <h1 className="font-display text-4xl font-black text-vault-gold tracking-wider">⚔ MagicVault</h1>
-          <p className="text-vault-muted mt-2 text-sm">Gerencie sua coleção MTG</p>
+          <p className="text-vault-muted mt-2 text-sm">{t('auth.loginSubtitle')}</p>
         </div>
 
         <div className="surface p-7 shadow-2xl">
-          <h2 className="font-display text-xl font-bold text-vault-text mb-5">Entrar</h2>
+          <h2 className="font-display text-xl font-bold text-vault-text mb-5">{t('auth.loginTitle')}</h2>
 
           {error && (
             <div className="bg-red-900/30 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-4">
@@ -50,7 +54,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Email</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('auth.email')}</label>
               <input
                 type="email"
                 className="input-field"
@@ -61,7 +65,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Senha</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('auth.password')}</label>
               <input
                 type="password"
                 className="input-field"
@@ -79,14 +83,14 @@ export default function LoginPage() {
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : 'Entrar'}
+              ) : t('auth.loginButton')}
             </button>
           </form>
 
           <p className="text-center text-sm text-vault-muted mt-5">
-            Não tem conta?{' '}
+            {t('auth.noAccount')}{' '}
             <Link to="/register" className="text-vault-accent hover:underline">
-              Criar conta
+              {t('auth.signUp')}
             </Link>
           </p>
         </div>

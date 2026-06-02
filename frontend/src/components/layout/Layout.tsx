@@ -1,25 +1,28 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
   Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { collectionApi } from '@/lib/api'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const navItems = [
-  { to: '/collection', icon: Library, label: 'Coleção' },
-  { to: '/search', icon: Search, label: 'Buscar Cartas' },
-  { to: '/scan', icon: ScanLine, label: 'Scan / Add Rápido' },
-  { to: '/binders', icon: BookOpen, label: 'Binders' },
-  { to: '/decks', icon: Swords, label: 'Decks' },
-  { to: '/wishlist', icon: Star, label: 'Wishlist' },
-  { to: '/sets', icon: Package, label: 'Sets' },
-  { to: '/friends', icon: Users, label: 'Amigos' },
-  { to: '/shared', icon: Share2, label: 'Compartilhados' },
+  { to: '/collection', icon: Library, key: 'nav.collection' },
+  { to: '/search', icon: Search, key: 'nav.search' },
+  { to: '/scan', icon: ScanLine, key: 'nav.scan' },
+  { to: '/binders', icon: BookOpen, key: 'nav.binders' },
+  { to: '/decks', icon: Swords, key: 'nav.decks' },
+  { to: '/wishlist', icon: Star, key: 'nav.wishlist' },
+  { to: '/sets', icon: Package, key: 'nav.sets' },
+  { to: '/friends', icon: Users, key: 'nav.friends' },
+  { to: '/shared', icon: Share2, key: 'nav.shared' },
 ]
 
 export default function Layout() {
   const { user, logout } = useAuthStore()
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const { data: stats } = useQuery({
@@ -37,12 +40,12 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-60 flex-shrink-0 border-r border-vault-border bg-vault-surface flex flex-col">
         {/* Logo */}
-        <div className="p-5 border-b border-vault-border">
+        <Link to="/" className="block p-5 border-b border-vault-border hover:bg-vault-card/30 transition-colors">
           <h1 className="font-display text-xl font-bold text-vault-gold tracking-wider">
             ⚔ MagicVault
           </h1>
-          <p className="text-xs text-vault-muted mt-0.5">MTG Collection Manager</p>
-        </div>
+          <p className="text-xs text-vault-muted mt-0.5">{t('nav.subtitle')}</p>
+        </Link>
 
         {/* User info */}
         <div className="p-4 border-b border-vault-border">
@@ -59,11 +62,11 @@ export default function Layout() {
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="bg-vault-card rounded-lg p-2 text-center">
                 <p className="text-lg font-display font-bold text-vault-gold">{stats.total_cards}</p>
-                <p className="text-xs text-vault-muted">Total</p>
+                <p className="text-xs text-vault-muted">{t('nav.total')}</p>
               </div>
               <div className="bg-vault-card rounded-lg p-2 text-center">
                 <p className="text-lg font-display font-bold text-vault-accent">{stats.unique_cards}</p>
-                <p className="text-xs text-vault-muted">Únicas</p>
+                <p className="text-xs text-vault-muted">{t('nav.unique')}</p>
               </div>
             </div>
           )}
@@ -71,7 +74,7 @@ export default function Layout() {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ to, icon: Icon, label }) => (
+          {navItems.map(({ to, icon: Icon, key }) => (
             <NavLink
               key={to}
               to={to}
@@ -84,19 +87,20 @@ export default function Layout() {
               }
             >
               <Icon size={15} />
-              {label}
+              {t(key)}
             </NavLink>
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="p-3 border-t border-vault-border">
+        {/* Footer: language + logout */}
+        <div className="p-3 border-t border-vault-border space-y-1">
+          <LanguageSwitcher />
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-vault-muted hover:text-red-400 hover:bg-red-400/10 transition-all w-full"
           >
             <LogOut size={15} />
-            Sair
+            {t('nav.logout')}
           </button>
         </div>
       </aside>
