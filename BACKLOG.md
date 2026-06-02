@@ -40,7 +40,18 @@ vez, com **um commit por feature**. Legenda de esforço: 🟢 pequeno · 🟡 m�
 14. **AI Deck Doctor** (análise/nota por IA) 🔴 — premium
 15. **Deck DNA** (arquétipo) 🔴 — premium
 16. **Builder ciente da coleção** (substituições) 🔴
-17. **Scanner de cartas por câmera** 🔴
+17. **Scanner de cartas por câmera** 🔴 (paridade ManaBox)
+
+### P3 — outras ideias da análise (lista completa, nada perdido)
+18. **Primer do deck** (estratégia: win conditions, mulligan, combos, sideboard guide) 🟡 — estilo Moxfield
+19. **Playtest instantâneo** (mão inicial, comprar, simular) 🔴 — estilo Moxfield
+20. **Visualização por pilhas** (pile view: curva/distribuição) 🟡 — estilo Archidekt
+21. **Localização física** (binder X, página Y, slot Z) 🟡 — estilo Dragon Shield
+22. **Coleção familiar** (várias coleções por pessoa numa conta) 🔴
+23. **Meta Simulator** (define meta local → simula win rate) 🔴
+24. **Trade Analyzer** (compara valor de duas pilhas) 🟡
+25. **Evolução automática do deck** (novos sets/bans → upgrades) 🔴
+26. **IA de treino pós-partida** (estilo Chess.com) 🔴🔴
 
 ## ❌ Fora de escopo (decisão do usuário)
 - Pokémon / outros TCGs · App mobile nativo · Scanner por código de barras
