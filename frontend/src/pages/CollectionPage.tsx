@@ -14,6 +14,7 @@ const CONDITIONS = ['', 'M', 'NM', 'LP', 'MP', 'HP', 'DMG']
 export default function CollectionPage() {
   const username = useAuthStore((s) => s.user?.username)
   const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(24)
   const [condition, setCondition] = useState('')
   const [foil, setFoil] = useState<boolean | undefined>(undefined)
   const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
@@ -26,8 +27,8 @@ export default function CollectionPage() {
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['collection', { page, condition, foil }],
-    queryFn: () => collectionApi.list({ page, per_page: 24, condition: condition || undefined, foil }),
+    queryKey: ['collection', { page, perPage, condition, foil }],
+    queryFn: () => collectionApi.list({ page, per_page: perPage, condition: condition || undefined, foil }),
   })
 
   const { data: binders = [] } = useQuery({ queryKey: ['binders'], queryFn: bindersApi.list })
@@ -166,6 +167,14 @@ export default function CollectionPage() {
           <option value="">Normal + Foil</option>
           <option value="false">Normal</option>
           <option value="true">⚡ Foil</option>
+        </select>
+        <select
+          value={perPage}
+          onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }}
+          className="input-field !w-auto text-xs ml-auto"
+          title="Cartas por página"
+        >
+          {[12, 24, 48, 100].map(n => <option key={n} value={n}>{n} / página</option>)}
         </select>
       </div>
 
