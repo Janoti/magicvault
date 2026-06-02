@@ -19,6 +19,7 @@ export default function CollectionPage() {
   const [editEntry, setEditEntry] = useState<any>(null)
   const [binderEntry, setBinderEntry] = useState<any>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [preview, setPreview] = useState<{ src: string; x: number; y: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const qc = useQueryClient()
 
@@ -183,6 +184,7 @@ export default function CollectionPage() {
               <thead>
                 <tr className="border-b border-vault-border bg-vault-surface">
                   <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Carta</th>
+                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Set</th>
                   <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Qtd</th>
                   <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Cond.</th>
                   <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Foil</th>
@@ -204,19 +206,48 @@ export default function CollectionPage() {
                       className="border-b border-vault-border/50 hover:bg-vault-card/30 transition-colors"
                     >
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
+                        <div
+                          className="flex items-center gap-3"
+                          onMouseEnter={(e) => {
+                            const src = card?.image_normal || card?.image_large || card?.image_small
+                            if (src) setPreview({ src, x: e.clientX, y: e.clientY })
+                          }}
+                          onMouseMove={(e) => setPreview(p => (p ? { ...p, x: e.clientX, y: e.clientY } : p))}
+                          onMouseLeave={() => setPreview(null)}
+                        >
                           {card?.image_small ? (
-                            <img src={card.image_small} alt={card.name} className="w-8 rounded shadow" />
+                            <img src={card.image_small} alt={card.name} className="w-8 rounded shadow cursor-zoom-in" />
                           ) : (
                             <div className="w-8 h-11 bg-vault-card rounded" />
                           )}
                           <div>
                             <p className="font-medium text-vault-text">{card?.name || entry.scryfall_id.slice(0, 8) + '...'}</p>
                             {card && (
-                              <p className="text-xs text-vault-muted">{card.set?.toUpperCase()} #{card.collector_number}</p>
+                              <p className="text-xs text-vault-muted">#{card.collector_number}</p>
                             )}
                           </div>
                         </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {card ? (
+                          <div className="flex items-center gap-2">
+                            {card.set && (
+                              <img
+                                src={`https://svgs.scryfall.io/sets/${card.set}.svg`}
+                                alt={card.set}
+                                className="w-4 h-4 opacity-80"
+                                style={{ filter: 'invert(1) sepia(1) saturate(4) hue-rotate(200deg)' }}
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                              />
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs text-vault-text truncate max-w-[160px]">{card.set_name}</p>
+                              <p className="text-[10px] text-vault-muted font-mono">{card.set?.toUpperCase()}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-vault-muted">…</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span className="font-mono font-bold text-vault-accent">×{entry.quantity}</span>
@@ -317,6 +348,19 @@ export default function CollectionPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Large card preview following the cursor */}
+      {preview && (
+        <img
+          src={preview.src}
+          alt="preview"
+          className="hidden md:block fixed z-[60] w-64 rounded-xl shadow-2xl pointer-events-none ring-1 ring-vault-border"
+          style={{
+            left: Math.min(preview.x + 24, window.innerWidth - 270),
+            top: Math.min(Math.max(preview.y - 180, 8), window.innerHeight - 370),
+          }}
+        />
       )}
 
       {editEntry && (

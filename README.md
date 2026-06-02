@@ -1,73 +1,80 @@
 # ⚔ MagicVault — MTG Collection Manager
 
-Gerenciador completo de cartas Magic: The Gathering
+A full-featured manager for your **Magic: The Gathering** collection — track cards,
+build themed binders and decks, watch real-time prices, and import/export your
+collection. Card data and prices come from the free [Scryfall API](https://scryfall.com/docs/api).
 
 ## 🧰 Stack
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Frontend | React 18 + Vite + TypeScript + TailwindCSS |
-| Backend | FastAPI (Python 3.12) + SQLAlchemy async |
-| Banco | PostgreSQL 16 |
-| Cache | Redis 7 |
-| Proxy | Nginx |
-| Containers | Docker Compose |
-| API Cards | [Scryfall API](https://scryfall.com/docs/api) (grátis, sem auth) |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18 + Vite + TypeScript + TailwindCSS + react-query |
+| Backend | FastAPI (Python 3.12) + SQLAlchemy (async) |
+| Database | PostgreSQL |
+| Cache | Redis / Valkey (optional — gracefully degrades) |
+| Containers | Docker / Docker Compose |
+| Card data | [Scryfall API](https://scryfall.com/docs/api) (free, no auth) |
 
-## 🚀 Como rodar
+## ✨ Features
 
-### 1. Clone e configure o `.env`
+### 🃏 Collection
+- Add cards by search or name
+- **Edit** any entry (quantity, condition, foil, notes) — duplicate
+  condition/foil combinations are merged automatically
+- Filter by condition (M/NM/LP/MP/HP/DMG) and foil
+- **Real-time value** per card (Scryfall pricing) with page totals
+- Set icon + **large card preview on hover**
+- **Import / export** your whole collection as CSV (grimdeck-compatible)
+
+### 📦 Sets
+- Browse every MTG set
+- Open a set to see all its cards
+- Add cards individually, or **add the whole set** to your collection
+
+### 📚 Binders
+- Create themed binders (name, color, description)
+- Move cards from your collection into a binder
+- See the binder's total value
+
+### ⚔ Decks
+- Build decks for any format (Commander, Standard, Modern, …)
+- Sideboard and commander support
+
+### ⭐ Wishlist
+- Track cards you want to buy and set a max price
+
+## 🚀 Run locally
 
 ```bash
-git clone <repo>
+git clone https://github.com/Janoti/magicvault.git
 cd magicvault
-cp .env.example .env
-# edite .env com suas configurações
-```
-
-### 2. Suba os containers
-
-```bash
+cp .env.example .env        # edit if you want
 docker compose up --build
 ```
 
-### 3. Acesse
-
 - **Frontend:** http://localhost:5173
 - **Backend API:** http://localhost:8000
-- **Docs API (Swagger):** http://localhost:8000/docs
+- **API docs (Swagger):** http://localhost:8000/docs
 
-## 📦 Funcionalidades
+### Run services separately
 
-### 🃏 Coleção
-- Adicionar cartas por busca ou nome
-- Filtrar por condição (M/NM/LP/MP/HP/DMG), foil, idioma
-- Controle de quantidade
-- Preços em tempo real via Scryfall
-- Paginação
+```bash
+# backend
+cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload
 
-### 📚 Binders Temáticos
-- Crie binders com nome, cor e descrição personalizados
-- Adicione cartas da sua coleção ao binder
-- Veja o valor total do binder
-- Organize por tema (Commander, Rares, Coleção por set, etc.)
+# frontend
+cd frontend && npm install && npm run dev
+```
 
-### ⚔ Decks
-- Crie decks para diferentes formatos (Commander, Standard, Modern, etc.)
-- Adicione cartas ao deck com quantidade
-- Suporte a sideboard e commander
+## ☁️ Deploy
 
-### ⭐ Wishlist
-- Adicione cartas que você quer comprar
-- Defina preço máximo
-- Acompanhe o valor total da wishlist
+MagicVault ships as a **single web service**: FastAPI serves the built React SPA
+and the API on one origin (no CORS). The root `Dockerfile` builds the frontend
+into `/app/static`, and [`render.yaml`](./render.yaml) declares the web service,
+PostgreSQL, and Redis on [Render](https://render.com). Every push to `main`
+auto-deploys. Full guide in [`DEPLOY.md`](./DEPLOY.md).
 
-### 📦 Sets
-- Navegue por todos os sets do MTG
-- Filtro por tipo de set
-- Links diretos para o Scryfall
-
-## 🔌 API Endpoints
+## 🔌 API endpoints
 
 ```
 POST   /api/auth/register
@@ -83,6 +90,12 @@ POST   /api/collection
 PATCH  /api/collection/{id}
 DELETE /api/collection/{id}
 GET    /api/collection/stats
+GET    /api/collection/export        # download CSV
+POST   /api/collection/import        # upload CSV
+
+GET    /api/sets
+GET    /api/sets/{code}/cards
+POST   /api/sets/{code}/add-all
 
 GET    /api/binders
 POST   /api/binders
@@ -101,51 +114,34 @@ DELETE /api/decks/{id}
 GET    /api/wishlist
 POST   /api/wishlist
 DELETE /api/wishlist/{id}
-
-GET    /api/sets
 ```
 
-## 🗄 Banco de dados
+## 🗄 Database tables
 
-Tabelas:
-- `users` — contas de usuário
-- `collection_entries` — cartas na coleção (scryfall_id + condição + foil)
-- `binders` — binders temáticos
-- `binder_cards` — relação binder ↔ collection_entry
-- `decks` — decks construídos
-- `deck_cards` — cartas num deck
-- `wishlist_entries` — cartas na wishlist
+- `users` — user accounts
+- `collection_entries` — owned cards (scryfall_id + condition + foil)
+- `binders` / `binder_cards` — themed binders and their cards
+- `decks` / `deck_cards` — decks and their cards
+- `wishlist_entries` — wishlist cards
 
-## 🔧 Desenvolvimento
+Tables are created automatically on startup; no manual migration step needed.
 
-### Backend separado
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
+## ⚙️ Environment variables
 
-### Frontend separado
-```bash
-cd frontend
-npm install
-npm run dev
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | Postgres DSN (sync `postgres://` is auto-normalized to asyncpg) | local Postgres |
+| `REDIS_URL` | Redis/Valkey URL (cache only; app works without it) | `redis://localhost:6379` |
+| `SECRET_KEY` | JWT secret — **set a strong value in production** | `changeme` |
+| `ENVIRONMENT` | `development` / `production` | `development` |
+| `CORS_ORIGINS` | Comma-separated allowed origins (local dev only) | localhost |
+| `VITE_API_URL` | API URL for the dev frontend (empty = same-origin in prod) | `http://localhost:8000` |
 
-### Variáveis de ambiente importantes
+## 🗺 Roadmap
 
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `POSTGRES_PASSWORD` | Senha do banco | magicvault123 |
-| `SECRET_KEY` | JWT secret (mude em produção!) | changeme |
-| `ENVIRONMENT` | development / production | development |
-| `VITE_API_URL` | URL da API para o frontend | http://localhost:8000 |
+See [`ROADMAP.md`](./ROADMAP.md) for the planned next features:
+deck-vs-collection coverage, friends & sharing, and price-change notifications.
 
-## 📝 Próximos passos (ideias)
+## 📄 License
 
-- [ ] Scanner de código de barras via câmera
-- [ ] Importar/exportar coleção CSV
-- [ ] Comparar deck com cartas da coleção
-- [ ] Notificações de variação de preço
-- [ ] Modo público para compartilhar binders/decks
-- [ ] App mobile (React Native)
+MIT
