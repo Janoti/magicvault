@@ -1,0 +1,17 @@
+# Keep the build context small and reproducible
+**/node_modules
+**/dist
+**/.vite
+**/__pycache__
+**/*.pyc
+**/.venv
+**/venv
+.git
+.gitignore
+*.md
+postgres_data/
+redis_data/
+**/*.log
+.env
+.vscode/
+.idea/

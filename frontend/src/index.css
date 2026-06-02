@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { @apply border-vault-border; }
+  body {
+    @apply bg-vault-bg text-vault-text font-body;
+    background-image: radial-gradient(ellipse at top, #1a1f35 0%, #0d0f1a 70%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-vault-accent/20;
+  }
+  .btn-primary {
+    @apply bg-vault-accent hover:bg-vault-accent-hover text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 text-sm;
+  }
+  .btn-ghost {
+    @apply text-vault-muted hover:text-vault-text hover:bg-vault-card px-4 py-2 rounded-lg transition-all duration-200 text-sm;
+  }
+  .input-field {
+    @apply bg-vault-card border border-vault-border rounded-lg px-3 py-2 text-vault-text placeholder-vault-muted focus:outline-none focus:ring-2 focus:ring-vault-accent/50 focus:border-vault-accent transition-all text-sm w-full;
+  }
+  .surface {
+    @apply bg-vault-surface border border-vault-border rounded-xl;
+  }
+  .badge-rarity-common { @apply bg-gray-700 text-gray-300; }
+  .badge-rarity-uncommon { @apply bg-gray-500 text-gray-100; }
+  .badge-rarity-rare { @apply bg-yellow-900 text-yellow-300; }
+  .badge-rarity-mythic { @apply bg-orange-900 text-orange-300; }
+}
+
+/* Mana symbol colors */
+.mana-W { color: #f8f0d8; }
+.mana-U { color: #3a7ab5; }
+.mana-B { color: #c080d0; }
+.mana-R { color: #d64f1e; }
+.mana-G { color: #2e7d32; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0d0f1a; }
+::-webkit-scrollbar-thumb { background: #252b47; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6c5ce7; }

@@ -1,0 +1,405 @@
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import Response
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, desc
+from sqlalchemy.orm import selectinload
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime
+import csv
+import io
+
+from app.core.database import get_db
+from app.core.security import get_current_user
+from app.models.user import User, CollectionEntry
+from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name
+
+router = APIRouter()
+
+
+# --- grimdeck CSV helpers ---
+# grimdeck columns: name, set_code, collector_number, scryfall_id, quantity,
+# condition, finish, language, signed, altered, artist_proof, misprint, proxy,
+# notes, acquired_date, acquired_price
+CSV_COLUMNS = [
+    "name", "set_code", "collector_number", "scryfall_id", "quantity",
+    "condition", "finish", "language", "signed", "altered", "artist_proof",
+    "misprint", "proxy", "notes", "acquired_date", "acquired_price",
+]
+
+_LANGUAGE_MAP = {
+    "english": "en", "en": "en",
+    "portuguese": "pt", "português": "pt", "pt": "pt", "pt-br": "pt",
+    "spanish": "es", "español": "es", "es": "es",
+    "french": "fr", "français": "fr", "fr": "fr",
+    "german": "de", "deutsch": "de", "de": "de",
+    "italian": "it", "italiano": "it", "it": "it",
+    "japanese": "ja", "日本語": "ja", "ja": "ja", "jp": "ja",
+    "korean": "ko", "ko": "ko",
+    "russian": "ru", "ru": "ru",
+    "chinese simplified": "zhs", "chinese": "zh", "zhs": "zhs", "zht": "zht", "zh": "zh",
+}
+
+
+def _norm_language(value: Optional[str]) -> str:
+    if not value:
+        return "en"
+    return _LANGUAGE_MAP.get(value.strip().lower(), value.strip().lower()[:10])
+
+
+def _finish_to_foil(value: Optional[str]) -> bool:
+    return (value or "").strip().lower() in ("foil", "etched")
+
+
+def _foil_to_finish(foil: bool) -> str:
+    return "foil" if foil else "nonfoil"
+
+
+class AddCardRequest(BaseModel):
+    scryfall_id: str
+    quantity: int = 1
+    condition: str = "NM"
+    foil: bool = False
+    language: str = "en"
+    notes: Optional[str] = None
+
+
+class UpdateCardRequest(BaseModel):
+    quantity: Optional[int] = None
+    condition: Optional[str] = None
+    foil: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+@router.get("/stats")
+async def stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(
+            func.count(CollectionEntry.id).label("unique_cards"),
+            func.sum(CollectionEntry.quantity).label("total_cards"),
+        ).where(CollectionEntry.user_id == current_user.id)
+    )
+    row = result.one()
+    return {
+        "unique_cards": row.unique_cards or 0,
+        "total_cards": row.total_cards or 0,
+    }
+
+
+@router.get("")
+async def list_collection(
+    set_code: Optional[str] = None,
+    condition: Optional[str] = None,
+    foil: Optional[bool] = None,
+    sort_by: str = "added_at",
+    order: str = "desc",
+    page: int = 1,
+    per_page: int = 20,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(CollectionEntry).where(CollectionEntry.user_id == current_user.id)
+
+    if condition:
+        query = query.where(CollectionEntry.condition == condition)
+    if foil is not None:
+        query = query.where(CollectionEntry.foil == foil)
+
+    if order == "desc":
+        query = query.order_by(desc(getattr(CollectionEntry, sort_by, CollectionEntry.added_at)))
+    else:
+        query = query.order_by(getattr(CollectionEntry, sort_by, CollectionEntry.added_at))
+
+    total_result = await db.execute(
+        select(func.count()).select_from(query.subquery())
+    )
+    total = total_result.scalar()
+
+    query = query.offset((page - 1) * per_page).limit(per_page)
+    result = await db.execute(query)
+    entries = result.scalars().all()
+
+    items = []
+    for entry in entries:
+        item = {
+            "id": entry.id,
+            "scryfall_id": entry.scryfall_id,
+            "quantity": entry.quantity,
+            "condition": entry.condition,
+            "foil": entry.foil,
+            "language": entry.language,
+            "notes": entry.notes,
+            "price_at_add": entry.price_at_add,
+            "added_at": entry.added_at.isoformat(),
+        }
+        items.append(item)
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page,
+    }
+
+
+@router.post("", status_code=201)
+async def add_card(
+    data: AddCardRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Fetch card from Scryfall to validate and get price
+    try:
+        card_data = await get_card_by_id(data.scryfall_id)
+        card_summary = extract_card_summary(card_data)
+        price = card_summary["price_usd_foil"] if data.foil else card_summary["price_usd"]
+    except Exception:
+        raise HTTPException(status_code=404, detail="Card not found on Scryfall")
+
+    # Check if entry already exists
+    result = await db.execute(
+        select(CollectionEntry).where(
+            CollectionEntry.user_id == current_user.id,
+            CollectionEntry.scryfall_id == data.scryfall_id,
+            CollectionEntry.condition == data.condition,
+            CollectionEntry.foil == data.foil,
+        )
+    )
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        existing.quantity += data.quantity
+        entry = existing
+    else:
+        entry = CollectionEntry(
+            user_id=current_user.id,
+            scryfall_id=data.scryfall_id,
+            quantity=data.quantity,
+            condition=data.condition,
+            foil=data.foil,
+            language=data.language,
+            notes=data.notes,
+            price_at_add=price,
+        )
+        db.add(entry)
+
+    await db.flush()
+    return {"id": entry.id, "card": card_summary, "quantity": entry.quantity, "message": "Card added to collection"}
+
+
+@router.patch("/{entry_id}")
+async def update_entry(
+    entry_id: int,
+    data: UpdateCardRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(CollectionEntry).where(
+            CollectionEntry.id == entry_id,
+            CollectionEntry.user_id == current_user.id,
+        )
+    )
+    entry = result.scalar_one_or_none()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+
+    new_condition = data.condition if data.condition is not None else entry.condition
+    new_foil = data.foil if data.foil is not None else entry.foil
+
+    # The unique constraint is (user_id, scryfall_id, condition, foil). If the
+    # edit changes condition/foil to match another existing entry, merge into it
+    # instead of letting the DB raise a unique-violation (500).
+    if (new_condition, new_foil) != (entry.condition, entry.foil):
+        dup_result = await db.execute(
+            select(CollectionEntry).where(
+                CollectionEntry.user_id == current_user.id,
+                CollectionEntry.scryfall_id == entry.scryfall_id,
+                CollectionEntry.condition == new_condition,
+                CollectionEntry.foil == new_foil,
+                CollectionEntry.id != entry.id,
+            )
+        )
+        dup = dup_result.scalar_one_or_none()
+        if dup:
+            dup.quantity += data.quantity if data.quantity is not None else entry.quantity
+            if data.notes is not None:
+                dup.notes = data.notes
+            await db.delete(entry)
+            return {"message": "Merged", "merged_into": dup.id, "quantity": dup.quantity}
+
+    if data.quantity is not None:
+        entry.quantity = data.quantity
+    entry.condition = new_condition
+    entry.foil = new_foil
+    if data.notes is not None:
+        entry.notes = data.notes
+
+    return {"message": "Updated"}
+
+
+@router.delete("/{entry_id}", status_code=204)
+async def remove_entry(
+    entry_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(CollectionEntry).where(
+            CollectionEntry.id == entry_id,
+            CollectionEntry.user_id == current_user.id,
+        )
+    )
+    entry = result.scalar_one_or_none()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    await db.delete(entry)
+
+
+@router.get("/export")
+async def export_collection(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Export the whole collection as a grimdeck-compatible CSV."""
+    result = await db.execute(
+        select(CollectionEntry)
+        .where(CollectionEntry.user_id == current_user.id)
+        .order_by(CollectionEntry.added_at)
+    )
+    entries = result.scalars().all()
+
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=CSV_COLUMNS, extrasaction="ignore")
+    writer.writeheader()
+
+    for entry in entries:
+        name = set_code = collector_number = ""
+        try:
+            summary = extract_card_summary(await get_card_by_id(entry.scryfall_id))
+            name = summary.get("name", "")
+            set_code = (summary.get("set", "") or "").upper()
+            collector_number = summary.get("collector_number", "")
+        except Exception:
+            pass
+
+        writer.writerow({
+            "name": name,
+            "set_code": set_code,
+            "collector_number": collector_number,
+            "scryfall_id": entry.scryfall_id,
+            "quantity": entry.quantity,
+            "condition": entry.condition,
+            "finish": _foil_to_finish(entry.foil),
+            "language": entry.language,
+            "signed": "FALSE",
+            "altered": "FALSE",
+            "artist_proof": "FALSE",
+            "misprint": "FALSE",
+            "proxy": "FALSE",
+            "notes": entry.notes or "",
+            "acquired_date": "",
+            "acquired_price": entry.price_at_add if entry.price_at_add is not None else "",
+        })
+
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=magicvault_collection.csv"},
+    )
+
+
+@router.post("/import")
+async def import_collection(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Import a grimdeck-style CSV into the collection (add/increment)."""
+    raw = await file.read()
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = raw.decode("latin-1")
+
+    reader = csv.DictReader(io.StringIO(text))
+    # normalise header keys to lowercase for tolerant matching
+    if reader.fieldnames:
+        reader.fieldnames = [(f or "").strip().lower() for f in reader.fieldnames]
+
+    imported = 0
+    updated = 0
+    skipped = 0
+    errors: List[str] = []
+
+    for i, row in enumerate(reader, start=2):  # row 1 is the header
+        row = {(k or "").strip().lower(): (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
+        scryfall_id = row.get("scryfall_id") or ""
+        name = row.get("name") or ""
+        set_code = row.get("set_code") or ""
+
+        try:
+            if not scryfall_id and name:
+                # fallback: resolve by name when scryfall_id is missing
+                card = await get_card_by_name(name, fuzzy=True)
+                scryfall_id = card["id"]
+            if not scryfall_id:
+                skipped += 1
+                errors.append(f"linha {i}: sem scryfall_id nem nome resolvível")
+                continue
+        except Exception:
+            skipped += 1
+            errors.append(f"linha {i}: carta '{name}' não encontrada")
+            continue
+
+        try:
+            quantity = int(float(row.get("quantity") or 1))
+        except (ValueError, TypeError):
+            quantity = 1
+        condition = (row.get("condition") or "NM").upper()[:3]
+        foil = _finish_to_foil(row.get("finish"))
+        language = _norm_language(row.get("language"))
+        notes = row.get("notes") or None
+        price = None
+        try:
+            if row.get("acquired_price"):
+                price = float(row["acquired_price"])
+        except (ValueError, TypeError):
+            price = None
+
+        dup_result = await db.execute(
+            select(CollectionEntry).where(
+                CollectionEntry.user_id == current_user.id,
+                CollectionEntry.scryfall_id == scryfall_id,
+                CollectionEntry.condition == condition,
+                CollectionEntry.foil == foil,
+            )
+        )
+        existing = dup_result.scalar_one_or_none()
+        if existing:
+            existing.quantity += quantity
+            updated += 1
+        else:
+            db.add(CollectionEntry(
+                user_id=current_user.id,
+                scryfall_id=scryfall_id,
+                quantity=quantity,
+                condition=condition,
+                foil=foil,
+                language=language,
+                notes=notes,
+                price_at_add=price,
+            ))
+            imported += 1
+
+    await db.flush()
+    return {
+        "imported": imported,
+        "updated": updated,
+        "skipped": skipped,
+        "errors": errors[:50],
+    }

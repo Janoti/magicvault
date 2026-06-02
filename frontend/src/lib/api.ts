@@ -1,0 +1,103 @@
+import axios from 'axios'
+
+// In production the SPA is served by the API on the same origin, so we build
+// with VITE_API_URL="" and make requests relative (e.g. "/api/..."). Only fall
+// back to the local dev backend when the variable is not defined at all.
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL === undefined
+    ? 'http://localhost:8000'
+    : import.meta.env.VITE_API_URL
+
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+})
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
+api.interceptors.response.use(
+  (r) => r,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    }
+    return Promise.reject(err)
+  }
+)
+
+// Auth
+export const authApi = {
+  register: (data: { email: string; username: string; password: string }) =>
+    api.post('/api/auth/register', data).then(r => r.data),
+  login: (email: string, password: string) => {
+    const form = new FormData()
+    form.append('username', email)
+    form.append('password', password)
+    return api.post('/api/auth/login', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data)
+  },
+  me: () => api.get('/api/auth/me').then(r => r.data),
+}
+
+// Cards
+export const cardsApi = {
+  search: (q: string, page = 1) => api.get('/api/cards/search', { params: { q, page } }).then(r => r.data),
+  autocomplete: (q: string) => api.get('/api/cards/autocomplete', { params: { q } }).then(r => r.data),
+  getById: (id: string) => api.get(`/api/cards/${id}`).then(r => r.data),
+}
+
+// Collection
+export const collectionApi = {
+  list: (params?: object) => api.get('/api/collection', { params }).then(r => r.data),
+  stats: () => api.get('/api/collection/stats').then(r => r.data),
+  add: (data: object) => api.post('/api/collection', data).then(r => r.data),
+  update: (id: number, data: object) => api.patch(`/api/collection/${id}`, data).then(r => r.data),
+  remove: (id: number) => api.delete(`/api/collection/${id}`),
+  exportCsv: () => api.get('/api/collection/export', { responseType: 'blob' }).then(r => r.data),
+  importCsv: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post('/api/collection/import', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data)
+  },
+}
+
+// Binders
+export const bindersApi = {
+  list: () => api.get('/api/binders').then(r => r.data),
+  create: (data: object) => api.post('/api/binders', data).then(r => r.data),
+  get: (id: number) => api.get(`/api/binders/${id}`).then(r => r.data),
+  update: (id: number, data: object) => api.patch(`/api/binders/${id}`, data).then(r => r.data),
+  delete: (id: number) => api.delete(`/api/binders/${id}`),
+  addCard: (binderId: number, data: object) => api.post(`/api/binders/${binderId}/cards`, data).then(r => r.data),
+  removeCard: (binderId: number, cardId: number) => api.delete(`/api/binders/${binderId}/cards/${cardId}`),
+}
+
+// Decks
+export const decksApi = {
+  list: () => api.get('/api/decks').then(r => r.data),
+  create: (data: object) => api.post('/api/decks', data).then(r => r.data),
+  get: (id: number) => api.get(`/api/decks/${id}`).then(r => r.data),
+  delete: (id: number) => api.delete(`/api/decks/${id}`),
+  addCard: (deckId: number, data: object) => api.post(`/api/decks/${deckId}/cards`, data).then(r => r.data),
+}
+
+// Wishlist
+export const wishlistApi = {
+  list: () => api.get('/api/wishlist').then(r => r.data),
+  add: (data: object) => api.post('/api/wishlist', data).then(r => r.data),
+  remove: (id: number) => api.delete(`/api/wishlist/${id}`),
+}
+
+// Sets
+export const setsApi = {
+  list: () => api.get('/api/sets').then(r => r.data),
+  cards: (code: string) => api.get(`/api/sets/${code}/cards`).then(r => r.data),
+  addAll: (code: string) => api.post(`/api/sets/${code}/add-all`).then(r => r.data),
+}

@@ -1,0 +1,140 @@
+"""
+Scryfall API integration — https://scryfall.com/docs/api
+Free, no auth required, rate limit: 10 req/s
+"""
+import httpx
+from typing import Optional, List, Dict, Any
+
+from app.core.config import settings
+from app.core.cache import cache_get, cache_set
+
+BASE = settings.scryfall_api_base
+
+
+async def _get(url: str, params: dict = None) -> Dict[str, Any]:
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(url, params=params)
+        r.raise_for_status()
+        return r.json()
+
+
+async def search_cards(query: str, page: int = 1) -> Dict[str, Any]:
+    """Full-text search using Scryfall syntax."""
+    cache_key = f"scryfall:search:{query}:{page}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    data = await _get(f"{BASE}/cards/search", params={"q": query, "page": page, "order": "name"})
+    await cache_set(cache_key, data, ttl=3600)
+    return data
+
+
+async def get_card_by_id(scryfall_id: str) -> Optional[Dict[str, Any]]:
+    """Get full card data by Scryfall UUID."""
+    cache_key = f"scryfall:card:{scryfall_id}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    data = await _get(f"{BASE}/cards/{scryfall_id}")
+    await cache_set(cache_key, data)
+    return data
+
+
+async def get_card_by_name(name: str, fuzzy: bool = True) -> Optional[Dict[str, Any]]:
+    """Lookup card by exact or fuzzy name."""
+    cache_key = f"scryfall:named:{'fuzzy' if fuzzy else 'exact'}:{name.lower()}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    param = "fuzzy" if fuzzy else "exact"
+    data = await _get(f"{BASE}/cards/named", params={param: name})
+    await cache_set(cache_key, data)
+    return data
+
+
+async def autocomplete_cards(query: str) -> List[str]:
+    """Get card name suggestions (for search input)."""
+    cache_key = f"scryfall:autocomplete:{query.lower()}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    data = await _get(f"{BASE}/cards/autocomplete", params={"q": query})
+    names = data.get("data", [])
+    await cache_set(cache_key, names, ttl=86400)
+    return names
+
+
+async def get_sets() -> List[Dict[str, Any]]:
+    """List all MTG sets."""
+    cache_key = "scryfall:sets"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    data = await _get(f"{BASE}/sets")
+    sets_list = data.get("data", [])
+    await cache_set(cache_key, sets_list, ttl=86400 * 7)
+    return sets_list
+
+
+async def get_set_cards(set_code: str) -> List[Dict[str, Any]]:
+    """Get all cards in a set."""
+    cache_key = f"scryfall:set_cards:{set_code}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    all_cards = []
+    page = 1
+    while True:
+        data = await _get(f"{BASE}/cards/search", params={"q": f"set:{set_code}", "page": page})
+        all_cards.extend(data.get("data", []))
+        if not data.get("has_more"):
+            break
+        page += 1
+
+    await cache_set(cache_key, all_cards, ttl=86400)
+    return all_cards
+
+
+def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract the fields we care about from a Scryfall card object."""
+    prices = card.get("prices", {})
+    image_uris = card.get("image_uris", {})
+
+    # Handle double-faced cards
+    if not image_uris and card.get("card_faces"):
+        image_uris = card["card_faces"][0].get("image_uris", {})
+
+    return {
+        "id": card["id"],
+        "name": card["name"],
+        "set": card.get("set", ""),
+        "set_name": card.get("set_name", ""),
+        "collector_number": card.get("collector_number", ""),
+        "mana_cost": card.get("mana_cost") or (card.get("card_faces", [{}])[0].get("mana_cost", "")),
+        "type_line": card.get("type_line", ""),
+        "oracle_text": card.get("oracle_text") or (card.get("card_faces", [{}])[0].get("oracle_text", "")),
+        "colors": card.get("colors", []),
+        "color_identity": card.get("color_identity", []),
+        "rarity": card.get("rarity", ""),
+        "cmc": card.get("cmc", 0),
+        "power": card.get("power"),
+        "toughness": card.get("toughness"),
+        "loyalty": card.get("loyalty"),
+        "image_small": image_uris.get("small", ""),
+        "image_normal": image_uris.get("normal", ""),
+        "image_large": image_uris.get("large", ""),
+        "price_usd": float(prices.get("usd") or 0),
+        "price_usd_foil": float(prices.get("usd_foil") or 0),
+        "price_eur": float(prices.get("eur") or 0),
+        "scryfall_uri": card.get("scryfall_uri", ""),
+        "legalities": card.get("legalities", {}),
+        "released_at": card.get("released_at", ""),
+        "artist": card.get("artist", ""),
+        "flavor_text": card.get("flavor_text"),
+    }
