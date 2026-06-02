@@ -2,10 +2,11 @@ import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { collectionApi, cardsApi, bindersApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Download, Upload } from 'lucide-react'
+import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Download, Upload, Share2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import EditCardModal from '@/components/collection/EditCardModal'
 import AddToBinderModal from '@/components/collection/AddToBinderModal'
+import ShareModal from '@/components/sharing/ShareModal'
 import { useAuthStore } from '@/store/auth'
 
 const CONDITIONS = ['', 'M', 'NM', 'LP', 'MP', 'HP', 'DMG']
@@ -20,6 +21,7 @@ export default function CollectionPage() {
   const [binderEntry, setBinderEntry] = useState<any>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [preview, setPreview] = useState<{ src: string; x: number; y: number } | null>(null)
+  const [showShare, setShowShare] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const qc = useQueryClient()
 
@@ -106,6 +108,9 @@ export default function CollectionPage() {
           <p className="text-vault-muted text-sm mt-0.5">Todas as suas cartas</p>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
+            <Share2 size={16} /> Compartilhar
+          </button>
           <button onClick={handleExport} className="btn-ghost flex items-center gap-2">
             <Download size={16} /> Exportar
           </button>
@@ -360,6 +365,14 @@ export default function CollectionPage() {
             left: Math.min(preview.x + 24, window.innerWidth - 270),
             top: Math.min(Math.max(preview.y - 180, 8), window.innerHeight - 370),
           }}
+        />
+      )}
+
+      {showShare && (
+        <ShareModal
+          resourceType="collection"
+          resourcelabel={username ? `Coleção de ${username}` : 'Minha coleção'}
+          onClose={() => setShowShare(false)}
         />
       )}
 

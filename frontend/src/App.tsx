@@ -13,6 +13,9 @@ import DeckDetailPage from '@/pages/DeckDetailPage'
 import WishlistPage from '@/pages/WishlistPage'
 import SetsPage from '@/pages/SetsPage'
 import SetDetailPage from '@/pages/SetDetailPage'
+import FriendsPage from '@/pages/FriendsPage'
+import SharedWithMePage from '@/pages/SharedWithMePage'
+import PublicViewPage from '@/pages/PublicViewPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -24,6 +27,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/p/:token" element={<PublicViewPage />} />
       <Route
         path="/"
         element={
@@ -43,6 +47,8 @@ export default function App() {
         <Route path="wishlist" element={<WishlistPage />} />
         <Route path="sets" element={<SetsPage />} />
         <Route path="sets/:code" element={<SetDetailPage />} />
+        <Route path="friends" element={<FriendsPage />} />
+        <Route path="shared" element={<SharedWithMePage />} />
       </Route>
     </Routes>
   )

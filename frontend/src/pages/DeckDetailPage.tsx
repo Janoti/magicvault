@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi } from '@/lib/api'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
+import ShareModal from '@/components/sharing/ShareModal'
 
 export default function DeckDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -14,6 +15,7 @@ export default function DeckDetailPage() {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('list')
+  const [showShare, setShowShare] = useState(false)
   const qc = useQueryClient()
 
   const { data: deck, isLoading } = useQuery({
@@ -66,10 +68,17 @@ export default function DeckDetailPage() {
           </div>
           {deck?.description && <p className="text-sm text-vault-muted mt-0.5">{deck.description}</p>}
         </div>
+        <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
+          <Share2 size={16} /> Compartilhar
+        </button>
         <button onClick={() => setShowSearch(true)} className="btn-primary flex items-center gap-2">
           <Plus size={16} /> Adicionar Carta
         </button>
       </div>
+
+      {showShare && (
+        <ShareModal resourceType="deck" resourceId={deckId} resourcelabel={deck?.name} onClose={() => setShowShare(false)} />
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">

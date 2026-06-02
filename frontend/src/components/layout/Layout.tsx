@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
-  Library, Search, BookOpen, Layers, Star, Package, LogOut, User, Swords, ScanLine
+  Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { collectionApi } from '@/lib/api'
@@ -14,6 +14,8 @@ const navItems = [
   { to: '/decks', icon: Swords, label: 'Decks' },
   { to: '/wishlist', icon: Star, label: 'Wishlist' },
   { to: '/sets', icon: Package, label: 'Sets' },
+  { to: '/friends', icon: Users, label: 'Amigos' },
+  { to: '/shared', icon: Share2, label: 'Compartilhados' },
 ]
 
 export default function Layout() {

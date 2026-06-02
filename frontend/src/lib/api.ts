@@ -101,3 +101,25 @@ export const setsApi = {
   cards: (code: string) => api.get(`/api/sets/${code}/cards`).then(r => r.data),
   addAll: (code: string) => api.post(`/api/sets/${code}/add-all`).then(r => r.data),
 }
+
+// Friends
+export const friendsApi = {
+  list: () => api.get('/api/friends').then(r => r.data),
+  requests: () => api.get('/api/friends/requests').then(r => r.data),
+  request: (identifier: string) => api.post('/api/friends/request', { identifier }).then(r => r.data),
+  accept: (id: number) => api.post(`/api/friends/${id}/accept`).then(r => r.data),
+  remove: (id: number) => api.delete(`/api/friends/${id}`),
+}
+
+// Shares
+export const sharesApi = {
+  shareWithFriend: (data: { resource_type: string; resource_id?: number | null; friend_id: number }) =>
+    api.post('/api/shares', data).then(r => r.data),
+  createPublic: (data: { resource_type: string; resource_id?: number | null }) =>
+    api.post('/api/shares/public', data).then(r => r.data),
+  mine: () => api.get('/api/shares/mine').then(r => r.data),
+  withMe: () => api.get('/api/shares/with-me').then(r => r.data),
+  viewWithMe: (id: number) => api.get(`/api/shares/with-me/${id}`).then(r => r.data),
+  viewPublic: (token: string) => api.get(`/api/shares/public/${token}`).then(r => r.data),
+  remove: (id: number) => api.delete(`/api/shares/${id}`),
+}

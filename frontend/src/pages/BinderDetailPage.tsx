@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { bindersApi, collectionApi } from '@/lib/api'
-import { ArrowLeft, Plus, Trash2, GripVertical } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, GripVertical, Share2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
+import ShareModal from '@/components/sharing/ShareModal'
 
 export default function BinderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const binderId = Number(id)
   const [showAddCard, setShowAddCard] = useState(false)
+  const [showShare, setShowShare] = useState(false)
   const qc = useQueryClient()
 
   const { data: binder, isLoading } = useQuery({
@@ -67,10 +69,17 @@ export default function BinderDetailPage() {
             </div>
           </div>
         </div>
+        <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
+          <Share2 size={16} /> Compartilhar
+        </button>
         <button onClick={() => setShowAddCard(true)} className="btn-primary flex items-center gap-2">
           <Plus size={16} /> Adicionar Carta
         </button>
       </div>
+
+      {showShare && (
+        <ShareModal resourceType="binder" resourceId={binderId} resourcelabel={binder?.name} onClose={() => setShowShare(false)} />
+      )}
 
       {/* Stats bar */}
       <div className="surface p-4 mb-6 flex gap-6">
