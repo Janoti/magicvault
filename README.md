@@ -4,6 +4,13 @@ A full-featured manager for your **Magic: The Gathering** collection — track c
 build themed binders and decks, watch real-time prices, and import/export your
 collection. Card data and prices come from the free [Scryfall API](https://scryfall.com/docs/api).
 
+### 🔗 Live app: **[magicvault.onrender.com](https://magicvault.onrender.com/)**
+
+> Free to use — sign up, build your collection, and share decks, binders, or your
+> whole collection with friends or via a public link.
+>
+> *(Hosted on Render's free tier, so the first load may take a few seconds to wake up.)*
+
 ## 🧰 Stack
 
 | Layer | Technology |

@@ -18,6 +18,37 @@ async def _get(url: str, params: dict = None) -> Dict[str, Any]:
         return r.json()
 
 
+async def _post(url: str, json_body: dict) -> Dict[str, Any]:
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        r = await client.post(url, json=json_body)
+        r.raise_for_status()
+        return r.json()
+
+
+async def get_cards_bulk(scryfall_ids: List[str]) -> Dict[str, Dict[str, Any]]:
+    """Resolve many cards efficiently: serve from cache, then batch-fetch the rest
+    via Scryfall's /cards/collection endpoint (up to 75 ids per request)."""
+    result: Dict[str, Dict[str, Any]] = {}
+    missing: List[str] = []
+    for sid in dict.fromkeys(scryfall_ids):  # de-duplicate, preserve order
+        cached = await cache_get(f"scryfall:card:{sid}")
+        if cached:
+            result[sid] = cached
+        else:
+            missing.append(sid)
+
+    for i in range(0, len(missing), 75):
+        chunk = missing[i:i + 75]
+        try:
+            data = await _post(f"{BASE}/cards/collection", {"identifiers": [{"id": s} for s in chunk]})
+        except Exception:
+            continue
+        for card in data.get("data", []):
+            result[card["id"]] = card
+            await cache_set(f"scryfall:card:{card['id']}", card)
+    return result
+
+
 async def search_cards(query: str, page: int = 1) -> Dict[str, Any]:
     """Full-text search using Scryfall syntax."""
     cache_key = f"scryfall:search:{query}:{page}"

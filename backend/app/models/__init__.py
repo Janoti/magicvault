@@ -131,3 +131,30 @@ class WishlistEntry(Base):
     added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship(back_populates="wishlist")
+
+
+class Friendship(Base):
+    __tablename__ = "friendships"
+    __table_args__ = (
+        UniqueConstraint("requester_id", "addressee_id", name="uq_friendship"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    requester_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    addressee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    status: Mapped[str] = mapped_column(String(10), default="pending")  # pending | accepted
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Share(Base):
+    """A share is either with a specific friend (friend_id set) or a public link
+    (public_token set). resource_id is null for the whole collection."""
+    __tablename__ = "shares"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    resource_type: Mapped[str] = mapped_column(String(20))  # collection | binder | deck
+    resource_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    friend_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    public_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
@@ -43,6 +43,8 @@ app.include_router(binders.router, prefix="/api/binders", tags=["binders"])
 app.include_router(decks.router, prefix="/api/decks", tags=["decks"])
 app.include_router(wishlist.router, prefix="/api/wishlist", tags=["wishlist"])
 app.include_router(sets.router, prefix="/api/sets", tags=["sets"])
+app.include_router(friends.router, prefix="/api/friends", tags=["friends"])
+app.include_router(shares.router, prefix="/api/shares", tags=["shares"])
 
 
 @app.get("/api/health")
