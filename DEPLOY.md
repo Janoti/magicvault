@@ -28,7 +28,7 @@ Navegador ──HTTPS──> Render Web Service (magicvault)
 ## Passos
 
 ### 1. Suba o código pro GitHub
-Se ainda não fez (veja os comandos que o Claude rodou):
+Se ainda não fez:
 ```bash
 git push -u origin main
 ```
