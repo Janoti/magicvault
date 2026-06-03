@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { collectionApi, cardsApi, bindersApi, decksApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X } from 'lucide-react'
+import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import EditCardModal from '@/components/collection/EditCardModal'
@@ -261,7 +261,9 @@ export default function CollectionPage() {
         </div>
       ) : data?.items?.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-4xl mb-4">🃏</p>
+          <div className="w-20 h-20 rounded-2xl bg-vault-card border border-vault-border flex items-center justify-center mx-auto mb-4">
+            <BookOpen size={40} className="text-vault-muted/50" strokeWidth={1.5} />
+          </div>
           <p className="text-vault-muted mb-4">{t('col.empty')}</p>
           <Link to="/search" className="btn-primary inline-flex items-center gap-2">
             <Plus size={16} /> {t('col.searchCards')}
