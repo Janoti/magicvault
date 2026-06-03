@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { X, BookMarked, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { bindersApi } from '@/lib/api'
 
 interface AddToBinderModalProps {
@@ -13,6 +14,7 @@ interface AddToBinderModalProps {
 }
 
 export default function AddToBinderModal({ entry, card, onClose, onConfirm, isLoading }: AddToBinderModalProps) {
+  const { t } = useTranslation()
   const [selected, setSelected] = useState<number | null>(null)
 
   const { data: binders = [], isLoading: loadingBinders } = useQuery({
@@ -38,7 +40,7 @@ export default function AddToBinderModal({ entry, card, onClose, onConfirm, isLo
         >
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="font-display font-bold text-vault-gold">Adicionar a um binder</h3>
+              <h3 className="font-display font-bold text-vault-gold">{t('modal.addToBinder')}</h3>
               <p className="text-xs text-vault-muted">{card?.name || `Entrada #${entry.id}`}</p>
             </div>
             <button onClick={onClose} className="text-vault-muted hover:text-vault-text transition-colors">
@@ -51,9 +53,7 @@ export default function AddToBinderModal({ entry, card, onClose, onConfirm, isLo
               <div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
             </div>
           ) : binders.length === 0 ? (
-            <p className="text-center text-vault-muted text-sm py-8">
-              Você ainda não tem binders. Crie um em "Binders" primeiro.
-            </p>
+            <p className="text-center text-vault-muted text-sm py-8">{t('modal.noBinders')}</p>
           ) : (
             <div className="space-y-2 max-h-72 overflow-y-auto">
               {binders.map((b: any) => (
@@ -74,7 +74,7 @@ export default function AddToBinderModal({ entry, card, onClose, onConfirm, isLo
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-vault-text truncate">{b.name}</p>
-                    <p className="text-xs text-vault-muted">{b.card_count} cartas</p>
+                    <p className="text-xs text-vault-muted">{t('common.cardsCount', { count: b.card_count })}</p>
                   </div>
                   {selected === b.id && <Check size={16} className="text-vault-accent shrink-0" />}
                 </button>
@@ -83,7 +83,7 @@ export default function AddToBinderModal({ entry, card, onClose, onConfirm, isLo
           )}
 
           <div className="flex gap-3 mt-6">
-            <button onClick={onClose} className="btn-ghost flex-1">Cancelar</button>
+            <button onClick={onClose} className="btn-ghost flex-1">{t('common.cancel')}</button>
             <button
               onClick={() => selected != null && onConfirm(selected)}
               disabled={isLoading || selected == null || binders.length === 0}
@@ -91,7 +91,7 @@ export default function AddToBinderModal({ entry, card, onClose, onConfirm, isLo
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : 'Adicionar'}
+              ) : t('common.add')}
             </button>
           </div>
         </motion.div>

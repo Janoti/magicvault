@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 interface AddCardModalProps {
   card: any
@@ -21,6 +22,7 @@ const conditions = [
 const languages = ['en', 'pt', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'ru', 'zh']
 
 export default function AddCardModal({ card, onClose, onConfirm, isLoading }: AddCardModalProps) {
+  const { t } = useTranslation()
   const [quantity, setQuantity] = useState(1)
   const [condition, setCondition] = useState('NM')
   const [foil, setFoil] = useState(false)
@@ -66,7 +68,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
 
           <div className="space-y-4">
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Quantidade</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.quantity')}</label>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -85,7 +87,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
             </div>
 
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Condição</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.condition')}</label>
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value)}
@@ -98,7 +100,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
             </div>
 
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Idioma</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.language')}</label>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
@@ -121,7 +123,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
                 <div className="w-10 h-5 bg-vault-card border border-vault-border rounded-full peer peer-checked:bg-vault-accent peer-checked:border-vault-accent transition-all after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
               </label>
               <span className="text-sm text-vault-text">
-                Foil
+                {t('modal.foil')}
                 {foil && card.price_usd_foil > 0 && (
                   <span className="ml-2 text-xs font-mono text-yellow-400">${card.price_usd_foil?.toFixed(2)}</span>
                 )}
@@ -130,7 +132,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
           </div>
 
           <div className="flex gap-3 mt-6">
-            <button onClick={onClose} className="btn-ghost flex-1">Cancelar</button>
+            <button onClick={onClose} className="btn-ghost flex-1">{t('common.cancel')}</button>
             <button
               onClick={handleSubmit}
               disabled={isLoading}
@@ -138,7 +140,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : 'Adicionar à Coleção'}
+              ) : t('modal.addToCollection')}
             </button>
           </div>
         </motion.div>

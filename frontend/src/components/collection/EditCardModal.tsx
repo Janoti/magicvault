@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 interface EditCardModalProps {
   entry: any
@@ -20,6 +21,7 @@ const conditions = [
 ]
 
 export default function EditCardModal({ entry, card, onClose, onConfirm, isLoading }: EditCardModalProps) {
+  const { t } = useTranslation()
   const [quantity, setQuantity] = useState<number>(entry.quantity ?? 1)
   const [condition, setCondition] = useState<string>(entry.condition ?? 'NM')
   const [foil, setFoil] = useState<boolean>(!!entry.foil)
@@ -51,7 +53,7 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
                 <img src={card.image_small} alt={card.name} className="w-14 rounded-lg shadow-lg" />
               )}
               <div>
-                <h3 className="font-display font-bold text-vault-gold">{card?.name || 'Editar carta'}</h3>
+                <h3 className="font-display font-bold text-vault-gold">{card?.name || t('modal.editCard')}</h3>
                 {card && (
                   <p className="text-xs text-vault-muted">{card.set?.toUpperCase()} • #{card.collector_number}</p>
                 )}
@@ -64,7 +66,7 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
 
           <div className="space-y-4">
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Quantidade</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.quantity')}</label>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -83,7 +85,7 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
             </div>
 
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Condição</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.condition')}</label>
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value)}
@@ -96,11 +98,11 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
             </div>
 
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">Notas</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.notes')}</label>
               <input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Opcional"
+                placeholder={t('modal.optional')}
                 className="input-field"
               />
             </div>
@@ -115,16 +117,14 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
                 />
                 <div className="w-10 h-5 bg-vault-card border border-vault-border rounded-full peer peer-checked:bg-vault-accent peer-checked:border-vault-accent transition-all after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
               </label>
-              <span className="text-sm text-vault-text">Foil</span>
+              <span className="text-sm text-vault-text">{t('modal.foil')}</span>
             </div>
 
-            <p className="text-[11px] text-vault-muted">
-              Dica: se mudar condição/foil para uma combinação que já existe, as quantidades são mescladas.
-            </p>
+            <p className="text-[11px] text-vault-muted">{t('modal.mergeHint')}</p>
           </div>
 
           <div className="flex gap-3 mt-6">
-            <button onClick={onClose} className="btn-ghost flex-1">Cancelar</button>
+            <button onClick={onClose} className="btn-ghost flex-1">{t('common.cancel')}</button>
             <button
               onClick={handleSubmit}
               disabled={isLoading}
@@ -132,7 +132,7 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : 'Salvar'}
+              ) : t('common.save')}
             </button>
           </div>
         </motion.div>

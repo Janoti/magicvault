@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { X, Users, Link2, Check, Copy } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { friendsApi, sharesApi } from '@/lib/api'
 
 interface ShareModalProps {
@@ -12,6 +13,7 @@ interface ShareModalProps {
 }
 
 export default function ShareModal({ resourceType, resourceId = null, resourcelabel, onClose }: ShareModalProps) {
+  const { t } = useTranslation()
   const [sharedFriends, setSharedFriends] = useState<number[]>([])
   const [publicUrl, setPublicUrl] = useState<string | null>(null)
   const [copying, setCopying] = useState(false)
@@ -55,7 +57,7 @@ export default function ShareModal({ resourceType, resourceId = null, resourcela
         >
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="font-display font-bold text-vault-gold">Compartilhar</h3>
+              <h3 className="font-display font-bold text-vault-gold">{t('modal.shareTitle')}</h3>
               <p className="text-xs text-vault-muted">{resourcelabel || resourceType}</p>
             </div>
             <button onClick={onClose} className="text-vault-muted hover:text-vault-text"><X size={18} /></button>
@@ -63,7 +65,7 @@ export default function ShareModal({ resourceType, resourceId = null, resourcela
 
           {/* Public link */}
           <div className="mb-5">
-            <p className="text-xs text-vault-muted font-medium mb-2 flex items-center gap-2"><Link2 size={13} /> Link público</p>
+            <p className="text-xs text-vault-muted font-medium mb-2 flex items-center gap-2"><Link2 size={13} /> {t('modal.publicLink')}</p>
             {publicUrl ? (
               <div className="flex gap-2">
                 <input readOnly value={publicUrl} className="input-field text-xs flex-1" onFocus={e => e.target.select()} />
@@ -73,17 +75,17 @@ export default function ShareModal({ resourceType, resourceId = null, resourcela
               </div>
             ) : (
               <button onClick={makePublic} disabled={busy} className="btn-ghost w-full text-sm disabled:opacity-40">
-                Gerar link público (qualquer um com o link vê)
+                {t('modal.generateLink')}
               </button>
             )}
           </div>
 
           {/* Friends */}
-          <p className="text-xs text-vault-muted font-medium mb-2 flex items-center gap-2"><Users size={13} /> Amigos</p>
+          <p className="text-xs text-vault-muted font-medium mb-2 flex items-center gap-2"><Users size={13} /> {t('modal.friends')}</p>
           {isLoading ? (
             <div className="py-6 flex justify-center"><div className="w-5 h-5 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" /></div>
           ) : friends.length === 0 ? (
-            <p className="text-xs text-vault-muted py-4 text-center">Você ainda não tem amigos. Adicione em "Amigos".</p>
+            <p className="text-xs text-vault-muted py-4 text-center">{t('modal.noFriendsShare')}</p>
           ) : (
             <div className="space-y-2 max-h-56 overflow-y-auto">
               {friends.map((f: any) => {
@@ -96,7 +98,7 @@ export default function ShareModal({ resourceType, resourceId = null, resourcela
                       disabled={busy || done}
                       className={`text-xs px-3 py-1 rounded-lg transition-colors ${done ? 'text-green-400' : 'text-vault-accent hover:bg-vault-accent/10'}`}
                     >
-                      {done ? <span className="flex items-center gap-1"><Check size={13} /> Compartilhado</span> : 'Compartilhar'}
+                      {done ? <span className="flex items-center gap-1"><Check size={13} /> {t('modal.shared')}</span> : t('common.share')}
                     </button>
                   </div>
                 )
