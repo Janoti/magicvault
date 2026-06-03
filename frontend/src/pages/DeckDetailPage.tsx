@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi } from '@/lib/api'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
@@ -10,6 +10,25 @@ import DeckAnalysis from '@/components/decks/DeckAnalysis'
 import DeckCompare from '@/components/decks/DeckCompare'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useTranslation } from 'react-i18next'
+
+const ROLE_STYLE: Record<string, string> = {
+  ramp: 'bg-green-500/15 text-green-400',
+  draw: 'bg-blue-500/15 text-blue-400',
+  removal: 'bg-red-500/15 text-red-400',
+  wipe: 'bg-orange-500/15 text-orange-400',
+  interaction: 'bg-purple-500/15 text-purple-300',
+  finisher: 'bg-vault-gold/15 text-vault-gold',
+}
+
+function RoleTag({ role }: { role?: string }) {
+  const { t } = useTranslation()
+  if (!role || !ROLE_STYLE[role]) return null
+  return (
+    <span className={`inline-block mr-2 align-middle text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded ${ROLE_STYLE[role]}`}>
+      {t(`analysis.cat_${role}`)}
+    </span>
+  )
+}
 
 export default function DeckDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -23,6 +42,8 @@ export default function DeckDetailPage() {
   const [showCoverage, setShowCoverage] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [showCompare, setShowCompare] = useState(false)
+  const [showExport, setShowExport] = useState(false)
+  const [copied, setCopied] = useState(false)
   const { t } = useTranslation()
   const qc = useQueryClient()
 
@@ -67,6 +88,28 @@ export default function DeckDetailPage() {
   const totalCards = mainboard.reduce((s: number, c: any) => s + c.quantity, 0)
   const totalValue = deck?.cards?.reduce((s: number, c: any) => s + (c.card?.price_usd || 0) * c.quantity, 0) || 0
 
+  // Build a plain decklist (Moxfield/Arena compatible).
+  const buildDecklist = () => {
+    const line = (c: any) => `${c.quantity} ${c.card?.name || c.card?.id}`
+    const parts: string[] = []
+    if (commanders.length) parts.push('Commander', ...commanders.map(line), '')
+    parts.push('Deck', ...mainboard.map(line))
+    if (sideboard.length) parts.push('', 'Sideboard', ...sideboard.map(line))
+    return parts.join('\n')
+  }
+
+  const copyDecklist = async () => {
+    try { await navigator.clipboard.writeText(buildDecklist()); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch {}
+  }
+  const downloadDecklist = () => {
+    const blob = new Blob([buildDecklist()], { type: 'text/plain' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${(deck?.name || 'deck').replace(/[^a-z0-9]+/gi, '_')}.txt`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
       <div className="w-8 h-8 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
@@ -94,6 +137,9 @@ export default function DeckDetailPage() {
         >
           {deck?.is_public ? <Globe size={16} /> : <Lock size={16} />}
           {deck?.is_public ? t('detail.public') : t('detail.private')}
+        </button>
+        <button onClick={() => setShowExport(true)} className="btn-ghost flex items-center gap-2">
+          <Download size={16} /> {t('detail.export')}
         </button>
         <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
           <Share2 size={16} /> {t('common.share')}
@@ -127,6 +173,34 @@ export default function DeckDetailPage() {
       {showShare && (
         <ShareModal resourceType="deck" resourceId={deckId} resourcelabel={deck?.name} onClose={() => setShowShare(false)} />
       )}
+
+      {/* Export decklist */}
+      <AnimatePresence>
+        {showExport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowExport(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="relative z-10 surface p-6 w-full max-w-md">
+              <h3 className="font-display font-bold text-vault-gold mb-1">{t('detail.exportTitle')}</h3>
+              <p className="text-xs text-vault-muted mb-3">{t('detail.exportHint')}</p>
+              <textarea
+                readOnly value={buildDecklist()}
+                className="input-field resize-none font-mono text-xs w-full h-56 mb-3"
+                onFocus={(e) => e.target.select()}
+              />
+              <div className="flex gap-2">
+                <button onClick={copyDecklist} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                  {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? t('detail.copied') : t('detail.copy')}
+                </button>
+                <button onClick={downloadDecklist} className="btn-ghost flex items-center gap-2">
+                  <Download size={15} /> .txt
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Compare with another deck */}
       <AnimatePresence>
@@ -305,7 +379,8 @@ export default function DeckDetailPage() {
                         <td className="px-4 py-2.5 text-center">
                           <span className="font-mono font-bold text-vault-accent">×{entry.quantity}</span>
                         </td>
-                        <td className="px-4 py-2.5 text-xs text-vault-muted truncate max-w-[200px]">
+                        <td className="px-4 py-2.5 text-xs text-vault-muted truncate max-w-[240px]">
+                          <RoleTag role={entry.role} />
                           {entry.card?.type_line}
                         </td>
                         <td className="px-4 py-2.5 text-right text-xs">

@@ -355,9 +355,14 @@ async def get_deck(deck_id: int, current_user: User = Depends(get_current_user),
     for dc in cards_r.scalars().all():
         try:
             card = extract_card_summary(await get_card_by_id(dc.scryfall_id))
+            cats = _categorize(card.get("oracle_text", ""), card.get("type_line", ""), card.get("power"))
         except Exception:
             card = {"id": dc.scryfall_id}
-        cards.append({"id": dc.id, "quantity": dc.quantity, "is_sideboard": dc.is_sideboard, "is_commander": dc.is_commander, "card": card})
+            cats = ["other"]
+        # The most informative role for the card (skip the generic ones for the tag).
+        primary = next((c for c in cats if c not in ("other", "land")), cats[0] if cats else "other")
+        cards.append({"id": dc.id, "quantity": dc.quantity, "is_sideboard": dc.is_sideboard,
+                      "is_commander": dc.is_commander, "card": card, "role": primary})
 
     return {"id": deck.id, "name": deck.name, "format": deck.format,
             "description": deck.description, "is_public": deck.is_public, "cards": cards}
