@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check } from 'lucide-react'
+import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2 } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
@@ -26,9 +27,22 @@ export default function AdminPage() {
   const { data: users = [], isLoading } = useQuery({ queryKey: ['admin-users'], queryFn: adminApi.users })
   const { data: feedback = [] } = useQuery({ queryKey: ['admin-feedback'], queryFn: adminApi.feedback })
 
+  const [editEmailFor, setEditEmailFor] = useState<any>(null)
+  const [emailValue, setEmailValue] = useState('')
+
   const mutation = useMutation({
     mutationFn: (v: { id: number; data: object }) => adminApi.updateUser(v.id, v.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  })
+  const emailMutation = useMutation({
+    mutationFn: (v: { id: number; email: string }) => adminApi.updateUser(v.id, { email: v.email }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); setEditEmailFor(null) },
+    onError: (e: any) => alert(e?.response?.data?.detail || 'Erro ao atualizar email'),
+  })
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => adminApi.deleteUser(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); qc.invalidateQueries({ queryKey: ['admin-stats'] }) },
+    onError: (e: any) => alert(e?.response?.data?.detail || 'Erro ao deletar'),
   })
 
   const fbMutation = useMutation({
@@ -75,11 +89,12 @@ export default function AdminPage() {
               <th className="text-center px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.isAdmin')}</th>
               <th className="text-center px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.premium')}</th>
               <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.joined')}</th>
+              <th className="text-right px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={5} className="text-center py-10"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin mx-auto" /></td></tr>
+              <tr><td colSpan={6} className="text-center py-10"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin mx-auto" /></td></tr>
             ) : users.map((u: any) => {
               const self = u.id === me?.id
               return (
@@ -97,6 +112,17 @@ export default function AdminPage() {
                   <td className="px-4 py-3 text-center"><div className="flex justify-center"><Toggle on={u.is_admin} disabled={self} onClick={() => mutation.mutate({ id: u.id, data: { is_admin: !u.is_admin } })} /></div></td>
                   <td className="px-4 py-3 text-center"><div className="flex justify-center"><Toggle on={u.is_premium} onClick={() => mutation.mutate({ id: u.id, data: { is_premium: !u.is_premium } })} /></div></td>
                   <td className="px-4 py-3 text-xs text-vault-muted">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => { setEditEmailFor(u); setEmailValue(u.email) }} title={t('admin.editEmail')} className="text-vault-muted hover:text-vault-accent"><Pencil size={14} /></button>
+                      {!self && (
+                        <button
+                          onClick={() => { if (confirm(t('admin.confirmDelete', { name: u.username }))) deleteMutation.mutate(u.id) }}
+                          title={t('admin.deleteUser')} className="text-vault-muted hover:text-red-400"
+                        ><Trash2 size={14} /></button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               )
             })}
@@ -138,6 +164,30 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* Edit email modal */}
+      {editEmailFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setEditEmailFor(null)} />
+          <div className="relative z-10 surface p-6 w-full max-w-sm">
+            <h3 className="font-display font-bold text-vault-gold mb-1">{t('admin.editEmail')}</h3>
+            <p className="text-xs text-vault-muted mb-4">@{editEmailFor.username}</p>
+            <input
+              type="email" className="input-field w-full mb-4" value={emailValue}
+              onChange={(e) => setEmailValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && emailValue.includes('@')) emailMutation.mutate({ id: editEmailFor.id, email: emailValue }) }}
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setEditEmailFor(null)} className="btn-ghost flex-1">{t('common.cancel')}</button>
+              <button
+                onClick={() => emailMutation.mutate({ id: editEmailFor.id, email: emailValue })}
+                disabled={emailMutation.isPending || !emailValue.includes('@')}
+                className="btn-primary flex-1 disabled:opacity-50"
+              >{t('common.save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
-from pydantic import BaseModel
+from sqlalchemy import select, func, desc, delete, or_
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 from app.core.database import get_db
 from app.core.security import get_current_admin
-from app.models.user import User, CollectionEntry, Deck, Binder, Feedback
+from app.models.user import (
+    User, CollectionEntry, Binder, BinderCard, Deck, DeckCard, WishlistEntry,
+    Friendship, Share, PasswordResetToken, Feedback, Listing, Interest, Message,
+)
 
 router = APIRouter()
 
@@ -15,6 +18,7 @@ class UpdateUserAdmin(BaseModel):
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
     is_premium: Optional[bool] = None
+    email: Optional[EmailStr] = None
 
 
 @router.get("/stats")
@@ -58,7 +62,46 @@ async def update_user(
         user.is_admin = data.is_admin
     if data.is_premium is not None:
         user.is_premium = data.is_premium
+    if data.email is not None and data.email != user.email:
+        dup = (await db.execute(select(User).where(func.lower(User.email) == data.email.lower(), User.id != user.id))).scalar_one_or_none()
+        if dup:
+            raise HTTPException(status_code=400, detail="Email já em uso")
+        user.email = data.email
     return {"message": "Atualizado"}
+
+
+@router.delete("/users/{user_id}", status_code=204)
+async def delete_user(user_id: int, admin: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    """Permanently delete a user and everything tied to it."""
+    if user_id == admin.id:
+        raise HTTPException(status_code=400, detail="Você não pode deletar sua própria conta")
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # Collect dependent ids so we can delete children before parents (no cascade FKs).
+    listing_ids = [r[0] for r in (await db.execute(select(Listing.id).where(Listing.user_id == user_id))).all()]
+    interest_ids = [r[0] for r in (await db.execute(
+        select(Interest.id).where(or_(Interest.buyer_id == user_id, Interest.listing_id.in_(listing_ids or [-1])))
+    )).all()]
+    binder_ids = [r[0] for r in (await db.execute(select(Binder.id).where(Binder.user_id == user_id))).all()]
+    deck_ids = [r[0] for r in (await db.execute(select(Deck.id).where(Deck.user_id == user_id))).all()]
+    entry_ids = [r[0] for r in (await db.execute(select(CollectionEntry.id).where(CollectionEntry.user_id == user_id))).all()]
+
+    await db.execute(delete(Message).where(or_(Message.sender_id == user_id, Message.interest_id.in_(interest_ids or [-1]))))
+    await db.execute(delete(Interest).where(Interest.id.in_(interest_ids or [-1])))
+    await db.execute(delete(Listing).where(Listing.user_id == user_id))
+    await db.execute(delete(BinderCard).where(or_(BinderCard.binder_id.in_(binder_ids or [-1]), BinderCard.collection_entry_id.in_(entry_ids or [-1]))))
+    await db.execute(delete(DeckCard).where(DeckCard.deck_id.in_(deck_ids or [-1])))
+    await db.execute(delete(CollectionEntry).where(CollectionEntry.user_id == user_id))
+    await db.execute(delete(Binder).where(Binder.user_id == user_id))
+    await db.execute(delete(Deck).where(Deck.user_id == user_id))
+    await db.execute(delete(WishlistEntry).where(WishlistEntry.user_id == user_id))
+    await db.execute(delete(Friendship).where(or_(Friendship.requester_id == user_id, Friendship.addressee_id == user_id)))
+    await db.execute(delete(Share).where(or_(Share.owner_id == user_id, Share.friend_id == user_id)))
+    await db.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user_id))
+    await db.execute(delete(Feedback).where(Feedback.user_id == user_id))
+    await db.execute(delete(User).where(User.id == user_id))
 
 
 @router.get("/feedback")

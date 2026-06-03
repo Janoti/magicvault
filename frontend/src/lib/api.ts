@@ -89,6 +89,7 @@ export const adminApi = {
   stats: () => api.get('/api/admin/stats').then(r => r.data),
   users: () => api.get('/api/admin/users').then(r => r.data),
   updateUser: (id: number, data: object) => api.patch(`/api/admin/users/${id}`, data).then(r => r.data),
+  deleteUser: (id: number) => api.delete(`/api/admin/users/${id}`).then(r => r.data),
   feedback: () => api.get('/api/admin/feedback').then(r => r.data),
   resolveFeedback: (id: number, status: string) => api.patch(`/api/admin/feedback/${id}`, { status }).then(r => r.data),
 }
