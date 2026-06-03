@@ -8,11 +8,13 @@ import EditCardModal from '@/components/collection/EditCardModal'
 import AddToBinderModal from '@/components/collection/AddToBinderModal'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useAuthStore } from '@/store/auth'
+import { useTranslation } from 'react-i18next'
 
 const CONDITIONS = ['', 'M', 'NM', 'LP', 'MP', 'HP', 'DMG']
 
 export default function CollectionPage() {
   const username = useAuthStore((s) => s.user?.username)
+  const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(24)
   const [condition, setCondition] = useState('')
@@ -58,9 +60,9 @@ export default function CollectionPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['binders'] })
       setBinderEntry(null)
-      setNotice('Carta adicionada ao binder.')
+      setNotice(t('col.addedToBinder'))
     },
-    onError: () => setNotice('Erro ao adicionar ao binder.'),
+    onError: () => setNotice(t('col.binderError')),
   })
 
   const importMutation = useMutation({
@@ -68,9 +70,9 @@ export default function CollectionPage() {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['collection'] })
       qc.invalidateQueries({ queryKey: ['collection-stats'] })
-      setNotice(`Importação: ${res.imported} novas, ${res.updated} incrementadas, ${res.skipped} ignoradas.`)
+      setNotice(t('col.importResult', { imported: res.imported, updated: res.updated, skipped: res.skipped }))
     },
-    onError: () => setNotice('Erro ao importar o CSV.'),
+    onError: () => setNotice(t('col.importError')),
   })
 
   const handleExport = async () => {
@@ -83,7 +85,7 @@ export default function CollectionPage() {
       a.click()
       URL.revokeObjectURL(url)
     } catch {
-      setNotice('Erro ao exportar.')
+      setNotice(t('col.exportError'))
     }
   }
 
@@ -106,16 +108,16 @@ export default function CollectionPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display text-3xl font-bold text-vault-gold">
-            Coleção {username ? `de ${username}` : ''}
+            {username ? t('col.title', { name: username }) : t('col.titlePlain')}
           </h1>
-          <p className="text-vault-muted text-sm mt-0.5">Todas as suas cartas</p>
+          <p className="text-vault-muted text-sm mt-0.5">{t('col.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
-            <Share2 size={16} /> Compartilhar
+            <Share2 size={16} /> {t('common.share')}
           </button>
           <button onClick={handleExport} className="btn-ghost flex items-center gap-2">
-            <Download size={16} /> Exportar
+            <Download size={16} /> {t('col.export')}
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -125,7 +127,7 @@ export default function CollectionPage() {
             {importMutation.isPending ? (
               <div className="w-4 h-4 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
             ) : <Upload size={16} />}
-            Importar
+            {t('col.import')}
           </button>
           <input
             ref={fileInputRef}
@@ -135,7 +137,7 @@ export default function CollectionPage() {
             onChange={handleImportFile}
           />
           <Link to="/search" className="btn-primary flex items-center gap-2">
-            <Plus size={16} /> Adicionar Cartas
+            <Plus size={16} /> {t('col.addCards')}
           </Link>
         </div>
       </div>
@@ -151,14 +153,14 @@ export default function CollectionPage() {
       <div className="flex flex-wrap gap-3 mb-6 surface p-4">
         <div className="flex items-center gap-2">
           <Filter size={14} className="text-vault-muted" />
-          <span className="text-xs text-vault-muted font-medium">Filtros:</span>
+          <span className="text-xs text-vault-muted font-medium">{t('col.filters')}</span>
         </div>
         <select
           value={condition}
           onChange={(e) => { setCondition(e.target.value); setPage(1) }}
           className="input-field !w-auto text-xs"
         >
-          <option value="">Todas as condições</option>
+          <option value="">{t('col.allConditions')}</option>
           {CONDITIONS.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select
@@ -166,7 +168,7 @@ export default function CollectionPage() {
           onChange={(e) => { setSetCode(e.target.value); setPage(1) }}
           className="input-field !w-auto text-xs max-w-[180px]"
         >
-          <option value="">Todos os sets</option>
+          <option value="">{t('col.allSets')}</option>
           {collectionSets.map((s: any) => (
             <option key={s.code} value={s.code}>{s.name} ({s.count})</option>
           ))}
@@ -176,17 +178,16 @@ export default function CollectionPage() {
           onChange={(e) => { setFoil(e.target.value === '' ? undefined : e.target.value === 'true'); setPage(1) }}
           className="input-field !w-auto text-xs"
         >
-          <option value="">Normal + Foil</option>
-          <option value="false">Normal</option>
-          <option value="true">⚡ Foil</option>
+          <option value="">{t('col.normalFoil')}</option>
+          <option value="false">{t('col.normal')}</option>
+          <option value="true">{t('col.foil')}</option>
         </select>
         <select
           value={perPage}
           onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }}
           className="input-field !w-auto text-xs ml-auto"
-          title="Cartas por página"
         >
-          {[12, 24, 48, 100].map(n => <option key={n} value={n}>{n} / página</option>)}
+          {[12, 24, 48, 100].map(n => <option key={n} value={n}>{t('col.perPage', { n })}</option>)}
         </select>
       </div>
 
@@ -197,9 +198,9 @@ export default function CollectionPage() {
       ) : data?.items?.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-4xl mb-4">🃏</p>
-          <p className="text-vault-muted mb-4">Sua coleção está vazia</p>
+          <p className="text-vault-muted mb-4">{t('col.empty')}</p>
           <Link to="/search" className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} /> Buscar Cartas
+            <Plus size={16} /> {t('col.searchCards')}
           </Link>
         </div>
       ) : (
@@ -209,14 +210,14 @@ export default function CollectionPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-vault-border bg-vault-surface">
-                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Carta</th>
-                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Set</th>
-                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Qtd</th>
-                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Cond.</th>
-                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Foil</th>
-                  <th className="text-right px-4 py-3 text-xs text-vault-muted font-medium">Valor</th>
-                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">Adicionado</th>
-                  <th className="text-right px-4 py-3 text-xs text-vault-muted font-medium">Ações</th>
+                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thCard')}</th>
+                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thSet')}</th>
+                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thQty')}</th>
+                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thCond')}</th>
+                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thFoil')}</th>
+                  <th className="text-right px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thValue')}</th>
+                  <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thAdded')}</th>
+                  <th className="text-right px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -295,7 +296,7 @@ export default function CollectionPage() {
                             <div className="leading-tight">
                               <span className="font-mono font-bold text-green-400">${(unit * entry.quantity).toFixed(2)}</span>
                               {entry.quantity > 1 && (
-                                <p className="text-[10px] text-vault-muted font-mono">${unit.toFixed(2)} un.</p>
+                                <p className="text-[10px] text-vault-muted font-mono">{t('col.perUnit', { price: `$${unit.toFixed(2)}` })}</p>
                               )}
                             </div>
                           )
@@ -308,7 +309,7 @@ export default function CollectionPage() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setEditEntry(entry)}
-                            title="Editar"
+                            title={t('col.editTip')}
                             className="text-vault-muted hover:text-vault-accent transition-colors p-1.5 rounded-lg hover:bg-vault-accent/10"
                           >
                             <Pencil size={14} />
@@ -316,7 +317,7 @@ export default function CollectionPage() {
                           {binders.length > 0 && (
                             <button
                               onClick={() => setBinderEntry(entry)}
-                              title="Adicionar a um binder"
+                              title={t('col.binderTip')}
                               className="text-vault-muted hover:text-vault-gold transition-colors p-1.5 rounded-lg hover:bg-vault-gold/10"
                             >
                               <BookMarked size={14} />
@@ -324,7 +325,7 @@ export default function CollectionPage() {
                           )}
                           <button
                             onClick={() => removeMutation.mutate(entry.id)}
-                            title="Remover"
+                            title={t('col.removeTip')}
                             className="text-vault-muted hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-400/10"
                           >
                             <Trash2 size={14} />
@@ -341,7 +342,7 @@ export default function CollectionPage() {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <p className="text-xs text-vault-muted">
-              {data?.total} cartas no total
+              {t('col.totalCards', { count: data?.total ?? 0 })}
               {(() => {
                 const pageValue = (data?.items || []).reduce((sum: number, e: any) => {
                   const c = cardDetails[e.scryfall_id]
@@ -349,7 +350,7 @@ export default function CollectionPage() {
                   return sum + unit * e.quantity
                 }, 0)
                 return pageValue > 0 ? (
-                  <> • <span className="text-green-400 font-mono font-semibold">${pageValue.toFixed(2)}</span> nesta página</>
+                  <> • <span className="text-green-400 font-mono font-semibold">${pageValue.toFixed(2)}</span> {t('col.onThisPage')}</>
                 ) : null
               })()}
             </p>
