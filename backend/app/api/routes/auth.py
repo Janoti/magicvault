@@ -36,6 +36,8 @@ class UserOut(BaseModel):
     avatar: Optional[str] = None
     bio: Optional[str] = None
     links: List[LinkItem] = []
+    is_admin: bool = False
+    is_premium: bool = False
 
 
 def to_user_out(u: User) -> UserOut:
@@ -43,6 +45,7 @@ def to_user_out(u: User) -> UserOut:
         id=u.id, email=u.email, username=u.username,
         display_name=u.display_name, avatar=u.avatar, bio=u.bio,
         links=json.loads(u.links) if u.links else [],
+        is_admin=bool(u.is_admin), is_premium=bool(u.is_premium),
     )
 
 

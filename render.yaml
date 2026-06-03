@@ -51,3 +51,5 @@ services:
         sync: false # set in the Render dashboard; empty = reset links only logged
       - key: EMAIL_FROM
         value: VaultSpell <noreply@vaultspell.com>
+      - key: ADMIN_EMAIL
+        sync: false # set to your account email in the dashboard to become admin

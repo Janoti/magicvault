@@ -8,7 +8,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
@@ -22,6 +22,8 @@ _COLUMN_MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(255)",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS links TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE",
 ]
 
 
@@ -31,6 +33,12 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         for stmt in _COLUMN_MIGRATIONS:
             await conn.execute(text(stmt))
+        # Bootstrap: make the configured email an admin (so there's a first admin).
+        if settings.admin_email:
+            await conn.execute(
+                text("UPDATE users SET is_admin = TRUE WHERE lower(email) = :e"),
+                {"e": settings.admin_email.strip().lower()},
+            )
     yield
 
 
@@ -59,6 +67,7 @@ app.include_router(sets.router, prefix="/api/sets", tags=["sets"])
 app.include_router(friends.router, prefix="/api/friends", tags=["friends"])
 app.include_router(shares.router, prefix="/api/shares", tags=["shares"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 
 @app.get("/api/health")

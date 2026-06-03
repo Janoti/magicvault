@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     app_url: str = "http://localhost:5173"  # base URL the reset link points to
     reset_token_expire_minutes: int = 60
 
+    admin_email: str = ""  # this account is promoted to admin on startup
+
     class Config:
         env_file = ".env"
         case_sensitive = False
