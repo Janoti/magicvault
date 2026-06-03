@@ -6,6 +6,14 @@ import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
 
+// Only allow http(s) links (blocks javascript:/data: XSS in user-supplied URLs).
+const safeUrl = (u: string) => {
+  const v = (u || '').trim()
+  if (/^https?:\/\//i.test(v)) return v
+  if (/^(javascript|data|vbscript|file):/i.test(v)) return '#'
+  return v ? `https://${v}` : '#'
+}
+
 export default function ProfilePage() {
   const { username = '' } = useParams()
   const { t } = useTranslation()
@@ -63,7 +71,7 @@ export default function ProfilePage() {
           {data.links?.length > 0 && (
             <div className="surface p-5 space-y-2">
               {data.links.map((l: any, i: number) => (
-                <a key={i} href={l.url} target="_blank" rel="noreferrer"
+                <a key={i} href={safeUrl(l.url)} target="_blank" rel="noreferrer"
                   className="flex items-center justify-between p-2.5 rounded-lg border border-vault-border hover:border-vault-accent/40 text-sm text-vault-text transition-all">
                   {l.label}
                   <ExternalLink size={14} className="text-vault-muted" />

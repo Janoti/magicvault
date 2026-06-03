@@ -105,9 +105,16 @@ async def webhook(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         if settings.stripe_webhook_secret:
             event = stripe.Webhook.construct_event(payload, sig, settings.stripe_webhook_secret)
-        else:
+        elif settings.environment != "production":
+            # Dev convenience only: never trust an unsigned webhook in production,
+            # otherwise anyone could POST a fake event to grant themselves premium.
             import json
             event = json.loads(payload)
+        else:
+            logger.error("Stripe webhook secret not configured in production — rejecting")
+            raise HTTPException(status_code=400, detail="Webhook not configured")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("Stripe webhook verify failed: %s", e)
         raise HTTPException(status_code=400, detail="Invalid payload")

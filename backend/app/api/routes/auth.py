@@ -34,6 +34,21 @@ def _validate_username(username: str) -> str:
     return u
 
 
+def _sanitize_links(items) -> list[dict]:
+    """Keep only safe http(s) links (prevents javascript:/data: XSS in profiles)."""
+    out = []
+    for l in (items or [])[:10]:  # cap the number of links
+        url = (l.url or "").strip()
+        if url.lower().startswith(("javascript:", "data:", "vbscript:", "file:")):
+            continue
+        if not re.match(r"^https?://", url, re.I):
+            if not url:
+                continue
+            url = "https://" + url.lstrip("/")
+        out.append({"label": (l.label or "").strip()[:60], "url": url[:300]})
+    return out
+
+
 class UserRegister(BaseModel):
     email: EmailStr
     username: str
@@ -168,7 +183,7 @@ async def update_me(
     if data.bio is not None:
         current_user.bio = (data.bio or None) and data.bio[:MAX_BIO_LEN]
     if data.links is not None:
-        current_user.links = json.dumps([l.model_dump() for l in data.links])
+        current_user.links = json.dumps(_sanitize_links(data.links))
 
     await db.flush()
     return to_user_out(current_user)
