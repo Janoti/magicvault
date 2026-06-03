@@ -113,6 +113,7 @@ export default function AccountPage() {
           <div>
             <label className="text-xs text-vault-muted font-medium mb-1.5 block">{t('account.username')}</label>
             <input className="input-field" value={username} onChange={e => setUsername(e.target.value)} />
+            <p className="text-[11px] text-vault-muted mt-1">{t('account.usernameHint')}</p>
           </div>
           <div>
             <label className="text-xs text-vault-muted font-medium mb-1.5 block">{t('account.email')}</label>

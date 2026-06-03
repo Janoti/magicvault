@@ -185,7 +185,8 @@
     "viewProfile": "View public profile",
     "memberSince": "Member since",
     "noBio": "No bio yet.",
-    "upload": "Upload image"
+    "upload": "Upload image",
+    "usernameHint": "Used in your links (vaultspell.com/u/username). Unique."
   },
   "modal": {
     "quantity": "Quantity",
