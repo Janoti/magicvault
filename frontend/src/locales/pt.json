@@ -107,6 +107,7 @@
     "shareBullet2": "Amigos por username/email",
     "shareBullet3": "Visualização read-only",
     "ctaBottom": "Pronto para organizar sua coleção?",
+    "seeAll": "Ver todos os recursos",
     "footerDisclaimer": "Dados de cartas via Scryfall. Não afiliado à Wizards of the Coast.",
     "openSource": "Código aberto",
     "betaBadge": "Beta",
@@ -118,6 +119,71 @@
     "tradeB1": "Venda ou troca com foto real",
     "tradeB2": "Chat com comprador/vendedor",
     "tradeB3": "Aceita propostas e lista de troca"
+  },
+  "feat": {
+    "title": "Tudo que o VaultSpell faz",
+    "subtitle": "Do catálogo ao mercado: a central completa da sua coleção de Magic.",
+    "cta": "Criar conta grátis",
+    "cats": {
+      "collection": {
+        "title": "Coleção & cartas",
+        "items": [
+          "Catalogue por busca, com quantidade, condição e foil",
+          "Valor total em dólar e real (cotação do dia)",
+          "Filtros por nome, set, raridade, tipo, condição e foil",
+          "Preços com link pra loja oficial (TCGplayer/Cardmarket)",
+          "Importe e exporte em CSV (compatível com grimdeck)",
+          "Binders temáticos com valor por binder"
+        ]
+      },
+      "decks": {
+        "title": "Decks",
+        "items": [
+          "Decks de qualquer formato (Commander, Standard, Modern...)",
+          "Importe colando a lista (Moxfield/Arena) e exporte de volta",
+          "Análise: curva de mana, cores, tipos e funções por carta",
+          "Deck × coleção: o que falta e o custo pra completar",
+          "Compare com decks de amigos ou públicos, com veredito",
+          "Deixe o deck público e compartilhe"
+        ]
+      },
+      "search": {
+        "title": "Busca poderosa",
+        "items": [
+          "Busca por nome com autocomplete",
+          "Busca por efeito ou habilidade (texto do card)",
+          "Atalhos de habilidades (voar, deathtouch, trample...)",
+          "Dados sempre atualizados via Scryfall"
+        ]
+      },
+      "trades": {
+        "title": "Trocas & Vendas (Premium)",
+        "items": [
+          "Anuncie cartas físicas com foto real",
+          "Venda (aceita proposta) ou troca (lista de cartas que aceita)",
+          "Chat in-app entre comprador e vendedor",
+          "Marque vendido/trocado e veja stats da plataforma"
+        ]
+      },
+      "social": {
+        "title": "Social & compartilhar",
+        "items": [
+          "Amigos por username ou email",
+          "Compartilhe coleção, deck ou binder com amigos ou link público",
+          "Links públicos bonitos (vaultspell.com/p/voce/deck)",
+          "Perfil público com bio, links e contato (WhatsApp)"
+        ]
+      },
+      "platform": {
+        "title": "Conta & plataforma",
+        "items": [
+          "Em 3 idiomas: português, inglês e espanhol",
+          "Recuperação de senha por email ou username",
+          "Premium via Stripe — beta: grátis pros 100 primeiros",
+          "Domínio próprio, seguro e em constante evolução"
+        ]
+      }
+    }
   },
   "friends": {
     "title": "Amigos",

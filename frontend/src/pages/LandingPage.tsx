@@ -72,7 +72,7 @@ export default function LandingPage() {
             <Link to="/register" className="btn-primary flex items-center gap-2 text-base px-6 py-3">
               {t('landing.ctaStart')} <ArrowRight size={18} />
             </Link>
-            <Link to="/login" className="btn-ghost text-base px-6 py-3">{t('landing.ctaHaveAccount')}</Link>
+            <Link to="/features" className="btn-ghost text-base px-6 py-3">{t('landing.seeAll')}</Link>
           </motion.div>
         </div>
       </section>
