@@ -385,6 +385,13 @@
     "moreCreatures": "Mais criaturas: {{a}} vs {{b}}",
     "lessCreatures": "Menos criaturas: {{a}} vs {{b}}"
   },
+  "doctor": {
+    "title": "Deck Doctor (IA)",
+    "thinking": "Analisando seu deck com IA...",
+    "regenerate": "Gerar de novo",
+    "error": "Não consegui analisar agora. Tente de novo.",
+    "disclaimer": "Análise gerada por IA (Grok) a partir das cartas do deck. Use como sugestão."
+  },
   "detail": {
     "backToSets": "Voltar aos sets",
     "cardsInSet": "{{count}} cartas no set",

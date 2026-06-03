@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi } from '@/lib/api'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check } from 'lucide-react'
+import { useAuthStore } from '@/store/auth'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
@@ -44,8 +45,15 @@ export default function DeckDetailPage() {
   const [showCompare, setShowCompare] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [copied, setCopied] = useState(false)
-  const { t } = useTranslation()
+  const [showDoctor, setShowDoctor] = useState(false)
+  const { t, i18n } = useTranslation()
   const qc = useQueryClient()
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const isPremium = !!(user?.is_premium || user?.is_admin)
+
+  const { data: doctorCfg } = useQuery({ queryKey: ['doctor-status'], queryFn: decksApi.doctorStatus })
+  const doctorMutation = useMutation({ mutationFn: () => decksApi.doctor(deckId, i18n.language) })
 
   const { data: deck, isLoading } = useQuery({
     queryKey: ['deck', deckId],
@@ -168,7 +176,52 @@ export default function DeckDetailPage() {
             <b.icon size={16} /> {b.label}
           </button>
         ))}
+        {doctorCfg?.configured && (
+          <button
+            onClick={() => {
+              if (!isPremium) { navigate('/premium'); return }
+              setShowDoctor(v => !v)
+              if (!doctorMutation.data && !doctorMutation.isPending) doctorMutation.mutate()
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
+              showDoctor ? 'bg-vault-gold/20 border-vault-gold/50 text-vault-gold'
+                : 'bg-vault-card border-vault-gold/30 text-vault-gold/90 hover:border-vault-gold/50'
+            }`}
+          >
+            <Sparkles size={16} /> {t('doctor.title')} {!isPremium && <Lock size={12} />}
+          </button>
+        )}
       </div>
+
+      {/* AI Deck Doctor */}
+      <AnimatePresence>
+        {showDoctor && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden mb-6">
+            <div className="surface p-5 border-vault-gold/30 bg-gradient-to-br from-vault-gold/5 to-transparent">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-gold">
+                  <Sparkles size={15} /> {t('doctor.title')}
+                </h2>
+                {!doctorMutation.isPending && (
+                  <button onClick={() => doctorMutation.mutate()} className="text-xs text-vault-muted hover:text-vault-gold">{t('doctor.regenerate')}</button>
+                )}
+              </div>
+              {doctorMutation.isPending ? (
+                <div className="flex items-center gap-3 py-6 justify-center text-sm text-vault-muted">
+                  <div className="w-5 h-5 border-2 border-vault-gold border-t-transparent rounded-full animate-spin" />
+                  {t('doctor.thinking')}
+                </div>
+              ) : doctorMutation.isError ? (
+                <p className="text-sm text-red-400 py-4">{t('doctor.error')}</p>
+              ) : (
+                <p className="text-sm text-vault-text whitespace-pre-wrap leading-relaxed">{doctorMutation.data?.text}</p>
+              )}
+              <p className="text-[10px] text-vault-muted/70 mt-3">{t('doctor.disclaimer')}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {showShare && (
         <ShareModal resourceType="deck" resourceId={deckId} resourcelabel={deck?.name} onClose={() => setShowShare(false)} />

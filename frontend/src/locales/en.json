@@ -385,6 +385,13 @@
     "moreCreatures": "More creatures: {{a}} vs {{b}}",
     "lessCreatures": "Fewer creatures: {{a}} vs {{b}}"
   },
+  "doctor": {
+    "title": "Deck Doctor (AI)",
+    "thinking": "Analyzing your deck with AI...",
+    "regenerate": "Regenerate",
+    "error": "Couldn't analyze right now. Try again.",
+    "disclaimer": "AI-generated review (Grok) from your deck's cards. Treat it as a suggestion."
+  },
   "detail": {
     "backToSets": "Back to sets",
     "cardsInSet": "{{count}} cards in set",

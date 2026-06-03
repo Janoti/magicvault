@@ -385,6 +385,13 @@
     "moreCreatures": "Más criaturas: {{a}} vs {{b}}",
     "lessCreatures": "Menos criaturas: {{a}} vs {{b}}"
   },
+  "doctor": {
+    "title": "Deck Doctor (IA)",
+    "thinking": "Analizando tu mazo con IA...",
+    "regenerate": "Generar de nuevo",
+    "error": "No pude analizar ahora. Inténtalo de nuevo.",
+    "disclaimer": "Análisis generado por IA (Grok) a partir de las cartas del mazo. Úsalo como sugerencia."
+  },
   "detail": {
     "backToSets": "Volver a ediciones",
     "cardsInSet": "{{count}} cartas en la edición",

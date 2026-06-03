@@ -1,4 +1,5 @@
 import re
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -6,11 +7,13 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_premium_user
 from sqlalchemy import or_, and_
 from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship
 from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary, get_cards_bulk
+from app.services import deck_doctor
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -118,6 +121,41 @@ async def deck_analysis(deck_id: int, current_user: User = Depends(get_current_u
         "types": types,
         "categories": categories,
     }
+
+
+@router.get("/doctor/status")
+async def doctor_status():
+    """Public: whether the AI Deck Doctor is configured (so the UI can hide it)."""
+    return {"configured": deck_doctor.is_configured()}
+
+
+@router.post("/{deck_id}/doctor")
+async def deck_doctor_run(deck_id: int, lang: str = "en", premium: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
+    """Premium: AI review of the deck (xAI Grok), grounded in the real card data."""
+    if not deck_doctor.is_configured():
+        raise HTTPException(status_code=503, detail="IA ainda não configurada")
+    deck = await _viewable_deck(db, deck_id, premium)
+    analysis = await deck_analysis(deck_id, premium, db)
+
+    rows = (await db.execute(select(DeckCard).where(DeckCard.deck_id == deck_id, DeckCard.is_sideboard == False))).scalars().all()  # noqa: E712
+    if not rows:
+        raise HTTPException(status_code=400, detail="Deck vazio")
+    cards_raw = await get_cards_bulk([dc.scryfall_id for dc in rows])
+    cards = []
+    for dc in rows:
+        raw = cards_raw.get(dc.scryfall_id)
+        c = extract_card_summary(raw) if raw else {"name": "?", "type_line": "", "cmc": 0}
+        cards.append({"qty": dc.quantity, "name": c.get("name", "?"),
+                      "type": c.get("type_line", ""), "cmc": int(c.get("cmc") or 0)})
+
+    try:
+        text = await deck_doctor.run_doctor(
+            {"name": deck.name, "format": deck.format}, analysis, cards, lang=lang,
+        )
+    except Exception as e:
+        logger.error("Deck Doctor failed: %s", e)
+        raise HTTPException(status_code=502, detail="Erro ao consultar a IA")
+    return {"text": text}
 
 
 @router.get("/{deck_id}/coverage")
