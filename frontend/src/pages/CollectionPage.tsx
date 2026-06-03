@@ -4,6 +4,7 @@ import { collectionApi, cardsApi, bindersApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Download, Upload, Share2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import CardPrice from '@/components/cards/CardPrice'
 import EditCardModal from '@/components/collection/EditCardModal'
 import AddToBinderModal from '@/components/collection/AddToBinderModal'
 import ShareModal from '@/components/sharing/ShareModal'
@@ -294,7 +295,7 @@ export default function CollectionPage() {
                           if (unit <= 0) return <span className="text-xs text-vault-muted">—</span>
                           return (
                             <div className="leading-tight">
-                              <span className="font-mono font-bold text-green-400">${(unit * entry.quantity).toFixed(2)}</span>
+                              <CardPrice usd={unit} quantity={entry.quantity} purchaseUri={card?.purchase_uri} />
                               {entry.quantity > 1 && (
                                 <p className="text-[10px] text-vault-muted font-mono">{t('col.perUnit', { price: `$${unit.toFixed(2)}` })}</p>
                               )}

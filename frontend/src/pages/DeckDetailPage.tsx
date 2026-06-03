@@ -5,6 +5,7 @@ import { decksApi, cardsApi } from '@/lib/api'
 import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
+import CardPrice from '@/components/cards/CardPrice'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useTranslation } from 'react-i18next'
 
@@ -238,8 +239,8 @@ export default function DeckDetailPage() {
                         <td className="px-4 py-2.5 text-xs text-vault-muted truncate max-w-[200px]">
                           {entry.card?.type_line}
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono text-xs text-green-400">
-                          {entry.card?.price_usd > 0 ? `$${(entry.card.price_usd * entry.quantity).toFixed(2)}` : '—'}
+                        <td className="px-4 py-2.5 text-right text-xs">
+                          <CardPrice usd={entry.card?.price_usd} quantity={entry.quantity} purchaseUri={entry.card?.purchase_uri} compact />
                         </td>
                       </tr>
                     ))}
@@ -271,8 +272,8 @@ export default function DeckDetailPage() {
                         <td className="px-4 py-2.5 text-center">
                           <span className="font-mono font-bold text-vault-muted">×{entry.quantity}</span>
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono text-xs text-green-400">
-                          {entry.card?.price_usd > 0 ? `$${entry.card.price_usd.toFixed(2)}` : '—'}
+                        <td className="px-4 py-2.5 text-right text-xs">
+                          <CardPrice usd={entry.card?.price_usd} quantity={entry.quantity} purchaseUri={entry.card?.purchase_uri} compact />
                         </td>
                       </tr>
                     ))}

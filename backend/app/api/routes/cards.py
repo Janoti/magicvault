@@ -5,6 +5,7 @@ from app.services.scryfall import (
     search_cards, get_card_by_id, get_card_by_name,
     autocomplete_cards, extract_card_summary
 )
+from app.services.fx import get_usd_brl
 
 router = APIRouter()
 
@@ -32,6 +33,12 @@ async def autocomplete(q: str = Query(..., min_length=2)):
     """Get card name suggestions."""
     names = await autocomplete_cards(q)
     return {"suggestions": names}
+
+
+@router.get("/fx/usd-brl")
+async def fx_usd_brl():
+    """Approximate USD→BRL rate (cached) so the UI can show prices in BRL."""
+    return {"usd_brl": await get_usd_brl()}
 
 
 @router.get("/{scryfall_id}")

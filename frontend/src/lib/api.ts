@@ -92,6 +92,7 @@ export const cardsApi = {
   search: (q: string, page = 1) => api.get('/api/cards/search', { params: { q, page } }).then(r => r.data),
   autocomplete: (q: string) => api.get('/api/cards/autocomplete', { params: { q } }).then(r => r.data),
   getById: (id: string) => api.get(`/api/cards/${id}`).then(r => r.data),
+  fx: () => api.get('/api/cards/fx/usd-brl').then(r => r.data),
 }
 
 // Collection

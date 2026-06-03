@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Star, Eye } from 'lucide-react'
 import { motion } from 'framer-motion'
+import CardPrice from './CardPrice'
 
 interface CardTileProps {
   card: {
@@ -15,6 +16,7 @@ interface CardTileProps {
     image_small?: string
     price_usd?: number
     price_usd_foil?: number
+    purchase_uri?: string
     colors?: string[]
     collector_number?: string
   }
@@ -107,8 +109,8 @@ export default function CardTile({ card, onAdd, onWishlist, showActions = true, 
             {card.set?.toUpperCase()} #{card.collector_number}
           </span>
           {(card.price_usd ?? 0) > 0 && (
-            <span className="text-[11px] font-mono font-bold text-green-400">
-              ${card.price_usd?.toFixed(2)}
+            <span className="text-[11px]">
+              <CardPrice usd={card.price_usd} purchaseUri={card.purchase_uri} compact />
             </span>
           )}
         </div>

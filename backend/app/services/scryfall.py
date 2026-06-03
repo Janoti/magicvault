@@ -136,6 +136,7 @@ def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
     """Extract the fields we care about from a Scryfall card object."""
     prices = card.get("prices", {})
     image_uris = card.get("image_uris", {})
+    purchase = card.get("purchase_uris", {}) or {}
 
     # Handle double-faced cards
     if not image_uris and card.get("card_faces"):
@@ -164,6 +165,8 @@ def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
         "price_usd_foil": float(prices.get("usd_foil") or 0),
         "price_eur": float(prices.get("eur") or 0),
         "scryfall_uri": card.get("scryfall_uri", ""),
+        # Official store page with the live price (TCGplayer in USD, else Cardmarket in EUR).
+        "purchase_uri": purchase.get("tcgplayer") or purchase.get("cardmarket") or card.get("scryfall_uri", ""),
         "legalities": card.get("legalities", {}),
         "released_at": card.get("released_at", ""),
         "artist": card.get("artist", ""),
