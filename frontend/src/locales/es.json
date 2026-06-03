@@ -114,7 +114,9 @@
     "title": "Compartidos conmigo",
     "subtitle": "Colecciones, carpetas y mazos que tus amigos compartieron",
     "empty": "Nada compartido contigo todavía.",
-    "by": "de {{name}}"
+    "by": "de {{name}}",
+    "invalidLink": "Enlace inválido o eliminado.",
+    "goToApp": "Ir a MagicVault"
   },
   "pages": {
     "bindersTitle": "Carpetas",
@@ -164,7 +166,9 @@
     "creating": "Creando...",
     "createBinder": "Crear Carpeta",
     "newDeck": "Nuevo Mazo",
-    "format": "Formato"
+    "format": "Formato",
+    "deckNamePh": "Nombre del mazo",
+    "createDeck": "Crear Mazo"
   },
   "detail": {
     "backToSets": "Volver a ediciones",
@@ -188,7 +192,10 @@
     "thType": "Tipo",
     "thPrice": "Precio",
     "thCard": "Carta",
-    "thQty": "Cant."
+    "thQty": "Cant.",
+    "setAddedResult": "Edición añadida: {{added}} nuevas, {{updated}} fusionadas ({{total}} cartas).",
+    "setAddError": "Error al añadir la edición completa.",
+    "confirmAddAll": "¿Añadir las {{count}} cartas de {{set}} a tu colección (cant 1, NM, no-foil)?"
   },
   "search": {
     "title": "Buscar Cartas",

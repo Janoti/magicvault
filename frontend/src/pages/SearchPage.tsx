@@ -6,8 +6,10 @@ import AddCardModal from '@/components/collection/AddCardModal'
 import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debounce } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 export default function SearchPage() {
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [page, setPage] = useState(1)
@@ -55,8 +57,8 @@ export default function SearchPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold text-vault-gold mb-1">Buscar Cartas</h1>
-        <p className="text-vault-muted text-sm">Use sintaxe Scryfall: e.g. <code className="text-vault-accent bg-vault-card px-1 rounded">t:creature c:blue</code></p>
+        <h1 className="font-display text-3xl font-bold text-vault-gold mb-1">{t('search.title')}</h1>
+        <p className="text-vault-muted text-sm">{t('search.syntaxHint')} <code className="text-vault-accent bg-vault-card px-1 rounded">t:creature c:blue</code></p>
       </div>
 
       {/* Search form */}
@@ -66,13 +68,13 @@ export default function SearchPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
             <input
               className="input-field pl-10"
-              placeholder="Buscar cartas... (ex: Lightning Bolt, t:dragon, set:lci)"
+              placeholder={t('search.placeholder')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
           <button type="submit" className="btn-primary px-6">
-            Buscar
+            {t('search.button')}
           </button>
         </div>
 
@@ -104,7 +106,7 @@ export default function SearchPage() {
         <>
           <div className="flex items-center justify-between mb-4">
             <p className="text-vault-muted text-sm">
-              {data.total_cards} cartas encontradas
+              {t('search.found', { count: data.total_cards })}
             </p>
           </div>
 
@@ -135,15 +137,15 @@ export default function SearchPage() {
                 disabled={page === 1}
                 className="btn-ghost flex items-center gap-2 disabled:opacity-40"
               >
-                <ChevronLeft size={16} /> Anterior
+                <ChevronLeft size={16} /> {t('search.prev')}
               </button>
-              <span className="text-vault-muted text-sm">Página {page}</span>
+              <span className="text-vault-muted text-sm">{t('search.page', { n: page })}</span>
               <button
                 onClick={() => setPage(p => p + 1)}
                 disabled={!data.has_more}
                 className="btn-ghost flex items-center gap-2 disabled:opacity-40"
               >
-                Próxima <ChevronRight size={16} />
+                {t('search.next')} <ChevronRight size={16} />
               </button>
             </div>
           )}

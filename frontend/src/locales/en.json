@@ -114,7 +114,9 @@
     "title": "Shared with me",
     "subtitle": "Collections, binders and decks your friends shared",
     "empty": "Nothing shared with you yet.",
-    "by": "by {{name}}"
+    "by": "by {{name}}",
+    "invalidLink": "Invalid or removed link.",
+    "goToApp": "Go to MagicVault"
   },
   "pages": {
     "bindersTitle": "Binders",
@@ -164,7 +166,9 @@
     "creating": "Creating...",
     "createBinder": "Create Binder",
     "newDeck": "New Deck",
-    "format": "Format"
+    "format": "Format",
+    "deckNamePh": "Deck name",
+    "createDeck": "Create Deck"
   },
   "detail": {
     "backToSets": "Back to sets",
@@ -188,7 +192,10 @@
     "thType": "Type",
     "thPrice": "Price",
     "thCard": "Card",
-    "thQty": "Qty"
+    "thQty": "Qty",
+    "setAddedResult": "Set added: {{added}} new, {{updated}} merged ({{total}} cards).",
+    "setAddError": "Error adding the whole set.",
+    "confirmAddAll": "Add all {{count}} cards from {{set}} to your collection (qty 1, NM, non-foil)?"
   },
   "search": {
     "title": "Search Cards",

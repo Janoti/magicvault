@@ -83,27 +83,27 @@ export default function DecksPage() {
               className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowCreate(false)} />
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-md shadow-2xl">
-              <h2 className="font-display text-xl font-bold text-vault-gold mb-4">Novo Deck</h2>
+              <h2 className="font-display text-xl font-bold text-vault-gold mb-4">{t('modal.newDeck')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-vault-muted mb-1.5 block">Nome *</label>
-                  <input className="input-field" placeholder="Nome do deck" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.nameReq')}</label>
+                  <input className="input-field" placeholder={t('modal.deckNamePh')} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="text-xs text-vault-muted mb-1.5 block">Formato</label>
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.format')}</label>
                   <select className="input-field" value={form.format} onChange={e => setForm(f => ({ ...f, format: e.target.value }))}>
                     {FORMATS.map(f => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-vault-muted mb-1.5 block">Descrição</label>
-                  <textarea className="input-field resize-none" rows={2} placeholder="Opcional..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.description')}</label>
+                  <textarea className="input-field resize-none" rows={2} placeholder={t('modal.optional')} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <button onClick={() => setShowCreate(false)} className="btn-ghost flex-1">Cancelar</button>
+                <button onClick={() => setShowCreate(false)} className="btn-ghost flex-1">{t('common.cancel')}</button>
                 <button onClick={() => createMutation.mutate(form)} disabled={!form.name} className="btn-primary flex-1 disabled:opacity-50">
-                  {createMutation.isPending ? 'Criando...' : 'Criar Deck'}
+                  {createMutation.isPending ? t('modal.creating') : t('modal.createDeck')}
                 </button>
               </div>
             </motion.div>

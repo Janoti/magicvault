@@ -126,30 +126,30 @@ export default function BindersPage() {
               exit={{ opacity: 0, scale: 0.9 }}
               className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-md shadow-2xl"
             >
-              <h2 className="font-display text-xl font-bold text-vault-gold mb-4">Novo Binder</h2>
+              <h2 className="font-display text-xl font-bold text-vault-gold mb-4">{t('modal.newBinder')}</h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-vault-muted mb-1.5 block">Nome *</label>
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.nameReq')}</label>
                   <input
                     className="input-field"
-                    placeholder="ex: Deck Commander, Rares de Innistrad..."
+                    placeholder={t('modal.binderNamePh')}
                     value={form.name}
                     onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-vault-muted mb-1.5 block">Descrição</label>
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.description')}</label>
                   <textarea
                     className="input-field resize-none"
                     rows={2}
-                    placeholder="Descrição opcional..."
+                    placeholder={t('modal.descPh')}
                     value={form.description}
                     onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-vault-muted mb-1.5 block">Cor do binder</label>
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.binderColor')}</label>
                   <div className="flex flex-wrap gap-2">
                     {COLORS.map(color => (
                       <button
@@ -168,13 +168,13 @@ export default function BindersPage() {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button onClick={() => setShowCreate(false)} className="btn-ghost flex-1">Cancelar</button>
+                <button onClick={() => setShowCreate(false)} className="btn-ghost flex-1">{t('common.cancel')}</button>
                 <button
                   onClick={() => createMutation.mutate(form)}
                   disabled={!form.name || createMutation.isPending}
                   className="btn-primary flex-1 disabled:opacity-50"
                 >
-                  {createMutation.isPending ? 'Criando...' : 'Criar Binder'}
+                  {createMutation.isPending ? t('modal.creating') : t('modal.createBinder')}
                 </button>
               </div>
             </motion.div>

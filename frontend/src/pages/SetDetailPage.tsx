@@ -6,9 +6,11 @@ import CardTile from '@/components/cards/CardTile'
 import AddCardModal from '@/components/collection/AddCardModal'
 import { ArrowLeft, Layers, ExternalLink, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 export default function SetDetailPage() {
   const { code = '' } = useParams()
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [selectedCard, setSelectedCard] = useState<any>(null)
@@ -35,13 +37,13 @@ export default function SetDetailPage() {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['collection'] })
       qc.invalidateQueries({ queryKey: ['collection-stats'] })
-      setFeedback(`Set adicionado: ${res.added} novas, ${res.updated} incrementadas (${res.total} cartas).`)
+      setFeedback(t('detail.setAddedResult', { added: res.added, updated: res.updated, total: res.total }))
     },
-    onError: () => setFeedback('Erro ao adicionar o set inteiro.'),
+    onError: () => setFeedback(t('detail.setAddError')),
   })
 
   const handleAddAll = () => {
-    if (window.confirm(`Adicionar todas as ${cards.length} cartas de ${code.toUpperCase()} à coleção (qtd 1, NM, não-foil)?`)) {
+    if (window.confirm(t('detail.confirmAddAll', { count: cards.length, set: code.toUpperCase() }))) {
       addAllMutation.mutate()
     }
   }
@@ -53,7 +55,7 @@ export default function SetDetailPage() {
   return (
     <div className="p-6">
       <Link to="/sets" className="inline-flex items-center gap-2 text-sm text-vault-muted hover:text-vault-text mb-4">
-        <ArrowLeft size={16} /> Voltar aos sets
+        <ArrowLeft size={16} /> {t('detail.backToSets')}
       </Link>
 
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
@@ -61,7 +63,7 @@ export default function SetDetailPage() {
           <h1 className="font-display text-3xl font-bold text-vault-gold flex items-center gap-3">
             <Layers size={26} /> {code.toUpperCase()}
           </h1>
-          <p className="text-vault-muted text-sm mt-0.5">{cards.length} cartas no set</p>
+          <p className="text-vault-muted text-sm mt-0.5">{t('detail.cardsInSet', { count: cards.length })}</p>
         </div>
         <div className="flex items-center gap-3">
           <a
@@ -80,7 +82,7 @@ export default function SetDetailPage() {
             {addAllMutation.isPending ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : <Layers size={16} />}
-            Adicionar set inteiro
+            {t('detail.addWholeSet')}
           </button>
         </div>
       </div>
@@ -93,7 +95,7 @@ export default function SetDetailPage() {
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
         <input
           className="input-field pl-9"
-          placeholder="Filtrar cartas do set..."
+          placeholder={t('detail.filterSet')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

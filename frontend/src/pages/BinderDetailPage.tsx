@@ -6,12 +6,14 @@ import { ArrowLeft, Plus, Trash2, GripVertical, Share2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import ShareModal from '@/components/sharing/ShareModal'
+import { useTranslation } from 'react-i18next'
 
 export default function BinderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const binderId = Number(id)
   const [showAddCard, setShowAddCard] = useState(false)
   const [showShare, setShowShare] = useState(false)
+  const { t } = useTranslation()
   const qc = useQueryClient()
 
   const { data: binder, isLoading } = useQuery({
@@ -70,10 +72,10 @@ export default function BinderDetailPage() {
           </div>
         </div>
         <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
-          <Share2 size={16} /> Compartilhar
+          <Share2 size={16} /> {t('common.share')}
         </button>
         <button onClick={() => setShowAddCard(true)} className="btn-primary flex items-center gap-2">
-          <Plus size={16} /> Adicionar Carta
+          <Plus size={16} /> {t('detail.addCard')}
         </button>
       </div>
 
@@ -85,13 +87,13 @@ export default function BinderDetailPage() {
       <div className="surface p-4 mb-6 flex gap-6">
         <div>
           <p className="text-2xl font-display font-bold text-vault-accent">{binder?.cards?.length || 0}</p>
-          <p className="text-xs text-vault-muted">Cartas no binder</p>
+          <p className="text-xs text-vault-muted">{t('detail.cardsInBinder')}</p>
         </div>
         <div>
           <p className="text-2xl font-display font-bold text-green-400">
             ${binder?.cards?.reduce((sum: number, c: any) => sum + (c.card?.price_usd || 0) * c.quantity, 0).toFixed(2) || '0.00'}
           </p>
-          <p className="text-xs text-vault-muted">Valor total</p>
+          <p className="text-xs text-vault-muted">{t('detail.totalValue')}</p>
         </div>
       </div>
 
@@ -99,9 +101,9 @@ export default function BinderDetailPage() {
       {binder?.cards?.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-4xl mb-4">📖</p>
-          <p className="text-vault-muted mb-4">Binder vazio — adicione cartas da sua coleção</p>
+          <p className="text-vault-muted mb-4">{t('detail.emptyBinder')}</p>
           <button onClick={() => setShowAddCard(true)} className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} /> Adicionar Cartas
+            <Plus size={16} /> {t('detail.addCards')}
           </button>
         </div>
       ) : (
@@ -145,13 +147,13 @@ export default function BinderDetailPage() {
               className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-xl font-bold text-vault-gold">Adicionar da Coleção</h2>
+                <h2 className="font-display text-xl font-bold text-vault-gold">{t('detail.addFromCollection')}</h2>
                 <button onClick={() => setShowAddCard(false)} className="text-vault-muted hover:text-vault-text">✕</button>
               </div>
 
               <div className="flex-1 overflow-y-auto">
                 {collection?.items?.length === 0 ? (
-                  <p className="text-vault-muted text-center py-8">Sua coleção está vazia</p>
+                  <p className="text-vault-muted text-center py-8">{t('detail.emptyCollection')}</p>
                 ) : (
                   <div className="space-y-2">
                     {collection?.items?.map((entry: any) => (

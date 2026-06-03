@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2 } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import ShareModal from '@/components/sharing/ShareModal'
+import { useTranslation } from 'react-i18next'
 
 export default function DeckDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -16,6 +17,7 @@ export default function DeckDetailPage() {
   const [searching, setSearching] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('list')
   const [showShare, setShowShare] = useState(false)
+  const { t } = useTranslation()
   const qc = useQueryClient()
 
   const { data: deck, isLoading } = useQuery({
@@ -69,10 +71,10 @@ export default function DeckDetailPage() {
           {deck?.description && <p className="text-sm text-vault-muted mt-0.5">{deck.description}</p>}
         </div>
         <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
-          <Share2 size={16} /> Compartilhar
+          <Share2 size={16} /> {t('common.share')}
         </button>
         <button onClick={() => setShowSearch(true)} className="btn-primary flex items-center gap-2">
-          <Plus size={16} /> Adicionar Carta
+          <Plus size={16} /> {t('detail.addCard')}
         </button>
       </div>
 
@@ -84,24 +86,24 @@ export default function DeckDetailPage() {
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="surface p-4 text-center">
           <p className="text-2xl font-display font-bold text-vault-accent">{totalCards}</p>
-          <p className="text-xs text-vault-muted">Cartas (main)</p>
+          <p className="text-xs text-vault-muted">{t('detail.mainCardsLabel')}</p>
         </div>
         <div className="surface p-4 text-center">
           <p className="text-2xl font-display font-bold text-green-400">${totalValue.toFixed(2)}</p>
-          <p className="text-xs text-vault-muted">Valor total</p>
+          <p className="text-xs text-vault-muted">{t('detail.totalValue')}</p>
         </div>
         <div className="surface p-4 text-center">
           <p className="text-2xl font-display font-bold text-vault-muted">{sideboard.length}</p>
-          <p className="text-xs text-vault-muted">Sideboard</p>
+          <p className="text-xs text-vault-muted">{t('detail.sideboard')}</p>
         </div>
       </div>
 
       {deck?.cards?.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-4xl mb-4">⚔️</p>
-          <p className="text-vault-muted mb-4">Deck vazio — adicione cartas para começar</p>
+          <p className="text-vault-muted mb-4">{t('detail.deckEmpty')}</p>
           <button onClick={() => setShowSearch(true)} className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} /> Adicionar Cartas
+            <Plus size={16} /> {t('detail.addCards')}
           </button>
         </div>
       ) : (
@@ -110,7 +112,7 @@ export default function DeckDetailPage() {
           {commanders.length > 0 && (
             <section>
               <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-gold mb-3">
-                <Crown size={14} /> Commander ({commanders.length})
+                <Crown size={14} /> {t('detail.commander')} ({commanders.length})
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {commanders.map((c: any) => <CardTile key={c.id} card={c.card} showActions={false} />)}
@@ -122,16 +124,16 @@ export default function DeckDetailPage() {
           {mainboard.length > 0 && (
             <section>
               <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text mb-3">
-                Main Deck ({totalCards} cartas)
+                {t('detail.mainDeck')} ({t('common.cardsCount', { count: totalCards })})
               </h2>
               <div className="surface overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-vault-border bg-vault-surface">
-                      <th className="text-left px-4 py-2.5 text-xs text-vault-muted">Carta</th>
-                      <th className="text-center px-4 py-2.5 text-xs text-vault-muted w-16">Qtd</th>
-                      <th className="text-left px-4 py-2.5 text-xs text-vault-muted">Tipo</th>
-                      <th className="text-right px-4 py-2.5 text-xs text-vault-muted w-20">Preço</th>
+                      <th className="text-left px-4 py-2.5 text-xs text-vault-muted">{t('detail.thCard')}</th>
+                      <th className="text-center px-4 py-2.5 text-xs text-vault-muted w-16">{t('detail.thQty')}</th>
+                      <th className="text-left px-4 py-2.5 text-xs text-vault-muted">{t('detail.thType')}</th>
+                      <th className="text-right px-4 py-2.5 text-xs text-vault-muted w-20">{t('detail.thPrice')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -169,7 +171,7 @@ export default function DeckDetailPage() {
           {sideboard.length > 0 && (
             <section>
               <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-muted mb-3">
-                <Shield size={14} /> Sideboard ({sideboard.reduce((s: number, c: any) => s + c.quantity, 0)} cartas)
+                <Shield size={14} /> {t('detail.sideboard')} ({t('common.cardsCount', { count: sideboard.reduce((s: number, c: any) => s + c.quantity, 0) })})
               </h2>
               <div className="surface overflow-hidden">
                 <table className="w-full text-sm">
@@ -209,14 +211,14 @@ export default function DeckDetailPage() {
             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
               className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-xl font-bold text-vault-gold">Adicionar ao Deck</h2>
+                <h2 className="font-display text-xl font-bold text-vault-gold">{t('detail.addToDeck')}</h2>
                 <button onClick={() => setShowSearch(false)} className="text-vault-muted hover:text-vault-text">✕</button>
               </div>
 
               <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-                <input className="input-field flex-1" placeholder="Buscar carta..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                <input className="input-field flex-1" placeholder={t('detail.searchCard')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                 <button type="submit" className="btn-primary flex items-center gap-2">
-                  <Search size={14} /> Buscar
+                  <Search size={14} /> {t('search.button')}
                 </button>
               </form>
 

@@ -3,9 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cardsApi, collectionApi } from '@/lib/api'
 import { Camera, Search, Plus, CheckCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import AddCardModal from '@/components/collection/AddCardModal'
 
 export default function CardScanPage() {
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedCard, setSelectedCard] = useState<any>(null)
@@ -52,10 +54,8 @@ export default function CardScanPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold text-vault-gold">Scan / Adicionar Rápido</h1>
-        <p className="text-vault-muted text-sm mt-0.5">
-          Digite o nome da carta para adicionar rapidamente à sua coleção
-        </p>
+        <h1 className="font-display text-3xl font-bold text-vault-gold">{t('scan.title')}</h1>
+        <p className="text-vault-muted text-sm mt-0.5">{t('scan.subtitle')}</p>
       </div>
 
       {/* Search input — big and centered */}
@@ -66,7 +66,7 @@ export default function CardScanPage() {
             ref={inputRef}
             autoFocus
             className="w-full bg-vault-card border-2 border-vault-border focus:border-vault-accent rounded-2xl px-5 py-4 pl-12 text-lg text-vault-text placeholder-vault-muted focus:outline-none transition-all"
-            placeholder="Nome da carta..."
+            placeholder={t('scan.placeholder')}
             value={query}
             onChange={e => handleInput(e.target.value)}
           />
@@ -96,8 +96,8 @@ export default function CardScanPage() {
         <div className="max-w-2xl mx-auto text-center py-10">
           <div className="text-5xl mb-4">🔍</div>
           <p className="text-vault-muted">
-            Digite o nome exato ou parcial da carta.<br />
-            <span className="text-xs">Suporta sintaxe Scryfall: <code className="text-vault-accent bg-vault-card px-1 rounded">t:dragon</code>, <code className="text-vault-accent bg-vault-card px-1 rounded">set:lci</code>, etc.</span>
+            {t('scan.tip')}<br />
+            <span className="text-xs">{t('search.syntaxHint')} <code className="text-vault-accent bg-vault-card px-1 rounded">t:dragon</code>, <code className="text-vault-accent bg-vault-card px-1 rounded">set:lci</code>, etc.</span>
           </p>
         </div>
       )}
@@ -105,7 +105,7 @@ export default function CardScanPage() {
       {/* Results */}
       {cards.length > 0 && (
         <div className="max-w-4xl mx-auto">
-          <p className="text-xs text-vault-muted mb-3">{searchData?.total_cards} resultado(s)</p>
+          <p className="text-xs text-vault-muted mb-3">{t('scan.results', { count: searchData?.total_cards })}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             <AnimatePresence>
               {cards.map((card: any, i: number) => (
@@ -161,7 +161,7 @@ export default function CardScanPage() {
         <div className="max-w-2xl mx-auto mt-8">
           <p className="text-xs text-vault-muted mb-2 flex items-center gap-2">
             <CheckCircle size={12} className="text-green-400" />
-            Adicionadas nessa sessão: {recentlyAdded.length} carta(s)
+            {t('scan.addedSession', { count: recentlyAdded.length })}
           </p>
         </div>
       )}

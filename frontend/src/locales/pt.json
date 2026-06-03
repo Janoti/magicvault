@@ -114,7 +114,9 @@
     "title": "Compartilhados comigo",
     "subtitle": "Coleções, binders e decks que seus amigos compartilharam",
     "empty": "Nada compartilhado com você ainda.",
-    "by": "de {{name}}"
+    "by": "de {{name}}",
+    "invalidLink": "Link inválido ou removido.",
+    "goToApp": "Ir para o MagicVault"
   },
   "pages": {
     "bindersTitle": "Binders",
@@ -164,7 +166,9 @@
     "creating": "Criando...",
     "createBinder": "Criar Binder",
     "newDeck": "Novo Deck",
-    "format": "Formato"
+    "format": "Formato",
+    "deckNamePh": "Nome do deck",
+    "createDeck": "Criar Deck"
   },
   "detail": {
     "backToSets": "Voltar aos sets",
@@ -188,7 +192,10 @@
     "thType": "Tipo",
     "thPrice": "Preço",
     "thCard": "Carta",
-    "thQty": "Qtd"
+    "thQty": "Qtd",
+    "setAddedResult": "Set adicionado: {{added}} novas, {{updated}} incrementadas ({{total}} cartas).",
+    "setAddError": "Erro ao adicionar o set inteiro.",
+    "confirmAddAll": "Adicionar todas as {{count}} cartas de {{set}} à coleção (qtd 1, NM, não-foil)?"
   },
   "search": {
     "title": "Buscar Cartas",
