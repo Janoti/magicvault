@@ -139,6 +139,27 @@
     "bindersEmpty": "Aún no hay carpetas — crea la primera",
     "decksEmpty": "Aún no hay mazos — crea el primero"
   },
+  "account": {
+    "nav": "Cuenta",
+    "title": "Mi cuenta",
+    "subtitle": "Edita tu perfil y tus datos",
+    "displayName": "Nombre",
+    "username": "Nombre de usuario",
+    "email": "Email",
+    "avatar": "Avatar",
+    "bio": "Bio",
+    "bioPh": "Cuéntanos sobre ti, tus formatos favoritos, tu viaje en MTG/D&D...",
+    "links": "Enlaces",
+    "addLink": "Añadir enlace",
+    "label": "Etiqueta",
+    "url": "URL",
+    "save": "Guardar",
+    "saved": "¡Guardado!",
+    "saveError": "Error al guardar",
+    "viewProfile": "Ver perfil público",
+    "memberSince": "Miembro desde",
+    "noBio": "Sin bio todavía."
+  },
   "modal": {
     "quantity": "Cantidad",
     "condition": "Condición",

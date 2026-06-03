@@ -51,15 +51,15 @@ export default function Layout() {
 
         {/* User info */}
         <div className="p-4 border-b border-vault-border">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-vault-accent/20 border border-vault-accent/40 flex items-center justify-center">
-              <User size={14} className="text-vault-accent" />
+          <Link to="/account" className="flex items-center gap-3 rounded-lg -m-1 p-1 hover:bg-vault-card/40 transition-colors" title={t('account.nav')}>
+            <div className="w-9 h-9 rounded-full bg-vault-accent/20 border border-vault-accent/40 flex items-center justify-center text-lg">
+              {user?.avatar || <User size={14} className="text-vault-accent" />}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-vault-text truncate">{user?.username}</p>
+              <p className="text-sm font-medium text-vault-text truncate">{user?.display_name || user?.username}</p>
               <p className="text-xs text-vault-muted truncate">{user?.email}</p>
             </div>
-          </div>
+          </Link>
           {stats && (
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="bg-vault-card rounded-lg p-2 text-center">

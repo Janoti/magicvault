@@ -2,7 +2,11 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authApi } from '@/lib/api'
 
-interface User { id: number; email: string; username: string }
+interface User {
+  id: number; email: string; username: string
+  display_name?: string | null; avatar?: string | null
+  bio?: string | null; links?: { label: string; url: string }[]
+}
 
 interface AuthState {
   user: User | null
@@ -11,6 +15,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, username: string, password: string) => Promise<void>
   logout: () => void
+  setUser: (user: User) => void
   isAuthenticated: () => boolean
 }
 
@@ -49,6 +54,8 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('token')
         set({ user: null, token: null })
       },
+
+      setUser: (user) => set({ user }),
 
       isAuthenticated: () => !!get().token,
     }),

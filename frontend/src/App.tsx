@@ -19,6 +19,8 @@ import SetDetailPage from '@/pages/SetDetailPage'
 import FriendsPage from '@/pages/FriendsPage'
 import SharedWithMePage from '@/pages/SharedWithMePage'
 import PublicViewPage from '@/pages/PublicViewPage'
+import AccountPage from '@/pages/AccountPage'
+import ProfilePage from '@/pages/ProfilePage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -40,6 +42,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/p/:token" element={<PublicViewPage />} />
+      <Route path="/u/:username" element={<ProfilePage />} />
 
       {/* Authenticated app */}
       <Route
@@ -61,6 +64,7 @@ export default function App() {
         <Route path="/sets/:code" element={<SetDetailPage />} />
         <Route path="/friends" element={<FriendsPage />} />
         <Route path="/shared" element={<SharedWithMePage />} />
+        <Route path="/account" element={<AccountPage />} />
       </Route>
 
       {/* Fallback */}
