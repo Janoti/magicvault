@@ -91,7 +91,13 @@
     "shareBullet3": "Read-only view",
     "ctaBottom": "Ready to organize your collection?",
     "footerDisclaimer": "Card data via Scryfall. Not affiliated with Wizards of the Coast.",
-    "openSource": "Open source"
+    "openSource": "Open source",
+    "tradeBadge": "Coming soon · Premium",
+    "tradeTitle": "Trade and sell your cards",
+    "tradeDesc": "Mark cards you want to sell or trade, set a price or the cards you would like to receive, and arrange shipping directly with other players.",
+    "tradeB1": "Sell or trade physical cards",
+    "tradeB2": "Set a price or a wishlist",
+    "tradeB3": "Connect with the community"
   },
   "friends": {
     "title": "Friends",

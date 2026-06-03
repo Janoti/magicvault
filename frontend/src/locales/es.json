@@ -91,7 +91,13 @@
     "shareBullet3": "Vista de solo lectura",
     "ctaBottom": "¿Listo para organizar tu colección?",
     "footerDisclaimer": "Datos de cartas vía Scryfall. No afiliado a Wizards of the Coast.",
-    "openSource": "Código abierto"
+    "openSource": "Código abierto",
+    "tradeBadge": "Próximamente · Premium",
+    "tradeTitle": "Intercambia y vende tus cartas",
+    "tradeDesc": "Marca cartas que quieres vender o intercambiar, define el precio o las cartas que te gustaría recibir, y coordina el envío directo con otros jugadores.",
+    "tradeB1": "Venta o intercambio de cartas físicas",
+    "tradeB2": "Define precio o lista de deseos",
+    "tradeB3": "Conecta con la comunidad"
   },
   "friends": {
     "title": "Amigos",

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
-  ArrowRight, Check, Github,
+  ArrowRight, Check, Github, ArrowLeftRight,
 } from 'lucide-react'
 
 const features = [
@@ -86,6 +86,27 @@ export default function LandingPage() {
             <span className="flex items-center gap-2"><Check size={15} className="text-green-400" /> {t('landing.shareBullet1')}</span>
             <span className="flex items-center gap-2"><Check size={15} className="text-green-400" /> {t('landing.shareBullet2')}</span>
             <span className="flex items-center gap-2"><Check size={15} className="text-green-400" /> {t('landing.shareBullet3')}</span>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Trades & sales (coming soon · premium) */}
+      <section className="max-w-6xl mx-auto px-6 py-12">
+        <motion.div {...fadeUp} className="surface p-8 sm:p-12 bg-gradient-to-br from-vault-gold/10 to-transparent border-vault-gold/20">
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            <ArrowLeftRight size={28} className="text-vault-gold shrink-0" />
+            <div>
+              <span className="inline-block text-[10px] uppercase tracking-wider font-bold text-vault-gold bg-vault-gold/10 border border-vault-gold/30 rounded-full px-2 py-0.5 mb-3">
+                {t('landing.tradeBadge')}
+              </span>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-vault-gold">{t('landing.tradeTitle')}</h2>
+              <p className="text-vault-muted mt-3 max-w-2xl">{t('landing.tradeDesc')}</p>
+              <div className="flex flex-wrap gap-4 mt-5 text-sm text-vault-text">
+                <span className="flex items-center gap-2"><Check size={15} className="text-vault-gold" /> {t('landing.tradeB1')}</span>
+                <span className="flex items-center gap-2"><Check size={15} className="text-vault-gold" /> {t('landing.tradeB2')}</span>
+                <span className="flex items-center gap-2"><Check size={15} className="text-vault-gold" /> {t('landing.tradeB3')}</span>
+              </div>
+            </div>
           </div>
         </motion.div>
       </section>

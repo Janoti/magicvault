@@ -31,6 +31,10 @@ vez, com **um commit por feature**. Legenda de esforço: 🟢 pequeno · 🟡 m�
 
 ### P2 — Monetização
 8. **Premium (Stripe + gates)** 🔴 — flag de plano no usuário, checkout/webhook, travar recursos premium, limites do free. (ver PRODUCT.md)
+8b. **🔥 Trocas & Vendas (cartas físicas)** 🔴 — feature premium. Marcar cartas à venda (preço) ou troca (lista de desejos), **foto real da carta** (condição), vitrine/busca pública, botão "tenho interesse" que conecta as pessoas. Acerto/envio **fora da plataforma** no v1. Reaproveita coleção + amigos.
+   - Fase 1 (MVP): listings (venda/troca) + foto real + vitrine + contato. Criar listing = premium.
+   - Fase 2: matchmaking ("você tem o que ele quer") + reputação/avaliações.
+   - Fase 3 (depois): pagamento/escrow integrado.
 
 ### P3 — Diferenciais de produto (ver PRODUCT.md / ROADMAP.md)
 9. **Deck × coleção** (collection-aware: tem/falta/custo) 🟢
