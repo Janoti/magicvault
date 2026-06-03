@@ -365,7 +365,18 @@
     "closed": "Closed",
     "noListings": "No listings yet. Be the first!",
     "noMine": "You have no listings yet.",
-    "by": "by"
+    "by": "by",
+    "viewInterests": "Interest ({{count}})",
+    "markSold": "Sold",
+    "markTraded": "Traded",
+    "resolved_sold": "Sold",
+    "resolved_traded": "Traded",
+    "resolved_cancelled": "Cancelled",
+    "statSold": "{{count}} sold",
+    "statTraded": "{{count}} traded",
+    "interestsTitle": "Who's interested",
+    "noInterests": "No one is interested yet.",
+    "interestsHint": "Arrange the trade/sale via the person's profile. Then mark it as sold or traded — it stays private and you can delete it anytime."
   },
   "premium": {
     "nav": "Premium",

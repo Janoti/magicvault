@@ -365,7 +365,18 @@
     "closed": "Cerrada",
     "noListings": "Aún no hay publicaciones. ¡Sé el primero!",
     "noMine": "Aún no tienes publicaciones.",
-    "by": "por"
+    "by": "por",
+    "viewInterests": "Interés ({{count}})",
+    "markSold": "Vendida",
+    "markTraded": "Cambiada",
+    "resolved_sold": "Vendida",
+    "resolved_traded": "Cambiada",
+    "resolved_cancelled": "Cancelada",
+    "statSold": "{{count}} vendidas",
+    "statTraded": "{{count}} cambiadas",
+    "interestsTitle": "Quién tiene interés",
+    "noInterests": "Nadie ha mostrado interés todavía.",
+    "interestsHint": "Coordina el intercambio/venta por el perfil de la persona. Luego márcala como vendida o cambiada — queda privado y puedes borrarlo cuando quieras."
   },
   "premium": {
     "nav": "Premium",

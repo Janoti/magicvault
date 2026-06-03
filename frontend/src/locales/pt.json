@@ -365,7 +365,18 @@
     "closed": "Encerrada",
     "noListings": "Nenhuma oferta ainda. Seja o primeiro!",
     "noMine": "Você ainda não tem ofertas.",
-    "by": "por"
+    "by": "por",
+    "viewInterests": "Interesses ({{count}})",
+    "markSold": "Vendida",
+    "markTraded": "Trocada",
+    "resolved_sold": "Vendida",
+    "resolved_traded": "Trocada",
+    "resolved_cancelled": "Cancelada",
+    "statSold": "{{count}} vendidas",
+    "statTraded": "{{count}} trocadas",
+    "interestsTitle": "Quem tem interesse",
+    "noInterests": "Ninguém marcou interesse ainda.",
+    "interestsHint": "Combine a troca/venda pelo perfil da pessoa. Depois marque como vendida ou trocada — fica privado e você pode apagar quando quiser."
   },
   "premium": {
     "nav": "Premium",

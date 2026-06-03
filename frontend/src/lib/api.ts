@@ -68,6 +68,8 @@ export const listingsApi = {
   create: (data: object) => api.post('/api/listings', data).then(r => r.data),
   remove: (id: number) => api.delete(`/api/listings/${id}`),
   setStatus: (id: number, status: string) => api.patch(`/api/listings/${id}/status`, null, { params: { status } }).then(r => r.data),
+  resolve: (id: number, outcome: string) => api.patch(`/api/listings/${id}/resolve`, null, { params: { outcome } }).then(r => r.data),
+  stats: () => api.get('/api/listings/stats').then(r => r.data),
   interest: (id: number, message: string) => api.post(`/api/listings/${id}/interest`, { message }).then(r => r.data),
   interests: (id: number) => api.get(`/api/listings/${id}/interests`).then(r => r.data),
 }

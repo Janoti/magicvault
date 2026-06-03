@@ -168,7 +168,8 @@ class Listing(Base):
     wanted: Mapped[Optional[str]] = mapped_column(Text, nullable=True)     # for trade (free text)
     photo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)      # real card photo (base64)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    status: Mapped[str] = mapped_column(String(10), default="active")      # active | closed
+    status: Mapped[str] = mapped_column(String(10), default="active")      # active | closed | resolved
+    resolved_as: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)  # sold | traded | cancelled
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

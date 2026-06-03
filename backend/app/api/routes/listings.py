@@ -1,7 +1,7 @@
 from html import escape
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from pydantic import BaseModel
 from typing import Optional
 
@@ -47,7 +47,8 @@ async def _serialize(db: AsyncSession, rows, cards: dict) -> list:
         out.append({
             "id": l.id, "scryfall_id": l.scryfall_id, "condition": l.condition, "foil": l.foil,
             "price": l.price, "wanted": l.wanted, "photo": l.photo, "notes": l.notes,
-            "status": l.status, "created_at": l.created_at.isoformat() if l.created_at else None,
+            "status": l.status, "resolved_as": l.resolved_as,
+            "created_at": l.created_at.isoformat() if l.created_at else None,
             "card": card, "seller": _seller(sellers[l.user_id]),
         })
     return out
@@ -128,7 +129,31 @@ async def set_status(listing_id: int, status: str = Query(...), current_user: Us
     if not l:
         raise HTTPException(status_code=404, detail="Não encontrado")
     l.status = "closed" if status == "closed" else "active"
+    if l.status == "active":
+        l.resolved_as = None  # reopening clears the resolution
     return {"status": l.status}
+
+
+@router.patch("/{listing_id}/resolve")
+async def resolve_listing(listing_id: int, outcome: str = Query(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Owner marks how the deal ended: sold, traded or cancelled."""
+    if outcome not in ("sold", "traded", "cancelled"):
+        raise HTTPException(status_code=400, detail="Resultado inválido")
+    l = (await db.execute(select(Listing).where(Listing.id == listing_id, Listing.user_id == current_user.id))).scalar_one_or_none()
+    if not l:
+        raise HTTPException(status_code=404, detail="Não encontrado")
+    l.status = "resolved"
+    l.resolved_as = outcome
+    return {"status": l.status, "resolved_as": l.resolved_as}
+
+
+@router.get("/stats")
+async def platform_stats(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Platform-wide totals of completed deals (shown on the Trades page)."""
+    sold = (await db.execute(select(func.count(Listing.id)).where(Listing.resolved_as == "sold"))).scalar() or 0
+    traded = (await db.execute(select(func.count(Listing.id)).where(Listing.resolved_as == "traded"))).scalar() or 0
+    active = (await db.execute(select(func.count(Listing.id)).where(Listing.status == "active"))).scalar() or 0
+    return {"sold": sold, "traded": traded, "active": active}
 
 
 @router.post("/{listing_id}/interest", status_code=201)
