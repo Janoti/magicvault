@@ -4,6 +4,7 @@ import { Package, Search, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const SET_TYPES = ['core', 'expansion', 'commander', 'draft_innovation', 'masters', 'memorabilia', 'funny']
 
@@ -11,6 +12,7 @@ export default function SetsPage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const { data: sets = [], isLoading } = useQuery({ queryKey: ['sets'], queryFn: setsApi.list })
 
@@ -22,17 +24,17 @@ export default function SetsPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold text-vault-gold">Sets</h1>
-        <p className="text-vault-muted text-sm mt-0.5">Todos os sets de Magic: The Gathering</p>
+        <h1 className="font-display text-3xl font-bold text-vault-gold">{t('pages.setsTitle')}</h1>
+        <p className="text-vault-muted text-sm mt-0.5">{t('pages.setsSubtitle')}</p>
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
-          <input className="input-field pl-9" placeholder="Buscar set..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="input-field pl-9" placeholder={t('pages.searchSet')} value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="input-field !w-auto" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-          <option value="">Todos os tipos</option>
+          <option value="">{t('pages.allTypes')}</option>
           {SET_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>

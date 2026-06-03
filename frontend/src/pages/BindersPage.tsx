@@ -4,6 +4,7 @@ import { bindersApi } from '@/lib/api'
 import { Link } from 'react-router-dom'
 import { Plus, BookOpen, Trash2, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 const ICONS = ['book', 'star', 'fire', 'dragon', 'castle', 'sword', 'shield', 'gem', 'crown', 'wolf']
 const COLORS = ['#6c5ce7', '#00cec9', '#fd79a8', '#e17055', '#55efc4', '#fdcb6e', '#74b9ff', '#a29bfe']
@@ -12,6 +13,7 @@ export default function BindersPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', color: '#6c5ce7', icon: 'book', is_public: false })
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const { data: binders = [], isLoading } = useQuery({
     queryKey: ['binders'],
@@ -36,11 +38,11 @@ export default function BindersPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-3xl font-bold text-vault-gold">Binders</h1>
-          <p className="text-vault-muted text-sm mt-0.5">Organize suas cartas em coleções temáticas</p>
+          <h1 className="font-display text-3xl font-bold text-vault-gold">{t('pages.bindersTitle')}</h1>
+          <p className="text-vault-muted text-sm mt-0.5">{t('pages.bindersSubtitle')}</p>
         </div>
         <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
-          <Plus size={16} /> Novo Binder
+          <Plus size={16} /> {t('pages.newBinder')}
         </button>
       </div>
 
@@ -51,9 +53,9 @@ export default function BindersPage() {
       ) : binders.length === 0 ? (
         <div className="text-center py-20">
           <BookOpen size={48} className="mx-auto text-vault-muted mb-4 opacity-50" />
-          <p className="text-vault-muted mb-4">Nenhum binder criado ainda</p>
+          <p className="text-vault-muted mb-4">{t('pages.bindersEmpty')}</p>
           <button onClick={() => setShowCreate(true)} className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} /> Criar primeiro binder
+            <Plus size={16} /> {t('pages.newBinder')}
           </button>
         </div>
       ) : (

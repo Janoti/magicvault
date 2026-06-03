@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus, Trash2, Swords, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const FORMATS = ['casual', 'commander', 'standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'draft']
 
@@ -11,6 +12,7 @@ export default function DecksPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', format: 'casual', description: '' })
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const { data: decks = [], isLoading } = useQuery({ queryKey: ['decks'], queryFn: decksApi.list })
 
@@ -28,11 +30,11 @@ export default function DecksPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-3xl font-bold text-vault-gold">Decks</h1>
-          <p className="text-vault-muted text-sm">Seus decks construídos</p>
+          <h1 className="font-display text-3xl font-bold text-vault-gold">{t('pages.decksTitle')}</h1>
+          <p className="text-vault-muted text-sm">{t('pages.decksSubtitle')}</p>
         </div>
         <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
-          <Plus size={16} /> Novo Deck
+          <Plus size={16} /> {t('pages.newDeck')}
         </button>
       </div>
 
@@ -43,9 +45,9 @@ export default function DecksPage() {
       ) : decks.length === 0 ? (
         <div className="text-center py-20">
           <Swords size={48} className="mx-auto text-vault-muted mb-4 opacity-50" />
-          <p className="text-vault-muted mb-4">Nenhum deck criado</p>
+          <p className="text-vault-muted mb-4">{t('pages.decksEmpty')}</p>
           <button onClick={() => setShowCreate(true)} className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} /> Criar Deck
+            <Plus size={16} /> {t('pages.newDeck')}
           </button>
         </div>
       ) : (

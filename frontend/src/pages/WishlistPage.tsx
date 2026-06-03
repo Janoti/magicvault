@@ -3,9 +3,11 @@ import { wishlistApi } from '@/lib/api'
 import { Trash2, Star, ExternalLink } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 export default function WishlistPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const { data: items = [], isLoading } = useQuery({ queryKey: ['wishlist'], queryFn: wishlistApi.list })
 
@@ -20,12 +22,12 @@ export default function WishlistPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-3xl font-bold text-vault-gold">Wishlist</h1>
-          <p className="text-vault-muted text-sm">Cartas que você quer adquirir</p>
+          <h1 className="font-display text-3xl font-bold text-vault-gold">{t('pages.wishlistTitle')}</h1>
+          <p className="text-vault-muted text-sm">{t('pages.wishlistSubtitle')}</p>
         </div>
         {items.length > 0 && (
           <div className="surface px-4 py-2 text-right">
-            <p className="text-xs text-vault-muted">Valor estimado</p>
+            <p className="text-xs text-vault-muted">{t('pages.wlEstValue')}</p>
             <p className="font-mono font-bold text-green-400 text-lg">${totalValue.toFixed(2)}</p>
           </div>
         )}
@@ -38,9 +40,9 @@ export default function WishlistPage() {
       ) : items.length === 0 ? (
         <div className="text-center py-20">
           <Star size={48} className="mx-auto text-vault-muted mb-4 opacity-50" />
-          <p className="text-vault-muted mb-4">Sua wishlist está vazia</p>
+          <p className="text-vault-muted mb-4">{t('pages.wlEmpty')}</p>
           <Link to="/search" className="btn-primary inline-flex items-center gap-2">
-            Buscar cartas para adicionar
+            {t('pages.wlSearchAdd')}
           </Link>
         </div>
       ) : (
@@ -66,7 +68,7 @@ export default function WishlistPage() {
                     )}
                   </div>
                   {item.max_price && (
-                    <p className="text-xs text-vault-gold mt-1">Máx: ${item.max_price}</p>
+                    <p className="text-xs text-vault-gold mt-1">{t('pages.wlMax')}: ${item.max_price}</p>
                   )}
                   {item.notes && <p className="text-xs text-vault-muted mt-1 italic">{item.notes}</p>}
                 </div>
