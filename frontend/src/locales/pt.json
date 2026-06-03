@@ -268,6 +268,11 @@
   "search": {
     "title": "Buscar Cartas",
     "syntaxHint": "Use sintaxe Scryfall:",
+    "modeName": "Por nome",
+    "modeEffect": "Por efeito/habilidade",
+    "effectHint": "Não sabe o nome? Descreva em inglês o que a carta faz (ex: \"draw a card\", \"gain life\").",
+    "effectPlaceholder": "Em inglês — ex: destroy target creature, draw a card...",
+    "abilities": "Habilidades",
     "placeholder": "Buscar cartas... (ex: Lightning Bolt, t:dragon, set:lci)",
     "button": "Buscar",
     "found": "{{count}} cartas encontradas",

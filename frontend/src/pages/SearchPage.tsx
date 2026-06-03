@@ -8,14 +8,28 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { debounce } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 
+// Common ability keywords for the quick-pick chips (value = Scryfall kw: token).
+const ABILITIES = [
+  'Flying', 'Deathtouch', 'Lifelink', 'Trample', 'Vigilance', 'Haste', 'First strike',
+  'Double strike', 'Menace', 'Reach', 'Hexproof', 'Ward', 'Flash', 'Defender',
+  'Indestructible', 'Prowess', 'Scry', 'Cascade', 'Convoke', 'Flashback',
+]
+
+type Mode = 'name' | 'effect'
+
 export default function SearchPage() {
   const { t } = useTranslation()
-  const [query, setQuery] = useState('')
+  const [mode, setMode] = useState<Mode>('name')
+  const [query, setQuery] = useState('')        // final Scryfall query that gets sent
   const [searchInput, setSearchInput] = useState('')
   const [page, setPage] = useState(1)
   const [selectedCard, setSelectedCard] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
   const qc = useQueryClient()
+
+  // Turn the raw input into a Scryfall query depending on the chosen mode.
+  const buildQuery = (input: string, m: Mode) =>
+    m === 'effect' ? `oracle:"${input.replace(/"/g, '')}"` : input
 
   const { data, isLoading } = useQuery({
     queryKey: ['card-search', query, page],
@@ -45,7 +59,15 @@ export default function SearchPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    setQuery(searchInput)
+    if (searchInput.trim().length < 2) return
+    setQuery(buildQuery(searchInput.trim(), mode))
+    setPage(1)
+  }
+
+  const runAbility = (label: string) => {
+    setMode('effect')
+    setSearchInput(label)
+    setQuery(`keyword:"${label}"`)
     setPage(1)
   }
 
@@ -56,19 +78,36 @@ export default function SearchPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="font-display text-3xl font-bold text-vault-gold mb-1">{t('search.title')}</h1>
-        <p className="text-vault-muted text-sm">{t('search.syntaxHint')} <code className="text-vault-accent bg-vault-card px-1 rounded">t:creature c:blue</code></p>
+        <p className="text-vault-muted text-sm">
+          {mode === 'effect'
+            ? t('search.effectHint')
+            : <>{t('search.syntaxHint')} <code className="text-vault-accent bg-vault-card px-1 rounded">t:creature c:blue</code></>}
+        </p>
+      </div>
+
+      {/* Mode toggle: search by name, or by ability/effect text */}
+      <div className="flex gap-1 mb-3 bg-vault-card/50 p-1 rounded-lg w-fit">
+        {(['name', 'effect'] as Mode[]).map(m => (
+          <button
+            key={m}
+            onClick={() => { setMode(m); if (searchInput.trim().length >= 2) { setQuery(buildQuery(searchInput.trim(), m)); setPage(1) } }}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === m ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}
+          >
+            {m === 'name' ? t('search.modeName') : t('search.modeEffect')}
+          </button>
+        ))}
       </div>
 
       {/* Search form */}
-      <form onSubmit={handleSearch} className="mb-6">
+      <form onSubmit={handleSearch} className="mb-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
             <input
               className="input-field pl-10"
-              placeholder={t('search.placeholder')}
+              placeholder={mode === 'effect' ? t('search.effectPlaceholder') : t('search.placeholder')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -78,8 +117,8 @@ export default function SearchPage() {
           </button>
         </div>
 
-        {/* Autocomplete suggestions */}
-        {suggestions?.suggestions?.length > 0 && searchInput && !query && (
+        {/* Autocomplete suggestions (name mode only) */}
+        {mode === 'name' && suggestions?.suggestions?.length > 0 && searchInput && !query && (
           <div className="absolute z-10 bg-vault-surface border border-vault-border rounded-lg mt-1 shadow-xl max-w-md">
             {suggestions.suggestions.slice(0, 8).map((name: string) => (
               <button
@@ -94,6 +133,20 @@ export default function SearchPage() {
           </div>
         )}
       </form>
+
+      {/* Quick ability chips */}
+      <div className="flex flex-wrap gap-1.5 mb-6">
+        <span className="text-xs text-vault-muted self-center mr-1">{t('search.abilities')}:</span>
+        {ABILITIES.map(a => (
+          <button
+            key={a}
+            onClick={() => runAbility(a)}
+            className="text-[11px] px-2.5 py-1 rounded-full border border-vault-border text-vault-muted hover:border-vault-accent/40 hover:text-vault-accent transition-all"
+          >
+            {a}
+          </button>
+        ))}
+      </div>
 
       {/* Results */}
       {isLoading && (
