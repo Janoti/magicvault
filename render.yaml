@@ -56,6 +56,6 @@ services:
       - key: STRIPE_SECRET_KEY
         sync: false # sk_test_... / sk_live_... (set in dashboard)
       - key: STRIPE_PRICE_ID
-        value: "" # price_... of the monthly subscription
+        value: price_1TeEVoFUHB1cWMRqfNfV9gSq # monthly subscription (R$10)
       - key: STRIPE_WEBHOOK_SECRET
         sync: false # whsec_... from the Stripe webhook (set in dashboard)
