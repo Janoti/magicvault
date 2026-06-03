@@ -8,7 +8,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
@@ -71,6 +71,7 @@ app.include_router(shares.router, prefix="/api/shares", tags=["shares"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
+app.include_router(listings.router, prefix="/api/listings", tags=["listings"])
 
 
 @app.get("/api/health")

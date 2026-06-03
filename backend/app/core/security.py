@@ -61,6 +61,12 @@ async def get_current_admin(current_user: User = Depends(get_current_user)) -> U
     return current_user
 
 
+async def get_premium_user(current_user: User = Depends(get_current_user)) -> User:
+    if not (getattr(current_user, "is_premium", False) or getattr(current_user, "is_admin", False)):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="premium_required")
+    return current_user
+
+
 async def get_optional_user(
     token: str = Depends(oauth2_optional),
     db: AsyncSession = Depends(get_db),

@@ -153,6 +153,34 @@ class Friendship(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class Listing(Base):
+    """A card offered for sale and/or trade (physical card)."""
+    __tablename__ = "listings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    scryfall_id: Mapped[str] = mapped_column(String(64), index=True)
+    condition: Mapped[str] = mapped_column(String(3), default="NM")
+    foil: Mapped[bool] = mapped_column(Boolean, default=False)
+    price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)   # for sale
+    wanted: Mapped[Optional[str]] = mapped_column(Text, nullable=True)     # for trade (free text)
+    photo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)      # real card photo (base64)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(10), default="active")      # active | closed
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Interest(Base):
+    """Someone expressed interest in a listing."""
+    __tablename__ = "interests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    listing_id: Mapped[int] = mapped_column(Integer, ForeignKey("listings.id"), index=True)
+    buyer_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class Feedback(Base):
     __tablename__ = "feedback"
 
