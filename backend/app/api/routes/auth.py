@@ -3,13 +3,14 @@ import re
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, func
 from pydantic import BaseModel, EmailStr
 
 from app.core.config import settings
+from app.core.ratelimit import limiter
 from app.core.database import get_db
 from app.core.security import verify_password, hash_password, create_access_token, get_current_user
 from app.models.user import User, PasswordResetToken
@@ -74,7 +75,8 @@ class Token(BaseModel):
 
 
 @router.post("/register", response_model=Token, status_code=201)
-async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, data: UserRegister, db: AsyncSession = Depends(get_db)):
     username = _validate_username(data.username)
     if len(data.password) < MIN_PASSWORD_LEN:
         raise HTTPException(status_code=400, detail=f"Senha muito curta (mínimo {MIN_PASSWORD_LEN})")
@@ -106,7 +108,8 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-async def login(form: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     # The "username" form field may hold an email or a username.
     ident = form.username.strip().lower()
     result = await db.execute(
@@ -181,7 +184,8 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password")
-async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("3/minute")
+async def forgot_password(request: Request, data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     """Accepts email or username. Always returns 200 (don't reveal existence)."""
     ident = data.identifier.strip().lower()
     user = (await db.execute(
@@ -201,7 +205,8 @@ async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depend
 
 
 @router.post("/reset-password")
-async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def reset_password(request: Request, data: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
     if len(data.new_password) < 6:
         raise HTTPException(status_code=400, detail="Senha muito curta (mínimo 6)")
 

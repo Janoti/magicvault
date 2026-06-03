@@ -1,5 +1,5 @@
 from html import escape
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel
@@ -7,6 +7,7 @@ from typing import Optional
 
 from app.core.database import get_db
 from app.core.security import get_current_user, get_premium_user
+from app.core.ratelimit import limiter
 from app.models.user import User, Listing, Interest
 from app.services.scryfall import get_cards_bulk, get_card_by_id, extract_card_summary
 from app.services.email import send_email
@@ -131,7 +132,8 @@ async def set_status(listing_id: int, status: str = Query(...), current_user: Us
 
 
 @router.post("/{listing_id}/interest", status_code=201)
-async def express_interest(listing_id: int, data: InterestRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+@limiter.limit("20/hour")
+async def express_interest(request: Request, listing_id: int, data: InterestRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     l = (await db.execute(select(Listing).where(Listing.id == listing_id, Listing.status == "active"))).scalar_one_or_none()
     if not l:
         raise HTTPException(status_code=404, detail="Oferta não encontrada")
