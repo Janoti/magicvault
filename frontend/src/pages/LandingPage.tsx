@@ -6,16 +6,18 @@ import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { billingApi } from '@/lib/api'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
-  ArrowRight, Check, Github, ArrowLeftRight, Crown,
+  ArrowRight, Check, Github, ArrowLeftRight, Crown, Layers, SearchCode, Users,
 } from 'lucide-react'
 
 const features = [
   { icon: Library, k: 'f1' },
   { icon: Swords, k: 'f2' },
   { icon: BookOpen, k: 'f3' },
-  { icon: Share2, k: 'f4' },
+  { icon: Layers, k: 'f4' },
   { icon: TrendingUp, k: 'f5' },
-  { icon: Upload, k: 'f6' },
+  { icon: SearchCode, k: 'f6' },
+  { icon: Upload, k: 'f7' },
+  { icon: Users, k: 'f8' },
 ]
 
 const fadeUp = {
@@ -77,7 +79,11 @@ export default function LandingPage() {
 
       {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div {...fadeUp} className="text-center mb-10">
+          <h2 className="font-display text-3xl font-bold text-vault-gold">{t('landing.featuresTitle')}</h2>
+          <p className="text-vault-muted mt-2">{t('landing.featuresSubtitle')}</p>
+        </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((f, i) => (
             <motion.div key={f.k} {...fadeUp} transition={{ delay: Math.min(i * 0.05, 0.3) }}
               className="surface p-6 hover:border-vault-accent/40 transition-all">
