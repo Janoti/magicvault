@@ -366,6 +366,11 @@
     "soon": "Coming soon",
     "soonNote": "Subscriptions are coming soon. For now, contact the admin to get access.",
     "manage": "Manage subscription",
-    "thanks": "Thank you! Welcome to Premium ✨"
+    "thanks": "Thank you! Welcome to Premium ✨",
+    "secureTitle": "100% secure payment",
+    "secure1": "Processed by Stripe — a global payments leader",
+    "secure2": "Your card details never touch VaultSpell",
+    "secure3": "Encrypted connection (SSL) · cancel anytime",
+    "redirectNote": "You will be taken to Stripe’s secure environment to complete."
   }
 }

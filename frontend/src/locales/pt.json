@@ -366,6 +366,11 @@
     "soon": "Em breve",
     "soonNote": "As assinaturas chegam em breve. Por enquanto, fale com o admin pra liberar.",
     "manage": "Gerenciar assinatura",
-    "thanks": "Obrigado! Bem-vindo ao Premium ✨"
+    "thanks": "Obrigado! Bem-vindo ao Premium ✨",
+    "secureTitle": "Pagamento 100% seguro",
+    "secure1": "Processado pela Stripe — líder mundial em pagamentos",
+    "secure2": "Seus dados de cartão nunca passam pelo VaultSpell",
+    "secure3": "Conexão criptografada (SSL) · cancele quando quiser",
+    "redirectNote": "Você será levado ao ambiente seguro da Stripe para concluir."
   }
 }

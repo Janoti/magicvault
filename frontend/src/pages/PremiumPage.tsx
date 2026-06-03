@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Crown, Check, Sparkles, ExternalLink } from 'lucide-react'
+import { Crown, Check, Sparkles, ExternalLink, ShieldCheck, Lock } from 'lucide-react'
 import { billingApi, authApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 
@@ -102,6 +102,27 @@ export default function PremiumPage() {
               {t('premium.subscribe')}
             </button>
             {notice && <p className="text-xs text-vault-gold/90 text-center mt-3">{t('premium.soonNote')}</p>}
+
+            {price?.configured && (
+              <>
+                <p className="text-[11px] text-vault-muted text-center mt-3 flex items-center justify-center gap-1.5">
+                  <Lock size={11} /> {t('premium.redirectNote')}
+                </p>
+                <div className="mt-4 rounded-xl border border-vault-border bg-vault-card/40 p-4">
+                  <p className="text-xs font-medium text-vault-text flex items-center gap-2 mb-2">
+                    <ShieldCheck size={14} className="text-green-400" /> {t('premium.secureTitle')}
+                  </p>
+                  <ul className="space-y-1.5">
+                    {[t('premium.secure1'), t('premium.secure2'), t('premium.secure3')].map((s, i) => (
+                      <li key={i} className="text-[11px] text-vault-muted flex items-start gap-1.5">
+                        <Check size={12} className="text-green-400 shrink-0 mt-0.5" /> {s}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[10px] text-vault-muted/70 text-center mt-3">Powered by Stripe</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
