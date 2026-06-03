@@ -70,6 +70,17 @@
     "heroB1": "Catalog every card",
     "heroB2": "Build themed decks and binders",
     "heroB3": "Share with your allies",
-    "forgotPassword": "Forgot my password"
+    "forgotPassword": "Forgot my password",
+    "forgotTitle": "Recover password",
+    "forgotSubtitle": "We'll send a reset link to your email",
+    "forgotButton": "Send link",
+    "forgotSent": "If the email exists, we've sent a reset link. Check your inbox.",
+    "backToLogin": "Back to login",
+    "resetTitle": "New password",
+    "resetSubtitle": "Choose a new password for your account",
+    "newPassword": "New password",
+    "resetButton": "Reset password",
+    "resetSuccess": "Password reset! You can log in now.",
+    "resetInvalid": "Invalid or expired link"
   }
 }

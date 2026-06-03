@@ -42,6 +42,9 @@ export const authApi = {
     return api.post('/api/auth/login', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data)
   },
   me: () => api.get('/api/auth/me').then(r => r.data),
+  forgotPassword: (email: string) => api.post('/api/auth/forgot-password', { email }).then(r => r.data),
+  resetPassword: (token: string, new_password: string) =>
+    api.post('/api/auth/reset-password', { token, new_password }).then(r => r.data),
 }
 
 // Cards

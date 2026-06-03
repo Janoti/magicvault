@@ -70,6 +70,17 @@
     "heroB1": "Catalogue cada carta",
     "heroB2": "Monte decks e binders temáticos",
     "heroB3": "Compartilhe com seus aliados",
-    "forgotPassword": "Esqueci minha senha"
+    "forgotPassword": "Esqueci minha senha",
+    "forgotTitle": "Recuperar senha",
+    "forgotSubtitle": "Enviaremos um link de redefinição pro seu email",
+    "forgotButton": "Enviar link",
+    "forgotSent": "Se o email existir, enviamos um link de redefinição. Confira sua caixa de entrada.",
+    "backToLogin": "Voltar ao login",
+    "resetTitle": "Nova senha",
+    "resetSubtitle": "Escolha uma nova senha para sua conta",
+    "newPassword": "Nova senha",
+    "resetButton": "Redefinir senha",
+    "resetSuccess": "Senha redefinida! Você já pode entrar.",
+    "resetInvalid": "Link inválido ou expirado"
   }
 }

@@ -45,3 +45,10 @@ services:
       - key: CORS_ORIGINS
         # Same-origin deploy, so CORS is not exercised; harmless default.
         value: "*"
+      - key: APP_URL
+        # Base URL used in password-reset links (must be the public URL).
+        value: https://magicvault.onrender.com
+      - key: RESEND_API_KEY
+        sync: false # set in the Render dashboard; empty = reset links only logged
+      - key: EMAIL_FROM
+        value: MagicVault <onboarding@resend.dev>

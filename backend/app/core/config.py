@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     scryfall_api_base: str = "https://api.scryfall.com"
     scryfall_cache_ttl: int = 60 * 60 * 24  # 24h cache
 
+    # Email / password reset
+    resend_api_key: str = ""  # if empty, reset links are logged instead of emailed
+    email_from: str = "MagicVault <onboarding@resend.dev>"
+    app_url: str = "http://localhost:5173"  # base URL the reset link points to
+    reset_token_expire_minutes: int = 60
+
     class Config:
         env_file = ".env"
         case_sensitive = False

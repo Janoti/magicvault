@@ -70,6 +70,17 @@
     "heroB1": "Cataloga cada carta",
     "heroB2": "Arma mazos y carpetas temáticas",
     "heroB3": "Comparte con tus aliados",
-    "forgotPassword": "Olvidé mi contraseña"
+    "forgotPassword": "Olvidé mi contraseña",
+    "forgotTitle": "Recuperar contraseña",
+    "forgotSubtitle": "Te enviaremos un enlace de restablecimiento a tu email",
+    "forgotButton": "Enviar enlace",
+    "forgotSent": "Si el email existe, enviamos un enlace de restablecimiento. Revisa tu bandeja.",
+    "backToLogin": "Volver al login",
+    "resetTitle": "Nueva contraseña",
+    "resetSubtitle": "Elige una nueva contraseña para tu cuenta",
+    "newPassword": "Nueva contraseña",
+    "resetButton": "Restablecer contraseña",
+    "resetSuccess": "¡Contraseña restablecida! Ya puedes entrar.",
+    "resetInvalid": "Enlace inválido o expirado"
   }
 }
