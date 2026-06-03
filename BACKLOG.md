@@ -17,6 +17,7 @@ vez, com **um commit por feature**. Legenda de esforço: 🟢 pequeno · 🟡 m�
 ## 🎯 Próximos (prioridade)
 
 ### P0 — Terminar o que está em andamento / contas
+0. **Recuperação de senha** 🟡 — fluxo "esqueci a senha" → email com link (Resend) → redefinir. (precisa de RESEND_API_KEY)
 1. **i18n — completar nas telas internas** 🟡
    Falta traduzir: coleção (tabela/filtros/modais), binders, decks, sets, wishlist, amigos, compartilhados, scan, search. (base e telas de entrada já prontas)
 2. **Editar conta** 🟡 — mudar email, nome, nickname; **avatar** (galeria de avatares públicos com tema MTG/D&D).
