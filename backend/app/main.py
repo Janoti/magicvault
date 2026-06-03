@@ -4,20 +4,33 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 
 
+# Lightweight idempotent migrations for columns added after a table already
+# exists (create_all only creates missing tables, it never ALTERs).
+_COLUMN_MIGRATIONS = [
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(100)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(255)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS links TEXT",
+]
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        for stmt in _COLUMN_MIGRATIONS:
+            await conn.execute(text(stmt))
     yield
 
 
@@ -45,6 +58,7 @@ app.include_router(wishlist.router, prefix="/api/wishlist", tags=["wishlist"])
 app.include_router(sets.router, prefix="/api/sets", tags=["sets"])
 app.include_router(friends.router, prefix="/api/friends", tags=["friends"])
 app.include_router(shares.router, prefix="/api/shares", tags=["shares"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
 
 
 @app.get("/api/health")

@@ -1,9 +1,11 @@
+import json
 import secrets
 from datetime import datetime, timedelta
+from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from pydantic import BaseModel, EmailStr
 
 from app.core.config import settings
@@ -21,13 +23,27 @@ class UserRegister(BaseModel):
     password: str
 
 
+class LinkItem(BaseModel):
+    label: str
+    url: str
+
+
 class UserOut(BaseModel):
     id: int
     email: str
     username: str
+    display_name: Optional[str] = None
+    avatar: Optional[str] = None
+    bio: Optional[str] = None
+    links: List[LinkItem] = []
 
-    class Config:
-        from_attributes = True
+
+def to_user_out(u: User) -> UserOut:
+    return UserOut(
+        id=u.id, email=u.email, username=u.username,
+        display_name=u.display_name, avatar=u.avatar, bio=u.bio,
+        links=json.loads(u.links) if u.links else [],
+    )
 
 
 class Token(BaseModel):
@@ -55,7 +71,7 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
     await db.flush()
 
     token = create_access_token({"sub": str(user.id)})
-    return Token(access_token=token, token_type="bearer", user=UserOut.model_validate(user))
+    return Token(access_token=token, token_type="bearer", user=to_user_out(user))
 
 
 @router.post("/login", response_model=Token)
@@ -71,12 +87,50 @@ async def login(form: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
         )
 
     token = create_access_token({"sub": str(user.id)})
-    return Token(access_token=token, token_type="bearer", user=UserOut.model_validate(user))
+    return Token(access_token=token, token_type="bearer", user=to_user_out(user))
 
 
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return to_user_out(current_user)
+
+
+class UpdateMeRequest(BaseModel):
+    email: Optional[EmailStr] = None
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar: Optional[str] = None
+    bio: Optional[str] = None
+    links: Optional[List[LinkItem]] = None
+
+
+@router.patch("/me", response_model=UserOut)
+async def update_me(
+    data: UpdateMeRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if data.email and data.email != current_user.email:
+        dup = (await db.execute(select(User).where(User.email == data.email, User.id != current_user.id))).scalar_one_or_none()
+        if dup:
+            raise HTTPException(status_code=400, detail="Email já em uso")
+        current_user.email = data.email
+    if data.username and data.username != current_user.username:
+        dup = (await db.execute(select(User).where(User.username == data.username, User.id != current_user.id))).scalar_one_or_none()
+        if dup:
+            raise HTTPException(status_code=400, detail="Username já em uso")
+        current_user.username = data.username
+    if data.display_name is not None:
+        current_user.display_name = data.display_name or None
+    if data.avatar is not None:
+        current_user.avatar = data.avatar or None
+    if data.bio is not None:
+        current_user.bio = data.bio or None
+    if data.links is not None:
+        current_user.links = json.dumps([l.model_dump() for l in data.links])
+
+    await db.flush()
+    return to_user_out(current_user)
 
 
 class ForgotPasswordRequest(BaseModel):
