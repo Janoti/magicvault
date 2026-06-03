@@ -7,6 +7,7 @@ interface User {
   display_name?: string | null; avatar?: string | null
   bio?: string | null; links?: { label: string; url: string }[]
   is_admin?: boolean; is_premium?: boolean; is_beta?: boolean
+  contact?: string | null; contact_public?: boolean
 }
 
 interface AuthState {

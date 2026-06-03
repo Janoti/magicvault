@@ -38,6 +38,8 @@ export default function AccountPage() {
   const [avatar, setAvatar] = useState(user?.avatar || '')
   const [bio, setBio] = useState(user?.bio || '')
   const [links, setLinks] = useState<{ label: string; url: string }[]>(user?.links || [])
+  const [contact, setContact] = useState(user?.contact || '')
+  const [contactPublic, setContactPublic] = useState(!!user?.contact_public)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -53,6 +55,7 @@ export default function AccountPage() {
     mutationFn: () => authApi.updateMe({
       display_name: displayName, username, email, avatar, bio,
       links: links.filter(l => l.label && l.url),
+      contact, contact_public: contactPublic,
     }),
     onSuccess: (updated) => { setUser(updated); setMsg({ ok: true, text: t('account.saved') }) },
     onError: (e: any) => setMsg({ ok: false, text: e?.response?.data?.detail || t('account.saveError') }),
@@ -123,6 +126,14 @@ export default function AccountPage() {
         <div>
           <label className="text-xs text-vault-muted font-medium mb-1.5 block">{t('account.bio')}</label>
           <textarea className="input-field resize-none" rows={3} placeholder={t('account.bioPh')} value={bio} onChange={e => setBio(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-xs text-vault-muted font-medium mb-1.5 block">{t('account.contact')}</label>
+          <input className="input-field" placeholder={t('account.contactPh')} value={contact} onChange={e => setContact(e.target.value)} />
+          <label className="flex items-center gap-2 mt-2 text-xs text-vault-text cursor-pointer">
+            <input type="checkbox" checked={contactPublic} onChange={e => setContactPublic(e.target.checked)} />
+            {t('account.contactPublic')}
+          </label>
         </div>
       </div>
 

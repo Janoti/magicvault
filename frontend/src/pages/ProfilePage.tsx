@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Library, Swords, BookOpen, ExternalLink } from 'lucide-react'
+import { Library, Swords, BookOpen, ExternalLink, MessageCircle } from 'lucide-react'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
@@ -12,6 +12,13 @@ const safeUrl = (u: string) => {
   if (/^https?:\/\//i.test(v)) return v
   if (/^(javascript|data|vbscript|file):/i.test(v)) return '#'
   return v ? `https://${v}` : '#'
+}
+
+// Phone-like contact → WhatsApp link; otherwise treat as a URL/handle.
+const contactHref = (c: string) => {
+  const digits = (c || '').replace(/\D/g, '')
+  if (digits.length >= 8) return `https://wa.me/${digits}`
+  return safeUrl(c)
 }
 
 export default function ProfilePage() {
@@ -67,6 +74,21 @@ export default function ProfilePage() {
               <p className="text-xs text-vault-muted">{t('nav.binders')}</p>
             </div>
           </div>
+
+          {data.contact && (
+            <a
+              href={contactHref(data.contact)} target="_blank" rel="noreferrer"
+              className="surface p-4 flex items-center gap-3 hover:border-vault-accent/40 transition-all"
+            >
+              <span className="w-9 h-9 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center justify-center">
+                <MessageCircle size={16} className="text-green-400" />
+              </span>
+              <div>
+                <p className="text-xs text-vault-muted">{t('account.contact')}</p>
+                <p className="text-sm text-vault-text">{data.contact}</p>
+              </div>
+            </a>
+          )}
 
           {data.links?.length > 0 && (
             <div className="surface p-5 space-y-2">

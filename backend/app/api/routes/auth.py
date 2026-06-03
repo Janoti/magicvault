@@ -71,6 +71,8 @@ class UserOut(BaseModel):
     is_admin: bool = False
     is_premium: bool = False
     is_beta: bool = False
+    contact: Optional[str] = None
+    contact_public: bool = False
 
 
 def to_user_out(u: User) -> UserOut:
@@ -80,6 +82,7 @@ def to_user_out(u: User) -> UserOut:
         links=json.loads(u.links) if u.links else [],
         is_admin=bool(u.is_admin), is_premium=bool(u.is_premium),
         is_beta=bool(u.is_beta),
+        contact=u.contact, contact_public=bool(u.contact_public),
     )
 
 
@@ -155,6 +158,8 @@ class UpdateMeRequest(BaseModel):
     avatar: Optional[str] = None
     bio: Optional[str] = None
     links: Optional[List[LinkItem]] = None
+    contact: Optional[str] = None
+    contact_public: Optional[bool] = None
 
 
 @router.patch("/me", response_model=UserOut)
@@ -184,6 +189,10 @@ async def update_me(
         current_user.bio = (data.bio or None) and data.bio[:MAX_BIO_LEN]
     if data.links is not None:
         current_user.links = json.dumps(_sanitize_links(data.links))
+    if data.contact is not None:
+        current_user.contact = (data.contact.strip()[:100] or None)
+    if data.contact_public is not None:
+        current_user.contact_public = data.contact_public
 
     await db.flush()
     return to_user_out(current_user)

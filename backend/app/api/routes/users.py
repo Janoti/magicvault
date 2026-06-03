@@ -35,6 +35,7 @@ async def public_profile(username: str, db: AsyncSession = Depends(get_db)):
         "avatar": user.avatar,
         "bio": user.bio,
         "links": json.loads(user.links) if user.links else [],
+        "contact": user.contact if user.contact_public else None,
         "member_since": user.created_at.isoformat() if user.created_at else None,
         "stats": {"cards": cards or 0, "decks": decks or 0, "binders": binders or 0},
     }
