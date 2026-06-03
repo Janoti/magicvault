@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Library, Swords, Share2, Dices, Sparkles } from 'lucide-react'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 
-// Floating embers config (deterministic so SSR/hydration is stable)
+// Floating embers config (deterministic so hydration is stable)
 const embers = Array.from({ length: 14 }).map((_, i) => ({
   left: (i * 53) % 100,
   size: 2 + (i % 3),
@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   ]
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-vault-bg relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden bg-vault-bg flex items-center justify-center p-4">
       {/* Animated arcane background */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -36,7 +36,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
         <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
-        {/* Embers */}
         {embers.map((e, i) => (
           <motion.span
             key={i}
@@ -48,48 +47,43 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         ))}
       </div>
 
-      {/* Centered container so the form doesn't get pushed to the far edge on wide screens */}
-      <div className="relative z-10 w-full max-w-5xl flex items-stretch min-h-[600px] lg:min-h-[560px]">
-      {/* Decorative hero panel (desktop) */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 p-10 border-r border-vault-border/40">
+      {/* Hero: floating panel pinned to the left (only where there's room) */}
+      <div className="hidden xl:flex flex-col justify-center gap-8 absolute left-16 top-1/2 -translate-y-1/2 max-w-sm z-10">
         <div className="flex items-center gap-2 text-vault-gold">
-          <Dices size={22} />
-          <span className="font-display text-xl font-bold tracking-wider">⚔ MagicVault</span>
+          <Dices size={20} />
+          <span className="font-display text-lg font-bold tracking-wider">⚔ MagicVault</span>
         </div>
-
-        <div className="max-w-md">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-            className="font-display text-4xl font-bold text-vault-gold leading-tight"
-          >
-            {t('auth.heroTagline')}
-          </motion.h2>
-          <div className="mt-8 space-y-4">
-            {bullets.map((b, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.12 }}
-                className="flex items-center gap-3 text-vault-text"
-              >
-                <span className="w-9 h-9 rounded-xl bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center">
-                  <b.icon size={16} className="text-vault-accent" />
-                </span>
-                {b.text}
-              </motion.div>
-            ))}
-          </div>
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+          className="font-display text-4xl font-bold text-vault-gold leading-tight"
+        >
+          {t('auth.heroTagline')}
+        </motion.h2>
+        <div className="space-y-4">
+          {bullets.map((b, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.12 }}
+              className="flex items-center gap-3 text-vault-text"
+            >
+              <span className="w-9 h-9 rounded-xl bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center">
+                <b.icon size={16} className="text-vault-accent" />
+              </span>
+              {b.text}
+            </motion.div>
+          ))}
         </div>
-
         <div className="flex items-center gap-2 text-xs text-vault-muted">
           <Sparkles size={13} className="text-vault-gold/70" /> Magic: The Gathering • Scryfall
         </div>
       </div>
 
-      {/* Form side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 relative">
-        <div className="absolute top-2 right-2"><LanguageSwitcher /></div>
+      {/* Language switcher pinned top-right of the viewport */}
+      <div className="absolute top-4 right-4 z-20"><LanguageSwitcher /></div>
+
+      {/* Form centered on the page */}
+      <div className="relative z-10 w-full max-w-sm">
         {children}
-      </div>
       </div>
     </div>
   )
