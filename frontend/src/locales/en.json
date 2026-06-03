@@ -246,6 +246,9 @@
     "newPassword": "New password",
     "resetButton": "Reset password",
     "resetSuccess": "Password reset! You can log in now.",
-    "resetInvalid": "Invalid or expired link"
+    "resetInvalid": "Invalid or expired link",
+    "confirmPassword": "Repeat password",
+    "passwordMismatch": "Passwords don't match",
+    "emailHint": "Use a valid email — it will be used to recover your password if needed."
   }
 }

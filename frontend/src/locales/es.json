@@ -246,6 +246,9 @@
     "newPassword": "Nueva contraseña",
     "resetButton": "Restablecer contraseña",
     "resetSuccess": "¡Contraseña restablecida! Ya puedes entrar.",
-    "resetInvalid": "Enlace inválido o expirado"
+    "resetInvalid": "Enlace inválido o expirado",
+    "confirmPassword": "Repetir contraseña",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "emailHint": "Usa un email válido — se usará para recuperar tu contraseña si lo necesitas."
   }
 }

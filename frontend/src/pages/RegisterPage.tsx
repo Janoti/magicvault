@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const { register, isLoading } = useAuthStore()
   const { t } = useTranslation()
@@ -17,6 +18,10 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (password !== confirmPassword) {
+      setError(t('auth.passwordMismatch'))
+      return
+    }
     try {
       await register(email, username, password)
       navigate('/collection')
@@ -44,6 +49,7 @@ export default function RegisterPage() {
             <div>
               <label className="text-xs text-vault-muted mb-1.5 block">{t('auth.email')}</label>
               <input type="email" className="input-field" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
+              <p className="text-[11px] text-vault-gold/80 mt-1.5">⚠ {t('auth.emailHint')}</p>
             </div>
             <div>
               <label className="text-xs text-vault-muted mb-1.5 block">{t('auth.username')}</label>
@@ -53,7 +59,14 @@ export default function RegisterPage() {
               <label className="text-xs text-vault-muted mb-1.5 block">{t('auth.password')}</label>
               <input type="password" className="input-field" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
             </div>
-            <button type="submit" disabled={isLoading} className="btn-primary w-full py-2.5 flex items-center justify-center gap-2 disabled:opacity-60">
+            <div>
+              <label className="text-xs text-vault-muted mb-1.5 block">{t('auth.confirmPassword')}</label>
+              <input type="password" className="input-field" placeholder="••••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={6} />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-[11px] text-red-400 mt-1.5">{t('auth.passwordMismatch')}</p>
+              )}
+            </div>
+            <button type="submit" disabled={isLoading || (!!confirmPassword && password !== confirmPassword)} className="btn-primary w-full py-2.5 flex items-center justify-center gap-2 disabled:opacity-60">
               {isLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : t('auth.registerButton')}
             </button>
           </form>
