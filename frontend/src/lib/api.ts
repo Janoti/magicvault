@@ -139,6 +139,7 @@ export const decksApi = {
   delete: (id: number) => api.delete(`/api/decks/${id}`),
   addCard: (deckId: number, data: object) => api.post(`/api/decks/${deckId}/cards`, data).then(r => r.data),
   coverage: (id: number) => api.get(`/api/decks/${id}/coverage`).then(r => r.data),
+  analysis: (id: number) => api.get(`/api/decks/${id}/analysis`).then(r => r.data),
 }
 
 // Wishlist

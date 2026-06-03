@@ -1,15 +1,115 @@
+import re
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from pydantic import BaseModel
 from typing import Optional, List
-#My Brother is a Pig
+
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry
 from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary, get_cards_bulk
 
 router = APIRouter()
+
+
+# --- Deck analysis helpers (heuristics over Scryfall oracle text) ---
+_TYPE_ORDER = ["Creature", "Planeswalker", "Instant", "Sorcery", "Artifact", "Enchantment", "Battle", "Land"]
+
+
+def _primary_type(type_line: str) -> str:
+    tl = type_line or ""
+    for t in _TYPE_ORDER:
+        if t in tl:
+            return t
+    return "Other"
+
+
+def _categorize(text: str, type_line: str, power) -> list:
+    """Tag a card with deck roles. A card can have more than one role."""
+    t = (text or "").lower()
+    tl = (type_line or "").lower()
+    cats = []
+    if "land" in tl and "creature" not in tl:
+        return ["land"]
+    if ("add {" in t or "add one mana" in t or "add two mana" in t
+            or ("search your library for" in t and "land" in t)
+            or "mana of any color" in t):
+        cats.append("ramp")
+    if "draw a card" in t or "draw two cards" in t or "draw three cards" in t or "draw cards" in t or "draw that many cards" in t:
+        cats.append("draw")
+    if any(p in t for p in ["destroy all", "exile all", "destroy each", "all creatures get -", "to each creature", "each player sacrifices"]):
+        cats.append("wipe")
+    elif any(p in t for p in ["destroy target", "exile target", "damage to target creature", "damage to any target",
+                              "target creature gets -", "fight target", "target creature you don't control", "tap target"]):
+        cats.append("removal")
+    if "counter target" in t or "return target" in t and "to its owner" in t:
+        cats.append("interaction")
+    try:
+        pw = int(power)
+    except (TypeError, ValueError):
+        pw = 0
+    if "win the game" in t or "can't be blocked" in t or "deals damage equal to" in t or pw >= 6:
+        cats.append("finisher")
+    return cats or ["other"]
+
+
+@router.get("/{deck_id}/analysis")
+async def deck_analysis(deck_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Mana curve, color balance, type spread and role breakdown for a deck."""
+    deck = (await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == current_user.id))).scalar_one_or_none()
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+
+    rows = (await db.execute(select(DeckCard).where(DeckCard.deck_id == deck_id, DeckCard.is_sideboard == False))).scalars().all()  # noqa: E712
+    cards = await get_cards_bulk([dc.scryfall_id for dc in rows])
+
+    curve = {k: 0 for k in ["0", "1", "2", "3", "4", "5", "6", "7+"]}
+    colors = {c: 0 for c in ["W", "U", "B", "R", "G", "C"]}
+    types: dict = {}
+    categories = {k: 0 for k in ["ramp", "draw", "removal", "wipe", "interaction", "finisher", "land", "other"]}
+    total = lands = nonlands = 0
+    cmc_sum = 0.0
+
+    for dc in rows:
+        raw = cards.get(dc.scryfall_id)
+        if not raw:
+            continue
+        c = extract_card_summary(raw)
+        qty = dc.quantity
+        total += qty
+        tl = c.get("type_line", "")
+        is_land = "Land" in tl and "Creature" not in tl
+
+        ptype = _primary_type(tl)
+        types[ptype] = types.get(ptype, 0) + qty
+
+        # Mana pips by color (from mana cost)
+        for sym in re.findall(r"\{([^}]+)\}", c.get("mana_cost") or ""):
+            for ch in sym.split("/"):
+                if ch in colors:
+                    colors[ch] += qty
+
+        if is_land:
+            lands += qty
+        else:
+            nonlands += qty
+            cmc = int(c.get("cmc") or 0)
+            curve["7+" if cmc >= 7 else str(cmc)] += qty
+            cmc_sum += (c.get("cmc") or 0) * qty
+
+        for cat in _categorize(c.get("oracle_text", ""), tl, c.get("power")):
+            if cat in categories:
+                categories[cat] += qty
+
+    return {
+        "total": total, "lands": lands, "nonlands": nonlands,
+        "avg_cmc": round(cmc_sum / nonlands, 2) if nonlands else 0,
+        "curve": [{"cmc": k, "count": v} for k, v in curve.items()],
+        "colors": colors,
+        "types": types,
+        "categories": categories,
+    }
 
 
 @router.get("/{deck_id}/coverage")
