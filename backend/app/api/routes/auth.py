@@ -5,7 +5,7 @@ from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from pydantic import BaseModel, EmailStr
 
 from app.core.config import settings
@@ -79,7 +79,11 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 async def login(form: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == form.username))
+    # The "username" form field may hold an email or a username.
+    ident = form.username.strip().lower()
+    result = await db.execute(
+        select(User).where(or_(func.lower(User.email) == ident, func.lower(User.username) == ident))
+    )
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(form.password, user.hashed_password):

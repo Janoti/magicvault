@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next'
 const CONDITIONS = ['', 'M', 'NM', 'LP', 'MP', 'HP', 'DMG']
 
 export default function CollectionPage() {
-  const username = useAuthStore((s) => s.user?.username)
+  const username = useAuthStore((s) => s.user?.display_name || s.user?.username)
   const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(24)

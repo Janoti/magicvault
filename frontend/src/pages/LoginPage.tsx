@@ -47,11 +47,11 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('auth.email')}</label>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('auth.forgotIdentifier')}</label>
               <input
-                type="email"
+                type="text"
                 className="input-field"
-                placeholder="seu@email.com"
+                placeholder="seu@email.com / username"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
