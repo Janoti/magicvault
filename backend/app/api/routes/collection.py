@@ -12,7 +12,7 @@ import io
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User, CollectionEntry
-from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name
+from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk
 
 router = APIRouter()
 
@@ -113,18 +113,8 @@ async def list_collection(
     else:
         query = query.order_by(getattr(CollectionEntry, sort_by, CollectionEntry.added_at))
 
-    total_result = await db.execute(
-        select(func.count()).select_from(query.subquery())
-    )
-    total = total_result.scalar()
-
-    query = query.offset((page - 1) * per_page).limit(per_page)
-    result = await db.execute(query)
-    entries = result.scalars().all()
-
-    items = []
-    for entry in entries:
-        item = {
+    def serialize(entry):
+        return {
             "id": entry.id,
             "scryfall_id": entry.scryfall_id,
             "quantity": entry.quantity,
@@ -135,15 +125,50 @@ async def list_collection(
             "price_at_add": entry.price_at_add,
             "added_at": entry.added_at.isoformat(),
         }
-        items.append(item)
+
+    if set_code:
+        # The set isn't stored on the entry, so resolve cards in bulk (cached)
+        # and filter in Python, then paginate the filtered list.
+        all_entries = (await db.execute(query)).scalars().all()
+        cards = await get_cards_bulk([e.scryfall_id for e in all_entries])
+        target = set_code.lower()
+        filtered = [e for e in all_entries if (cards.get(e.scryfall_id, {}).get("set", "").lower() == target)]
+        total = len(filtered)
+        start = (page - 1) * per_page
+        items = [serialize(e) for e in filtered[start:start + per_page]]
+    else:
+        total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar()
+        paged = query.offset((page - 1) * per_page).limit(per_page)
+        items = [serialize(e) for e in (await db.execute(paged)).scalars().all()]
 
     return {
         "items": items,
         "total": total,
         "page": page,
         "per_page": per_page,
-        "pages": (total + per_page - 1) // per_page,
+        "pages": (total + per_page - 1) // per_page if per_page else 1,
     }
+
+
+@router.get("/sets")
+async def collection_sets(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Distinct sets present in the user's collection (for the set filter)."""
+    entries = (await db.execute(
+        select(CollectionEntry.scryfall_id).where(CollectionEntry.user_id == current_user.id)
+    )).scalars().all()
+    cards = await get_cards_bulk(list(entries))
+    sets: dict[str, dict] = {}
+    for raw in cards.values():
+        code = raw.get("set")
+        if not code:
+            continue
+        if code not in sets:
+            sets[code] = {"code": code, "name": raw.get("set_name", code.upper()), "count": 0}
+        sets[code]["count"] += 1
+    return sorted(sets.values(), key=lambda s: s["name"])
 
 
 @router.post("", status_code=201)

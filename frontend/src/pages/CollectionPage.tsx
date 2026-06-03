@@ -16,6 +16,7 @@ export default function CollectionPage() {
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(24)
   const [condition, setCondition] = useState('')
+  const [setCode, setSetCode] = useState('')
   const [foil, setFoil] = useState<boolean | undefined>(undefined)
   const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
   const [editEntry, setEditEntry] = useState<any>(null)
@@ -27,11 +28,12 @@ export default function CollectionPage() {
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['collection', { page, perPage, condition, foil }],
-    queryFn: () => collectionApi.list({ page, per_page: perPage, condition: condition || undefined, foil }),
+    queryKey: ['collection', { page, perPage, condition, foil, setCode }],
+    queryFn: () => collectionApi.list({ page, per_page: perPage, condition: condition || undefined, foil, set_code: setCode || undefined }),
   })
 
   const { data: binders = [] } = useQuery({ queryKey: ['binders'], queryFn: bindersApi.list })
+  const { data: collectionSets = [] } = useQuery({ queryKey: ['collection-sets'], queryFn: collectionApi.sets })
 
   const removeMutation = useMutation({
     mutationFn: collectionApi.remove,
@@ -158,6 +160,16 @@ export default function CollectionPage() {
         >
           <option value="">Todas as condições</option>
           {CONDITIONS.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select
+          value={setCode}
+          onChange={(e) => { setSetCode(e.target.value); setPage(1) }}
+          className="input-field !w-auto text-xs max-w-[180px]"
+        >
+          <option value="">Todos os sets</option>
+          {collectionSets.map((s: any) => (
+            <option key={s.code} value={s.code}>{s.name} ({s.count})</option>
+          ))}
         </select>
         <select
           value={foil === undefined ? '' : String(foil)}
