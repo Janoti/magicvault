@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   ]
 
   return (
-    <div className="min-h-screen flex bg-vault-bg relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-vault-bg relative overflow-hidden">
       {/* Animated arcane background */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -48,8 +48,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         ))}
       </div>
 
+      {/* Centered container so the form doesn't get pushed to the far edge on wide screens */}
+      <div className="relative z-10 w-full max-w-5xl flex items-stretch min-h-[600px] lg:min-h-[560px]">
       {/* Decorative hero panel (desktop) */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 p-12 relative z-10 border-r border-vault-border/40">
+      <div className="hidden lg:flex flex-col justify-between w-1/2 p-10 border-r border-vault-border/40">
         <div className="flex items-center gap-2 text-vault-gold">
           <Dices size={22} />
           <span className="font-display text-xl font-bold tracking-wider">⚔ MagicVault</span>
@@ -84,9 +86,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Form side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 relative z-10">
-        <div className="absolute top-4 right-4"><LanguageSwitcher /></div>
+      <div className="flex-1 flex flex-col items-center justify-center p-4 relative">
+        <div className="absolute top-2 right-2"><LanguageSwitcher /></div>
         {children}
+      </div>
       </div>
     </div>
   )
