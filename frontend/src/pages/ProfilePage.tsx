@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Library, Swords, BookOpen, ExternalLink } from 'lucide-react'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
+import Avatar from '@/components/Avatar'
 
 export default function ProfilePage() {
   const { username = '' } = useParams()
@@ -29,9 +30,7 @@ export default function ProfilePage() {
       ) : (
         <>
           <div className="surface p-6 mb-4 flex items-center gap-4">
-            <div className="w-20 h-20 rounded-2xl bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center text-4xl shrink-0">
-              {data.avatar || '🙂'}
-            </div>
+            <Avatar value={data.avatar} size={80} />
             <div className="min-w-0">
               <h1 className="font-display text-2xl font-bold text-vault-gold truncate">{data.display_name || data.username}</h1>
               <p className="text-sm text-vault-muted">@{data.username}</p>

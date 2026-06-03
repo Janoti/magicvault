@@ -1,11 +1,31 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
-import { Plus, Trash2, ExternalLink, Check } from 'lucide-react'
+import { Plus, Trash2, ExternalLink, Check, Upload } from 'lucide-react'
 import { authApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import { AVATARS } from '@/lib/avatars'
+import Avatar from '@/components/Avatar'
+
+// Resize an image file to a small square JPEG data URL (keeps the DB row small).
+function fileToAvatar(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const size = 128
+      const canvas = document.createElement('canvas')
+      canvas.width = size; canvas.height = size
+      const ctx = canvas.getContext('2d')!
+      const scale = Math.max(size / img.width, size / img.height)
+      const w = img.width * scale, h = img.height * scale
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
+      resolve(canvas.toDataURL('image/jpeg', 0.8))
+    }
+    img.onerror = reject
+    img.src = URL.createObjectURL(file)
+  })
+}
 
 export default function AccountPage() {
   const { t } = useTranslation()
@@ -19,6 +39,15 @@ export default function AccountPage() {
   const [bio, setBio] = useState(user?.bio || '')
   const [links, setLinks] = useState<{ label: string; url: string }[]>(user?.links || [])
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) { setMsg({ ok: false, text: 'Máx 2MB' }); return }
+    try { setAvatar(await fileToAvatar(file)) } catch { setMsg({ ok: false, text: t('account.saveError') }) }
+  }
 
   const mutation = useMutation({
     mutationFn: () => authApi.updateMe({
@@ -50,10 +79,14 @@ export default function AccountPage() {
       <div className="surface p-5 mb-4">
         <label className="text-xs text-vault-muted font-medium mb-3 block">{t('account.avatar')}</label>
         <div className="flex items-center gap-4 mb-3">
-          <div className="w-16 h-16 rounded-2xl bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center text-3xl">
-            {avatar || '🙂'}
+          <Avatar value={avatar} size={64} />
+          <div>
+            <p className="text-sm text-vault-muted mb-2">{user?.display_name || user?.username}</p>
+            <button onClick={() => fileRef.current?.click()} className="btn-ghost !py-1.5 flex items-center gap-2 text-xs">
+              <Upload size={14} /> {t('account.upload')}
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
           </div>
-          <p className="text-sm text-vault-muted">{user?.display_name || user?.username}</p>
         </div>
         <div className="grid grid-cols-8 gap-2">
           {AVATARS.map(a => (

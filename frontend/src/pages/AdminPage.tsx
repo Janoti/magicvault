@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Users, Crown, Library, Swords, BookOpen, ShieldCheck } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
+import Avatar from '@/components/Avatar'
 
 function Toggle({ on, onClick, disabled }: { on: boolean; onClick: () => void; disabled?: boolean }) {
   return (
@@ -79,7 +80,7 @@ export default function AdminPage() {
                 <tr key={u.id} className="border-b border-vault-border/50 hover:bg-vault-card/30">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-full bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center text-base">{u.avatar || '🙂'}</span>
+                      <Avatar value={u.avatar} size={32} />
                       <div>
                         <p className="font-medium text-vault-text">{u.display_name || u.username} {self && <span className="text-[10px] text-vault-accent">(você)</span>}</p>
                         <p className="text-xs text-vault-muted">{u.email}</p>

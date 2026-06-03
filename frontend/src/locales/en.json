@@ -16,7 +16,7 @@
   },
   "common": {
     "login": "Log in",
-    "register": "Create free account",
+    "register": "Create account",
     "save": "Save",
     "cancel": "Cancel",
     "loading": "Loading...",
@@ -172,7 +172,8 @@
     "saveError": "Error saving",
     "viewProfile": "View public profile",
     "memberSince": "Member since",
-    "noBio": "No bio yet."
+    "noBio": "No bio yet.",
+    "upload": "Upload image"
   },
   "modal": {
     "quantity": "Quantity",

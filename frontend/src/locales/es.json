@@ -16,7 +16,7 @@
   },
   "common": {
     "login": "Entrar",
-    "register": "Crear cuenta gratis",
+    "register": "Crear cuenta",
     "save": "Guardar",
     "cancel": "Cancelar",
     "loading": "Cargando...",
@@ -172,7 +172,8 @@
     "saveError": "Error al guardar",
     "viewProfile": "Ver perfil público",
     "memberSince": "Miembro desde",
-    "noBio": "Sin bio todavía."
+    "noBio": "Sin bio todavía.",
+    "upload": "Subir imagen"
   },
   "modal": {
     "quantity": "Cantidad",

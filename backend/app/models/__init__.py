@@ -32,7 +32,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     # Profile fields (added via ALTER on startup for existing DBs)
     display_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    avatar: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    avatar: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # emoji or small base64 image
     bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     links: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array of {label, url}
 
