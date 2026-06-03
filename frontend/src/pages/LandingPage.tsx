@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
-  Sparkles, ArrowRight, Check, Github,
+  ArrowRight, Check, Github,
 } from 'lucide-react'
 
 const features = [
@@ -41,11 +41,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-vault-accent/10 via-transparent to-transparent pointer-events-none" />
-        <div className="max-w-6xl mx-auto px-6 pt-20 pb-16 text-center relative">
-          <motion.div {...fadeUp}
-            className="inline-flex items-center gap-2 text-xs font-medium text-vault-gold bg-vault-gold/10 border border-vault-gold/30 rounded-full px-3 py-1 mb-6">
-            <Sparkles size={13} /> {t('landing.badge')}
-          </motion.div>
+        <div className="max-w-6xl mx-auto px-6 pt-24 pb-16 text-center relative">
           <motion.h1 {...fadeUp} transition={{ delay: 0.05 }}
             className="font-display text-4xl sm:text-6xl font-bold text-vault-gold leading-tight">
             {t('landing.heroTitle1')}<br />{t('landing.heroTitle2')}
@@ -61,9 +57,6 @@ export default function LandingPage() {
             </Link>
             <Link to="/login" className="btn-ghost text-base px-6 py-3">{t('landing.ctaHaveAccount')}</Link>
           </motion.div>
-          <motion.p {...fadeUp} transition={{ delay: 0.2 }} className="text-xs text-vault-muted mt-4">
-            {t('landing.noCard')}
-          </motion.p>
         </div>
       </section>
 

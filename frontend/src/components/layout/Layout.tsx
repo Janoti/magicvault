@@ -1,7 +1,9 @@
+import { useState, useRef, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
-  Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2, ShieldCheck
+  Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2, ShieldCheck,
+  ChevronDown, Settings
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -25,6 +27,16 @@ export default function Layout() {
   const { user, logout } = useAuthStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
 
   const { data: stats } = useQuery({
     queryKey: ['collection-stats'],
@@ -33,7 +45,7 @@ export default function Layout() {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/')
   }
 
   return (
@@ -49,17 +61,37 @@ export default function Layout() {
           <p className="text-xs text-vault-muted mt-0.5">{t('nav.subtitle')}</p>
         </Link>
 
-        {/* User info */}
+        {/* User info + menu */}
         <div className="p-4 border-b border-vault-border">
-          <Link to="/account" className="flex items-center gap-3 rounded-lg -m-1 p-1 hover:bg-vault-card/40 transition-colors" title={t('account.nav')}>
-            <div className="w-9 h-9 rounded-full bg-vault-accent/20 border border-vault-accent/40 flex items-center justify-center text-lg">
-              {user?.avatar || <User size={14} className="text-vault-accent" />}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-vault-text truncate">{user?.display_name || user?.username}</p>
-              <p className="text-xs text-vault-muted truncate">{user?.email}</p>
-            </div>
-          </Link>
+          <div className="relative" ref={menuRef}>
+            <button onClick={() => setMenuOpen(o => !o)}
+              className="w-full flex items-center gap-3 rounded-lg -m-1 p-1 hover:bg-vault-card/40 transition-colors text-left">
+              {user?.avatar?.startsWith('data:') ? (
+                <img src={user.avatar} alt="" className="w-9 h-9 rounded-full object-cover border border-vault-accent/40" />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-vault-accent/20 border border-vault-accent/40 flex items-center justify-center text-lg">
+                  {user?.avatar || <User size={14} className="text-vault-accent" />}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-vault-text truncate">{user?.display_name || user?.username}</p>
+                <p className="text-xs text-vault-muted truncate">{user?.email}</p>
+              </div>
+              <ChevronDown size={14} className={`text-vault-muted transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {menuOpen && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-vault-surface border border-vault-border rounded-lg shadow-xl py-1 z-50">
+                <Link to="/account" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-vault-text hover:bg-vault-card transition-colors">
+                  <Settings size={14} /> {t('account.nav')}
+                </Link>
+                {user?.username && (
+                  <Link to={`/u/${user.username}`} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-vault-text hover:bg-vault-card transition-colors">
+                    <User size={14} /> {t('account.viewProfile')}
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
           {stats && (
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="bg-vault-card rounded-lg p-2 text-center">
