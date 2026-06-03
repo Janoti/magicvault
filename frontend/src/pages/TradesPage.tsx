@@ -30,8 +30,23 @@ function ListingCard({ l, mine, onInterest, onInterests, onResolve, onReopen, on
       <div className="p-3 flex-1 flex flex-col">
         <p className="text-sm font-medium text-vault-text truncate">{l.card?.name}</p>
         <div className="mt-1 mb-2 text-xs">
-          {l.price != null && <p className="font-mono font-bold text-green-400">${l.price.toFixed(2)} <span className="text-vault-muted font-normal">· {t('trades.forSale')}</span></p>}
-          {l.wanted && <p className="text-vault-gold truncate" title={l.wanted}>🔄 {l.wanted}</p>}
+          {l.price != null && (
+            <p className="font-mono font-bold text-green-400">
+              ${l.price.toFixed(2)}
+              {l.accepts_offers && <span className="text-vault-muted font-normal font-sans"> · {t('trades.acceptsOffersShort')}</span>}
+            </p>
+          )}
+          {(l.wanted_cards?.length > 0 || l.wanted) && (
+            <div className="text-vault-gold mt-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-vault-muted">🔄 {t('trades.acceptsInTrade')}</span>
+              {l.wanted_cards?.length > 0 && (
+                <p className="truncate" title={l.wanted_cards.map((w: any) => w.name).join(', ')}>
+                  {l.wanted_cards.map((w: any) => w.name).join(', ')}
+                </p>
+              )}
+              {l.wanted && <p className="truncate text-vault-muted" title={l.wanted}>{l.wanted}</p>}
+            </div>
+          )}
         </div>
         {l.notes && <p className="text-[11px] text-vault-muted line-clamp-2 mb-2">{l.notes}</p>}
         <div className="mt-auto flex items-center gap-2">

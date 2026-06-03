@@ -1,9 +1,10 @@
+import json
 from html import escape
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 from app.core.database import get_db
 from app.core.security import get_current_user, get_premium_user
@@ -18,12 +19,20 @@ MAX_PHOTO_LEN = 700_000   # ~512 KB image as base64
 MAX_TEXT_LEN = 500
 
 
+class WantedCard(BaseModel):
+    id: str
+    name: str
+    image_small: Optional[str] = None
+
+
 class ListingRequest(BaseModel):
     scryfall_id: str
     condition: str = "NM"
     foil: bool = False
     price: Optional[float] = None
+    accepts_offers: bool = False
     wanted: Optional[str] = None
+    wanted_cards: Optional[List[WantedCard]] = None
     photo: Optional[str] = None
     notes: Optional[str] = None
 
@@ -44,9 +53,15 @@ async def _serialize(db: AsyncSession, rows, cards: dict) -> list:
             sellers[l.user_id] = (await db.execute(select(User).where(User.id == l.user_id))).scalar_one_or_none()
         raw = cards.get(l.scryfall_id)
         card = extract_card_summary(raw) if raw else {"id": l.scryfall_id, "name": "?"}
+        try:
+            wanted_cards = json.loads(l.wanted_cards) if l.wanted_cards else []
+        except Exception:
+            wanted_cards = []
         out.append({
             "id": l.id, "scryfall_id": l.scryfall_id, "condition": l.condition, "foil": l.foil,
-            "price": l.price, "wanted": l.wanted, "photo": l.photo, "notes": l.notes,
+            "price": l.price, "accepts_offers": bool(l.accepts_offers),
+            "wanted": l.wanted, "wanted_cards": wanted_cards,
+            "photo": l.photo, "notes": l.notes,
             "status": l.status, "resolved_as": l.resolved_as,
             "created_at": l.created_at.isoformat() if l.created_at else None,
             "card": card, "seller": _seller(sellers[l.user_id]),
@@ -93,7 +108,10 @@ async def my_listings(current_user: User = Depends(get_current_user), db: AsyncS
 
 @router.post("", status_code=201)
 async def create_listing(data: ListingRequest, premium: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
-    if data.price is None and not (data.wanted and data.wanted.strip()):
+    wanted_text = (data.wanted or "").strip()
+    wanted_cards = data.wanted_cards or []
+    has_trade = bool(wanted_text or wanted_cards)
+    if data.price is None and not has_trade:
         raise HTTPException(status_code=400, detail="Defina um preço ou o que deseja em troca")
     if data.price is not None and (data.price < 0 or data.price > 1_000_000):
         raise HTTPException(status_code=400, detail="Preço inválido")
@@ -103,10 +121,16 @@ async def create_listing(data: ListingRequest, premium: User = Depends(get_premi
         await get_card_by_id(data.scryfall_id)
     except Exception:
         raise HTTPException(status_code=404, detail="Carta não encontrada")
+
+    # Keep only id/name/image for each wanted card (cap the list).
+    wc = [{"id": c.id, "name": c.name[:120], "image_small": (c.image_small or None)} for c in wanted_cards[:30]]
+
     l = Listing(
         user_id=premium.id, scryfall_id=data.scryfall_id, condition=data.condition.upper()[:3],
         foil=data.foil, price=data.price,
-        wanted=((data.wanted or "").strip()[:MAX_TEXT_LEN] or None),
+        accepts_offers=bool(data.accepts_offers) if data.price is not None else False,
+        wanted=(wanted_text[:MAX_TEXT_LEN] or None),
+        wanted_cards=(json.dumps(wc) if wc else None),
         photo=(data.photo or None),
         notes=((data.notes or "").strip()[:MAX_TEXT_LEN] or None),
     )

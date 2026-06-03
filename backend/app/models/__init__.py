@@ -165,7 +165,9 @@ class Listing(Base):
     condition: Mapped[str] = mapped_column(String(3), default="NM")
     foil: Mapped[bool] = mapped_column(Boolean, default=False)
     price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)   # for sale
+    accepts_offers: Mapped[bool] = mapped_column(Boolean, default=False)   # sale: open to counter-offers
     wanted: Mapped[Optional[str]] = mapped_column(Text, nullable=True)     # for trade (free text)
+    wanted_cards: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON list of cards accepted in trade
     photo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)      # real card photo (base64)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(10), default="active")      # active | closed | resolved

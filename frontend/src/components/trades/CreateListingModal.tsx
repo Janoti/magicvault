@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { X, Search, Upload, Check } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { X, Search, Upload, Check, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -35,8 +35,15 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
   const [card, setCard] = useState<any>(null)
   const [condition, setCondition] = useState('NM')
   const [foil, setFoil] = useState(false)
+  // Offer mode
+  const [forSale, setForSale] = useState(true)
+  const [forTrade, setForTrade] = useState(false)
   const [price, setPrice] = useState('')
+  const [acceptsOffers, setAcceptsOffers] = useState(true)
   const [wanted, setWanted] = useState('')
+  const [wantedCards, setWantedCards] = useState<any[]>([])
+  const [tradeQuery, setTradeQuery] = useState('')
+  const [tradeResults, setTradeResults] = useState<any[]>([])
   const [photo, setPhoto] = useState('')
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
@@ -66,14 +73,36 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
     try { setPhoto(await resizePhoto(f)) } catch {}
   }
 
+  // Debounced card search for the "accept in trade" list.
+  useEffect(() => {
+    if (!forTrade || tradeQuery.trim().length < 2) { setTradeResults([]); return }
+    const id = setTimeout(async () => {
+      try { const d = await cardsApi.search(tradeQuery.trim()); setTradeResults((d.cards || []).slice(0, 8)) }
+      catch { setTradeResults([]) }
+    }, 300)
+    return () => clearTimeout(id)
+  }, [tradeQuery, forTrade])
+
+  const addWanted = (c: any) => {
+    if (wantedCards.some(w => w.id === c.id) || wantedCards.length >= 30) return
+    setWantedCards([...wantedCards, { id: c.id, name: c.name, image_small: c.image_small }])
+    setTradeQuery(''); setTradeResults([])
+  }
+  const removeWanted = (id: string) => setWantedCards(wantedCards.filter(w => w.id !== id))
+
+  const canSubmit = !!card && ((forSale && !!price) || (forTrade && (wantedCards.length > 0 || wanted.trim())))
+
   const submit = async () => {
-    if (!card) return
+    if (!canSubmit) return
     setBusy(true)
     try {
       await listingsApi.create({
         scryfall_id: card.id, condition, foil,
-        price: price ? parseFloat(price) : null,
-        wanted: wanted || null, photo: photo || null, notes: notes || null,
+        price: forSale && price ? parseFloat(price) : null,
+        accepts_offers: forSale && acceptsOffers,
+        wanted: forTrade ? (wanted || null) : null,
+        wanted_cards: forTrade ? wantedCards : null,
+        photo: photo || null, notes: notes || null,
       })
       onCreated()
     } catch {}
@@ -171,16 +200,66 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
                 </label>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-vault-muted mb-1 block">{t('trades.priceLabel')} <span className="opacity-60">({t('trades.forSale')})</span></label>
-                  <input type="number" step="0.01" className="input-field" placeholder="0.00" value={price} onChange={e => setPrice(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-xs text-vault-muted mb-1 block">{t('trades.wanted')} <span className="opacity-60">({t('trades.forTrade')})</span></label>
-                  <input className="input-field" placeholder={t('trades.wantedPh')} value={wanted} onChange={e => setWanted(e.target.value)} />
-                </div>
+              {/* What kind of offer */}
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setForSale(v => !v)}
+                  className={`rounded-xl border p-3 text-left transition-all ${forSale ? 'border-green-500/50 bg-green-500/10' : 'border-vault-border'}`}>
+                  <span className="text-sm font-medium text-vault-text">💰 {t('trades.forSale')}</span>
+                  <p className="text-[11px] text-vault-muted mt-0.5">{t('trades.saleHint')}</p>
+                </button>
+                <button type="button" onClick={() => setForTrade(v => !v)}
+                  className={`rounded-xl border p-3 text-left transition-all ${forTrade ? 'border-vault-gold/50 bg-vault-gold/10' : 'border-vault-border'}`}>
+                  <span className="text-sm font-medium text-vault-text">🔄 {t('trades.forTrade')}</span>
+                  <p className="text-[11px] text-vault-muted mt-0.5">{t('trades.tradeHint')}</p>
+                </button>
               </div>
+
+              {/* Sale details */}
+              {forSale && (
+                <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 space-y-2">
+                  <label className="text-xs text-vault-muted block">{t('trades.priceLabel')} (R$)</label>
+                  <input type="number" step="0.01" min="0" className="input-field" placeholder="0,00" value={price} onChange={e => setPrice(e.target.value)} />
+                  <label className="flex items-center gap-2 text-sm text-vault-text cursor-pointer">
+                    <input type="checkbox" checked={acceptsOffers} onChange={e => setAcceptsOffers(e.target.checked)} />
+                    {t('trades.acceptsOffers')}
+                  </label>
+                </div>
+              )}
+
+              {/* Trade details */}
+              {forTrade && (
+                <div className="rounded-xl border border-vault-gold/20 bg-vault-gold/5 p-3 space-y-2">
+                  <label className="text-xs text-vault-muted block">{t('trades.wantedCardsLabel')}</label>
+                  {wantedCards.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {wantedCards.map(w => (
+                        <span key={w.id} className="inline-flex items-center gap-1 bg-vault-card border border-vault-border rounded-full pl-1 pr-2 py-0.5 text-xs">
+                          {w.image_small && <img src={w.image_small} className="w-4 h-5 rounded object-cover" />}
+                          {w.name}
+                          <button onClick={() => removeWanted(w.id)} className="text-vault-muted hover:text-red-400"><X size={11} /></button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="relative">
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-vault-muted" />
+                    <input className="input-field pl-8 text-sm" placeholder={t('trades.wantedCardsPh')} value={tradeQuery} onChange={e => setTradeQuery(e.target.value)} />
+                    {tradeResults.length > 0 && (
+                      <div className="absolute z-20 left-0 right-0 mt-1 bg-vault-surface border border-vault-border rounded-lg shadow-xl max-h-56 overflow-y-auto">
+                        {tradeResults.map(c => (
+                          <button key={c.id} onClick={() => addWanted(c)} className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-vault-card text-left text-sm">
+                            {c.image_small && <img src={c.image_small} className="w-5 h-7 rounded object-cover" />}
+                            <span className="flex-1 truncate text-vault-text">{c.name}</span>
+                            <span className="text-[10px] text-vault-muted">{c.set?.toUpperCase()}</span>
+                            <Plus size={13} className="text-vault-accent" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <input className="input-field text-sm" placeholder={t('trades.wantedPh')} value={wanted} onChange={e => setWanted(e.target.value)} />
+                </div>
+              )}
 
               <div>
                 <label className="text-xs text-vault-muted mb-1 block">{t('trades.photo')}</label>
@@ -198,7 +277,7 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
 
               <div className="flex gap-3">
                 <button onClick={onClose} className="btn-ghost flex-1">{t('common.cancel')}</button>
-                <button onClick={submit} disabled={busy || (!price && !wanted.trim())} className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50">
+                <button onClick={submit} disabled={busy || !canSubmit} className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50">
                   {busy ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check size={16} />}
                   {t('trades.create')}
                 </button>
