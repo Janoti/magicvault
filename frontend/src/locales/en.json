@@ -219,6 +219,15 @@
     "deckNamePh": "Deck name",
     "createDeck": "Create Deck"
   },
+  "coverage": {
+    "compare": "Compare with collection",
+    "title": "How much of this deck you already own",
+    "ownedOf": "{{owned}} of {{needed}} cards in your collection",
+    "missingCards": "Cards missing",
+    "costToComplete": "Cost to complete",
+    "missingList": "Missing from your collection",
+    "complete": "You own the whole deck!"
+  },
   "detail": {
     "backToSets": "Back to sets",
     "cardsInSet": "{{count}} cards in set",

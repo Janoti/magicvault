@@ -219,6 +219,15 @@
     "deckNamePh": "Nombre del mazo",
     "createDeck": "Crear Mazo"
   },
+  "coverage": {
+    "compare": "Comparar con colección",
+    "title": "Cuánto de este mazo ya tienes",
+    "ownedOf": "{{owned}} de {{needed}} cartas en tu colección",
+    "missingCards": "Cartas faltantes",
+    "costToComplete": "Costo para completar",
+    "missingList": "Faltan en tu colección",
+    "complete": "¡Tienes el mazo completo!"
+  },
   "detail": {
     "backToSets": "Volver a ediciones",
     "cardsInSet": "{{count}} cartas en la edición",
