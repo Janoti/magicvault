@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { friendsApi } from '@/lib/api'
-import { UserPlus, Check, X, Users, Clock, Send } from 'lucide-react'
+import { UserPlus, Check, X, Users, Clock, Send, ExternalLink } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 
@@ -63,7 +64,9 @@ export default function FriendsPage() {
               <motion.div key={r.friendship_id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 className="surface p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-vault-text font-medium">{r.display_name || r.username}</p>
+                  <Link to={`/u/${r.username}`} className="text-sm text-vault-text font-medium hover:text-vault-accent inline-flex items-center gap-1">
+                    {r.display_name || r.username} <ExternalLink size={11} className="text-vault-muted" />
+                  </Link>
                   {r.display_name && <p className="text-xs text-vault-muted">@{r.username}</p>}
                 </div>
                 <div className="flex gap-2">
@@ -107,7 +110,9 @@ export default function FriendsPage() {
                   {f.username?.[0]?.toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm text-vault-text font-medium">{f.display_name || f.username}</p>
+                  <Link to={`/u/${f.username}`} className="text-sm text-vault-text font-medium hover:text-vault-accent inline-flex items-center gap-1">
+                    {f.display_name || f.username} <ExternalLink size={11} className="text-vault-muted" />
+                  </Link>
                   {f.display_name && <p className="text-xs text-vault-muted">@{f.username}</p>}
                 </div>
               </div>
