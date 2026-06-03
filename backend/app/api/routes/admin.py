@@ -6,7 +6,7 @@ from typing import Optional
 
 from app.core.database import get_db
 from app.core.security import get_current_admin
-from app.models.user import User, CollectionEntry, Deck, Binder
+from app.models.user import User, CollectionEntry, Deck, Binder, Feedback
 
 router = APIRouter()
 
@@ -58,4 +58,34 @@ async def update_user(
         user.is_admin = data.is_admin
     if data.is_premium is not None:
         user.is_premium = data.is_premium
+    return {"message": "Atualizado"}
+
+
+@router.get("/feedback")
+async def list_feedback(_: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    rows = (await db.execute(select(Feedback).order_by(desc(Feedback.created_at)))).scalars().all()
+    out = []
+    for f in rows:
+        username = None
+        if f.user_id:
+            u = (await db.execute(select(User).where(User.id == f.user_id))).scalar_one_or_none()
+            username = u.username if u else None
+        out.append({
+            "id": f.id, "type": f.type, "message": f.message, "email": f.email,
+            "page": f.page, "status": f.status, "username": username,
+            "created_at": f.created_at.isoformat() if f.created_at else None,
+        })
+    return out
+
+
+class UpdateFeedback(BaseModel):
+    status: str
+
+
+@router.patch("/feedback/{fid}")
+async def update_feedback(fid: int, data: UpdateFeedback, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    f = (await db.execute(select(Feedback).where(Feedback.id == fid))).scalar_one_or_none()
+    if not f:
+        raise HTTPException(status_code=404, detail="Não encontrado")
+    f.status = "resolved" if data.status == "resolved" else "open"
     return {"message": "Atualizado"}

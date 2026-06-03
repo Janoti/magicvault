@@ -151,7 +151,13 @@
     "user": "User",
     "active": "Active",
     "isAdmin": "Admin",
-    "joined": "Joined"
+    "joined": "Joined",
+    "feedbackTitle": "Feedback & bugs",
+    "open": "open",
+    "resolved": "resolved",
+    "resolve": "Resolve",
+    "reopen": "Reopen",
+    "noFeedback": "No feedback yet."
   },
   "account": {
     "nav": "Account",
@@ -287,5 +293,20 @@
     "confirmPassword": "Repeat password",
     "passwordMismatch": "Passwords don't match",
     "emailHint": "Use a valid email — it will be used to recover your password if needed."
+  },
+  "feedback": {
+    "nav": "Contact",
+    "title": "Contact us",
+    "subtitle": "Found a bug or have a suggestion? Let us know.",
+    "type": "Type",
+    "bug": "Report a bug",
+    "suggestion": "Suggestion",
+    "contact": "Contact",
+    "message": "Message",
+    "messagePh": "Describe the issue or your idea...",
+    "send": "Send",
+    "sent": "Got it! Thanks for the feedback. 🙏",
+    "error": "Error sending",
+    "email": "Email (for reply)"
   }
 }

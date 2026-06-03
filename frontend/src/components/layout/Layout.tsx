@@ -10,6 +10,8 @@ import { useTranslation } from 'react-i18next'
 import { collectionApi } from '@/lib/api'
 import LanguageSwitcher from './LanguageSwitcher'
 import EmberBackground from '@/components/EmberBackground'
+import FeedbackModal from '@/components/FeedbackModal'
+import { MessageSquare } from 'lucide-react'
 
 const navItems = [
   { to: '/collection', icon: Library, key: 'nav.collection' },
@@ -28,6 +30,7 @@ export default function Layout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -141,8 +144,15 @@ export default function Layout() {
           )}
         </nav>
 
-        {/* Footer: language + logout */}
+        {/* Footer: feedback + language + logout */}
         <div className="p-3 border-t border-vault-border space-y-1">
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-vault-muted hover:text-vault-text hover:bg-vault-card transition-all w-full"
+          >
+            <MessageSquare size={15} />
+            {t('feedback.nav')}
+          </button>
           <LanguageSwitcher />
           <button
             onClick={handleLogout}
@@ -158,6 +168,8 @@ export default function Layout() {
       <main className="flex-1 overflow-y-auto bg-transparent relative z-10">
         <Outlet />
       </main>
+
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
     </div>
   )
 }

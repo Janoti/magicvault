@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Crown, Library, Swords, BookOpen, ShieldCheck } from 'lucide-react'
+import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
@@ -24,10 +24,16 @@ export default function AdminPage() {
 
   const { data: stats } = useQuery({ queryKey: ['admin-stats'], queryFn: adminApi.stats })
   const { data: users = [], isLoading } = useQuery({ queryKey: ['admin-users'], queryFn: adminApi.users })
+  const { data: feedback = [] } = useQuery({ queryKey: ['admin-feedback'], queryFn: adminApi.feedback })
 
   const mutation = useMutation({
     mutationFn: (v: { id: number; data: object }) => adminApi.updateUser(v.id, v.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  })
+
+  const fbMutation = useMutation({
+    mutationFn: (v: { id: number; status: string }) => adminApi.resolveFeedback(v.id, v.status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-feedback'] }),
   })
 
   if (me && !me.is_admin) return <Navigate to="/collection" replace />
@@ -96,6 +102,41 @@ export default function AdminPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Feedback / bugs */}
+      <div className="mt-8">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text mb-3">
+          <MessageSquare size={15} /> {t('admin.feedbackTitle')} ({feedback.length})
+        </h2>
+        {feedback.length === 0 ? (
+          <p className="surface p-6 text-center text-vault-muted text-sm">{t('admin.noFeedback')}</p>
+        ) : (
+          <div className="space-y-2">
+            {feedback.map((f: any) => (
+              <div key={f.id} className={`surface p-4 ${f.status === 'resolved' ? 'opacity-60' : ''}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-[10px] uppercase tracking-wider bg-vault-card border border-vault-border px-2 py-0.5 rounded-full text-vault-accent">{f.type}</span>
+                      <span className="text-xs text-vault-muted">{f.username ? `@${f.username}` : f.email || 'anônimo'}</span>
+                      {f.page && <span className="text-[10px] text-vault-muted font-mono">{f.page}</span>}
+                      <span className="text-[10px] text-vault-muted">{f.created_at ? new Date(f.created_at).toLocaleString() : ''}</span>
+                    </div>
+                    <p className="text-sm text-vault-text whitespace-pre-wrap break-words">{f.message}</p>
+                  </div>
+                  <button
+                    onClick={() => fbMutation.mutate({ id: f.id, status: f.status === 'resolved' ? 'open' : 'resolved' })}
+                    className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1 transition-colors ${
+                      f.status === 'resolved' ? 'border-vault-border text-vault-muted hover:text-vault-text' : 'border-green-500/40 text-green-400 hover:bg-green-500/10'
+                    }`}>
+                    <Check size={13} /> {f.status === 'resolved' ? t('admin.reopen') : t('admin.resolve')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

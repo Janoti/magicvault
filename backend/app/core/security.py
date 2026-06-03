@@ -13,6 +13,7 @@ from app.models.user import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 def verify_password(plain: str, hashed: str) -> bool:
@@ -58,3 +59,21 @@ async def get_current_admin(current_user: User = Depends(get_current_user)) -> U
     if not getattr(current_user, "is_admin", False):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin only")
     return current_user
+
+
+async def get_optional_user(
+    token: str = Depends(oauth2_optional),
+    db: AsyncSession = Depends(get_db),
+):
+    """Returns the User if a valid token is present, else None (no error)."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        result = await db.execute(select(User).where(User.id == int(user_id)))
+        return result.scalar_one_or_none()
+    except Exception:
+        return None

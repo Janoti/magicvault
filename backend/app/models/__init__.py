@@ -153,6 +153,19 @@ class Friendship(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class Feedback(Base):
+    __tablename__ = "feedback"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    type: Mapped[str] = mapped_column(String(20), default="bug")  # bug | suggestion | contact
+    message: Mapped[str] = mapped_column(Text)
+    email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    page: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="open")  # open | resolved
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 

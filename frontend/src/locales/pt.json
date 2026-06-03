@@ -151,7 +151,13 @@
     "user": "Usuário",
     "active": "Ativo",
     "isAdmin": "Admin",
-    "joined": "Cadastro"
+    "joined": "Cadastro",
+    "feedbackTitle": "Feedback e bugs",
+    "open": "aberto",
+    "resolved": "resolvido",
+    "resolve": "Resolver",
+    "reopen": "Reabrir",
+    "noFeedback": "Nenhum feedback ainda."
   },
   "account": {
     "nav": "Conta",
@@ -287,5 +293,20 @@
     "confirmPassword": "Repetir senha",
     "passwordMismatch": "As senhas não coincidem",
     "emailHint": "Use um email válido — será usado para recuperar sua senha se precisar."
+  },
+  "feedback": {
+    "nav": "Fale conosco",
+    "title": "Fale conosco",
+    "subtitle": "Encontrou um bug ou tem uma sugestão? Conte pra gente.",
+    "type": "Tipo",
+    "bug": "Reportar bug",
+    "suggestion": "Sugestão",
+    "contact": "Contato",
+    "message": "Mensagem",
+    "messagePh": "Descreva o problema ou sua ideia...",
+    "send": "Enviar",
+    "sent": "Recebido! Obrigado pelo feedback. 🙏",
+    "error": "Erro ao enviar",
+    "email": "Email (para resposta)"
   }
 }
