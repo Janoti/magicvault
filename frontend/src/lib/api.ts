@@ -53,6 +53,13 @@ export const usersApi = {
   profile: (username: string) => api.get(`/api/users/${username}`).then(r => r.data),
 }
 
+// Admin
+export const adminApi = {
+  stats: () => api.get('/api/admin/stats').then(r => r.data),
+  users: () => api.get('/api/admin/users').then(r => r.data),
+  updateUser: (id: number, data: object) => api.patch(`/api/admin/users/${id}`, data).then(r => r.data),
+}
+
 // Cards
 export const cardsApi = {
   search: (q: string, page = 1) => api.get('/api/cards/search', { params: { q, page } }).then(r => r.data),

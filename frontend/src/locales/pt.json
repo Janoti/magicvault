@@ -139,6 +139,20 @@
     "bindersEmpty": "Nenhum binder ainda — crie o primeiro",
     "decksEmpty": "Nenhum deck ainda — crie o primeiro"
   },
+  "admin": {
+    "nav": "Admin",
+    "title": "Administração",
+    "subtitle": "Gerenciar usuários e planos",
+    "users": "Usuários",
+    "premium": "Premium",
+    "cards": "Cartas",
+    "decks": "Decks",
+    "binders": "Binders",
+    "user": "Usuário",
+    "active": "Ativo",
+    "isAdmin": "Admin",
+    "joined": "Cadastro"
+  },
   "account": {
     "nav": "Conta",
     "title": "Minha conta",

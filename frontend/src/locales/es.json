@@ -139,6 +139,20 @@
     "bindersEmpty": "Aún no hay carpetas — crea la primera",
     "decksEmpty": "Aún no hay mazos — crea el primero"
   },
+  "admin": {
+    "nav": "Admin",
+    "title": "Administración",
+    "subtitle": "Gestionar usuarios y planes",
+    "users": "Usuarios",
+    "premium": "Premium",
+    "cards": "Cartas",
+    "decks": "Mazos",
+    "binders": "Carpetas",
+    "user": "Usuario",
+    "active": "Activo",
+    "isAdmin": "Admin",
+    "joined": "Registro"
+  },
   "account": {
     "nav": "Cuenta",
     "title": "Mi cuenta",

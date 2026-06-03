@@ -6,6 +6,7 @@ interface User {
   id: number; email: string; username: string
   display_name?: string | null; avatar?: string | null
   bio?: string | null; links?: { label: string; url: string }[]
+  is_admin?: boolean; is_premium?: boolean
 }
 
 interface AuthState {

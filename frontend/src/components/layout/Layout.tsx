@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
-  Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2
+  Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2, ShieldCheck
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -92,6 +92,21 @@ export default function Layout() {
               {t(key)}
             </NavLink>
           ))}
+          {user?.is_admin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
+                  isActive
+                    ? 'bg-vault-gold/20 text-vault-gold border border-vault-gold/30 font-medium'
+                    : 'text-vault-muted hover:text-vault-gold hover:bg-vault-card'
+                }`
+              }
+            >
+              <ShieldCheck size={15} />
+              {t('admin.nav')}
+            </NavLink>
+          )}
         </nav>
 
         {/* Footer: language + logout */}

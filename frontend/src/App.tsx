@@ -21,6 +21,7 @@ import SharedWithMePage from '@/pages/SharedWithMePage'
 import PublicViewPage from '@/pages/PublicViewPage'
 import AccountPage from '@/pages/AccountPage'
 import ProfilePage from '@/pages/ProfilePage'
+import AdminPage from '@/pages/AdminPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/friends" element={<FriendsPage />} />
         <Route path="/shared" element={<SharedWithMePage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Route>
 
       {/* Fallback */}
