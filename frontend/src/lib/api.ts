@@ -53,6 +53,13 @@ export const usersApi = {
   profile: (username: string) => api.get(`/api/users/${username}`).then(r => r.data),
 }
 
+// Billing (Stripe premium)
+export const billingApi = {
+  price: () => api.get('/api/billing/price').then(r => r.data),
+  checkout: () => api.post('/api/billing/checkout').then(r => r.data),
+  portal: () => api.post('/api/billing/portal').then(r => r.data),
+}
+
 // Trades & sales (listings)
 export const listingsApi = {
   browse: (params?: object) => api.get('/api/listings', { params }).then(r => r.data),

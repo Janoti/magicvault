@@ -364,6 +364,8 @@
     "perMonth": "/mês",
     "subscribe": "Assinar",
     "soon": "Em breve",
-    "soonNote": "As assinaturas chegam em breve. Por enquanto, fale com o admin pra liberar."
+    "soonNote": "As assinaturas chegam em breve. Por enquanto, fale com o admin pra liberar.",
+    "manage": "Gerenciar assinatura",
+    "thanks": "Obrigado! Bem-vindo ao Premium ✨"
   }
 }

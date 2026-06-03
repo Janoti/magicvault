@@ -53,3 +53,9 @@ services:
         value: VaultSpell <noreply@vaultspell.com>
       - key: ADMIN_EMAIL
         sync: false # set to your account email in the dashboard to become admin
+      - key: STRIPE_SECRET_KEY
+        sync: false # sk_test_... / sk_live_... (set in dashboard)
+      - key: STRIPE_PRICE_ID
+        value: "" # price_... of the monthly subscription
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false # whsec_... from the Stripe webhook (set in dashboard)

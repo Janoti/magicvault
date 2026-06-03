@@ -8,7 +8,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
@@ -26,6 +26,7 @@ _COLUMN_MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE",
     "ALTER TABLE users ALTER COLUMN avatar TYPE TEXT",  # widen for base64 avatars
     "ALTER TABLE shares ADD COLUMN IF NOT EXISTS slug VARCHAR(120)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(64)",
 ]
 
 
@@ -72,6 +73,7 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
 app.include_router(listings.router, prefix="/api/listings", tags=["listings"])
+app.include_router(billing.router, prefix="/api/billing", tags=["billing"])
 
 
 @app.get("/api/health")

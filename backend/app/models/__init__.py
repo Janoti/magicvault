@@ -29,6 +29,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
+    stripe_customer_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     # Profile fields (added via ALTER on startup for existing DBs)
     display_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

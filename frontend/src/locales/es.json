@@ -364,6 +364,8 @@
     "perMonth": "/mes",
     "subscribe": "Suscribirse",
     "soon": "Próximamente",
-    "soonNote": "Las suscripciones llegan pronto. Por ahora, contacta al admin para obtener acceso."
+    "soonNote": "Las suscripciones llegan pronto. Por ahora, contacta al admin para obtener acceso.",
+    "manage": "Gestionar suscripción",
+    "thanks": "¡Gracias! Bienvenido a Premium ✨"
   }
 }

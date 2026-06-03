@@ -29,6 +29,11 @@ class Settings(BaseSettings):
 
     admin_email: str = ""  # this account is promoted to admin on startup
 
+    # Stripe (premium subscriptions)
+    stripe_secret_key: str = ""
+    stripe_price_id: str = ""
+    stripe_webhook_secret: str = ""
+
     class Config:
         env_file = ".env"
         case_sensitive = False
