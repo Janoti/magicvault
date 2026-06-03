@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi } from '@/lib/api'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
 import DeckAnalysis from '@/components/decks/DeckAnalysis'
+import DeckCompare from '@/components/decks/DeckCompare'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useTranslation } from 'react-i18next'
 
@@ -21,6 +22,7 @@ export default function DeckDetailPage() {
   const [showShare, setShowShare] = useState(false)
   const [showCoverage, setShowCoverage] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
+  const [showCompare, setShowCompare] = useState(false)
   const { t } = useTranslation()
   const qc = useQueryClient()
 
@@ -37,6 +39,11 @@ export default function DeckDetailPage() {
 
   const addCardMutation = useMutation({
     mutationFn: (data: any) => decksApi.addCard(deckId, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['deck', deckId] }),
+  })
+
+  const publicMutation = useMutation({
+    mutationFn: (is_public: boolean) => decksApi.update(deckId, { is_public }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['deck', deckId] }),
   })
 
@@ -80,11 +87,13 @@ export default function DeckDetailPage() {
           </div>
           {deck?.description && <p className="text-sm text-vault-muted mt-0.5">{deck.description}</p>}
         </div>
-        <button onClick={() => setShowAnalysis(v => !v)} className={`btn-ghost flex items-center gap-2 ${showAnalysis ? 'text-vault-accent' : ''}`}>
-          <BarChart3 size={16} /> {t('analysis.title')}
-        </button>
-        <button onClick={() => setShowCoverage(v => !v)} className={`btn-ghost flex items-center gap-2 ${showCoverage ? 'text-vault-accent' : ''}`}>
-          <Library size={16} /> {t('coverage.compare')}
+        <button
+          onClick={() => publicMutation.mutate(!deck?.is_public)}
+          title={deck?.is_public ? t('detail.makePrivate') : t('detail.makePublic')}
+          className={`btn-ghost flex items-center gap-2 ${deck?.is_public ? 'text-green-400' : ''}`}
+        >
+          {deck?.is_public ? <Globe size={16} /> : <Lock size={16} />}
+          {deck?.is_public ? t('detail.public') : t('detail.private')}
         </button>
         <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
           <Share2 size={16} /> {t('common.share')}
@@ -94,9 +103,47 @@ export default function DeckDetailPage() {
         </button>
       </div>
 
+      {/* Deck tools toolbar */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {[
+          { id: 'analysis', icon: BarChart3, label: t('analysis.title'), on: showAnalysis, set: setShowAnalysis },
+          { id: 'coverage', icon: Library, label: t('coverage.compare'), on: showCoverage, set: setShowCoverage },
+          { id: 'compare', icon: GitCompareArrows, label: t('compare.title'), on: showCompare, set: setShowCompare },
+        ].map(b => (
+          <button
+            key={b.id}
+            onClick={() => b.set((v: boolean) => !v)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
+              b.on
+                ? 'bg-vault-accent/20 border-vault-accent/50 text-vault-accent'
+                : 'bg-vault-card border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-accent/30'
+            }`}
+          >
+            <b.icon size={16} /> {b.label}
+          </button>
+        ))}
+      </div>
+
       {showShare && (
         <ShareModal resourceType="deck" resourceId={deckId} resourcelabel={deck?.name} onClose={() => setShowShare(false)} />
       )}
+
+      {/* Compare with another deck */}
+      <AnimatePresence>
+        {showCompare && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className="surface p-5">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent mb-4">
+                <GitCompareArrows size={15} /> {t('compare.title')}
+              </h2>
+              <DeckCompare deckId={deckId} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Deck analysis */}
       <AnimatePresence>

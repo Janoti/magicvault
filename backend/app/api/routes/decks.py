@@ -7,10 +7,19 @@ from typing import Optional, List
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry
+from sqlalchemy import or_, and_
+from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship
 from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary, get_cards_bulk
 
 router = APIRouter()
+
+
+async def _viewable_deck(db: AsyncSession, deck_id: int, user: User) -> Deck:
+    """A deck the user may look at: their own, or any public deck."""
+    deck = (await db.execute(select(Deck).where(Deck.id == deck_id))).scalar_one_or_none()
+    if not deck or (deck.user_id != user.id and not deck.is_public):
+        raise HTTPException(status_code=404, detail="Deck not found")
+    return deck
 
 
 # --- Deck analysis helpers (heuristics over Scryfall oracle text) ---
@@ -57,9 +66,7 @@ def _categorize(text: str, type_line: str, power) -> list:
 @router.get("/{deck_id}/analysis")
 async def deck_analysis(deck_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Mana curve, color balance, type spread and role breakdown for a deck."""
-    deck = (await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == current_user.id))).scalar_one_or_none()
-    if not deck:
-        raise HTTPException(status_code=404, detail="Deck not found")
+    deck = await _viewable_deck(db, deck_id, current_user)
 
     rows = (await db.execute(select(DeckCard).where(DeckCard.deck_id == deck_id, DeckCard.is_sideboard == False))).scalars().all()  # noqa: E712
     cards = await get_cards_bulk([dc.scryfall_id for dc in rows])
@@ -103,6 +110,7 @@ async def deck_analysis(deck_id: int, current_user: User = Depends(get_current_u
                 categories[cat] += qty
 
     return {
+        "name": deck.name, "format": deck.format,
         "total": total, "lands": lands, "nonlands": nonlands,
         "avg_cmc": round(cmc_sum / nonlands, 2) if nonlands else 0,
         "curve": [{"cmc": k, "count": v} for k, v in curve.items()],
@@ -225,6 +233,46 @@ async def create_deck(data: CreateDeckRequest, current_user: User = Depends(get_
     return {"id": deck.id, "name": deck.name}
 
 
+@router.get("/compare-options")
+async def compare_options(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Decks the user can compare against: their own, friends' public decks, and
+    other people's public decks."""
+    async def _serialize(decks, owners=None):
+        out = []
+        for d in decks:
+            cnt = (await db.execute(select(func.sum(DeckCard.quantity)).where(DeckCard.deck_id == d.id))).scalar() or 0
+            out.append({"id": d.id, "name": d.name, "format": d.format, "card_count": cnt,
+                        "owner": owners.get(d.user_id) if owners else None})
+        return out
+
+    mine = (await db.execute(select(Deck).where(Deck.user_id == current_user.id).order_by(Deck.updated_at.desc()))).scalars().all()
+
+    # Accepted friends
+    fr = (await db.execute(select(Friendship).where(
+        Friendship.status == "accepted",
+        or_(Friendship.requester_id == current_user.id, Friendship.addressee_id == current_user.id),
+    ))).scalars().all()
+    friend_ids = [f.addressee_id if f.requester_id == current_user.id else f.requester_id for f in fr]
+
+    friend_decks = (await db.execute(select(Deck).where(
+        Deck.is_public == True, Deck.user_id.in_(friend_ids or [-1])  # noqa: E712
+    ).order_by(Deck.updated_at.desc()))).scalars().all() if friend_ids else []
+
+    public_decks = (await db.execute(select(Deck).where(
+        Deck.is_public == True, Deck.user_id != current_user.id,
+        Deck.user_id.notin_(friend_ids or [-1]),
+    ).order_by(Deck.updated_at.desc()).limit(30))).scalars().all()  # noqa: E712
+
+    owner_ids = {d.user_id for d in friend_decks} | {d.user_id for d in public_decks}
+    owners = {u.id: u.username for u in (await db.execute(select(User).where(User.id.in_(owner_ids or [-1])))).scalars().all()}
+
+    return {
+        "mine": await _serialize(mine),
+        "friends": await _serialize(friend_decks, owners),
+        "public": await _serialize(public_decks, owners),
+    }
+
+
 @router.get("/{deck_id}")
 async def get_deck(deck_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == current_user.id))
@@ -241,7 +289,31 @@ async def get_deck(deck_id: int, current_user: User = Depends(get_current_user),
             card = {"id": dc.scryfall_id}
         cards.append({"id": dc.id, "quantity": dc.quantity, "is_sideboard": dc.is_sideboard, "is_commander": dc.is_commander, "card": card})
 
-    return {"id": deck.id, "name": deck.name, "format": deck.format, "description": deck.description, "cards": cards}
+    return {"id": deck.id, "name": deck.name, "format": deck.format,
+            "description": deck.description, "is_public": deck.is_public, "cards": cards}
+
+
+class UpdateDeckRequest(BaseModel):
+    name: Optional[str] = None
+    format: Optional[str] = None
+    description: Optional[str] = None
+    is_public: Optional[bool] = None
+
+
+@router.patch("/{deck_id}")
+async def update_deck(deck_id: int, data: UpdateDeckRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    deck = (await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == current_user.id))).scalar_one_or_none()
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    if data.name is not None:
+        deck.name = data.name[:120]
+    if data.format is not None:
+        deck.format = data.format[:30]
+    if data.description is not None:
+        deck.description = data.description or None
+    if data.is_public is not None:
+        deck.is_public = data.is_public
+    return {"id": deck.id, "is_public": deck.is_public}
 
 
 @router.post("/{deck_id}/cards", status_code=201)

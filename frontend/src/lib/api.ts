@@ -140,6 +140,8 @@ export const decksApi = {
   addCard: (deckId: number, data: object) => api.post(`/api/decks/${deckId}/cards`, data).then(r => r.data),
   coverage: (id: number) => api.get(`/api/decks/${id}/coverage`).then(r => r.data),
   analysis: (id: number) => api.get(`/api/decks/${id}/analysis`).then(r => r.data),
+  update: (id: number, data: object) => api.patch(`/api/decks/${id}`, data).then(r => r.data),
+  compareOptions: () => api.get('/api/decks/compare-options').then(r => r.data),
 }
 
 // Wishlist
