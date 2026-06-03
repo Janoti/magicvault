@@ -347,5 +347,23 @@
     "noListings": "Aún no hay publicaciones. ¡Sé el primero!",
     "noMine": "Aún no tienes publicaciones.",
     "by": "por"
+  },
+  "premium": {
+    "nav": "Premium",
+    "title": "VaultSpell Premium",
+    "subtitle": "Desbloquea funciones avanzadas y apoya el proyecto",
+    "youArePremium": "Eres Premium ✨",
+    "youArePremiumDesc": "¡Gracias! Tienes acceso a todas las funciones premium.",
+    "benefitsTitle": "Qué desbloqueas",
+    "b1": "Crear publicaciones de venta e intercambio de cartas físicas",
+    "b2": "Foto real en tus publicaciones",
+    "b3": "Pronto: carpetas y mazos ilimitados",
+    "b4": "Pronto: historial de valor de la colección",
+    "b5": "Apoya el desarrollo de VaultSpell",
+    "priceSoon": "Precio próximamente",
+    "perMonth": "/mes",
+    "subscribe": "Suscribirse",
+    "soon": "Próximamente",
+    "soonNote": "Las suscripciones llegan pronto. Por ahora, contacta al admin para obtener acceso."
   }
 }

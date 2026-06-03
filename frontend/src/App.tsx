@@ -23,6 +23,7 @@ import AccountPage from '@/pages/AccountPage'
 import ProfilePage from '@/pages/ProfilePage'
 import AdminPage from '@/pages/AdminPage'
 import TradesPage from '@/pages/TradesPage'
+import PremiumPage from '@/pages/PremiumPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/friends" element={<FriendsPage />} />
         <Route path="/shared" element={<SharedWithMePage />} />
         <Route path="/trades" element={<TradesPage />} />
+        <Route path="/premium" element={<PremiumPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Route>

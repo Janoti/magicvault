@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Trash2, Heart, Send, X, Lock } from 'lucide-react'
@@ -49,11 +50,11 @@ export default function TradesPage() {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const canCreate = !!(user?.is_premium || user?.is_admin)
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'browse' | 'mine'>('browse')
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
-  const [showPremium, setShowPremium] = useState(false)
   const [interestFor, setInterestFor] = useState<any>(null)
   const [interestMsg, setInterestMsg] = useState('')
   const [notice, setNotice] = useState('')
@@ -77,7 +78,7 @@ export default function TradesPage() {
           <h1 className="font-display text-3xl font-bold text-vault-gold">{t('trades.title')}</h1>
           <p className="text-vault-muted text-sm mt-0.5">{t('trades.subtitle')}</p>
         </div>
-        <button onClick={() => canCreate ? setShowCreate(true) : setShowPremium(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => canCreate ? setShowCreate(true) : navigate('/premium')} className="btn-primary flex items-center gap-2">
           {canCreate ? <Plus size={16} /> : <Lock size={14} />} {t('trades.newListing')}
         </button>
       </div>
@@ -114,19 +115,6 @@ export default function TradesPage() {
       )}
 
       {showCreate && <CreateListingModal onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); qc.invalidateQueries({ queryKey: ['listings-mine'] }); qc.invalidateQueries({ queryKey: ['listings'] }); setTab('mine') }} />}
-
-      {/* Premium gate */}
-      {showPremium && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowPremium(false)} />
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative z-10 surface p-6 max-w-sm text-center">
-            <Lock size={32} className="mx-auto text-vault-gold mb-3" />
-            <h3 className="font-display font-bold text-vault-gold mb-2">{t('trades.premiumNeeded')}</h3>
-            <p className="text-sm text-vault-muted">{t('trades.premiumNeededDesc')}</p>
-            <button onClick={() => setShowPremium(false)} className="btn-primary mt-4">OK</button>
-          </motion.div>
-        </div>
-      )}
 
       {/* Interest modal */}
       {interestFor && (

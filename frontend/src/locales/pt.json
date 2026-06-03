@@ -347,5 +347,23 @@
     "noListings": "Nenhuma oferta ainda. Seja o primeiro!",
     "noMine": "Você ainda não tem ofertas.",
     "by": "por"
+  },
+  "premium": {
+    "nav": "Premium",
+    "title": "VaultSpell Premium",
+    "subtitle": "Desbloqueie recursos avançados e apoie o projeto",
+    "youArePremium": "Você já é Premium ✨",
+    "youArePremiumDesc": "Obrigado! Você tem acesso a todos os recursos premium.",
+    "benefitsTitle": "O que você desbloqueia",
+    "b1": "Criar ofertas de troca e venda de cartas físicas",
+    "b2": "Foto real nas suas ofertas",
+    "b3": "Em breve: binders e decks ilimitados",
+    "b4": "Em breve: histórico de valor da coleção",
+    "b5": "Apoie o desenvolvimento do VaultSpell",
+    "priceSoon": "Preço em breve",
+    "perMonth": "/mês",
+    "subscribe": "Assinar",
+    "soon": "Em breve",
+    "soonNote": "As assinaturas chegam em breve. Por enquanto, fale com o admin pra liberar."
   }
 }

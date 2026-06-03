@@ -347,5 +347,23 @@
     "noListings": "No listings yet. Be the first!",
     "noMine": "You have no listings yet.",
     "by": "by"
+  },
+  "premium": {
+    "nav": "Premium",
+    "title": "VaultSpell Premium",
+    "subtitle": "Unlock advanced features and support the project",
+    "youArePremium": "You are Premium ✨",
+    "youArePremiumDesc": "Thanks! You have access to all premium features.",
+    "benefitsTitle": "What you unlock",
+    "b1": "Create sale & trade listings for physical cards",
+    "b2": "Real photo on your listings",
+    "b3": "Soon: unlimited binders and decks",
+    "b4": "Soon: collection value history",
+    "b5": "Support VaultSpell development",
+    "priceSoon": "Price coming soon",
+    "perMonth": "/mo",
+    "subscribe": "Subscribe",
+    "soon": "Coming soon",
+    "soonNote": "Subscriptions are coming soon. For now, contact the admin to get access."
   }
 }
