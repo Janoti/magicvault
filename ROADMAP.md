@@ -1,4 +1,4 @@
-# MagicVault — Roadmap das próximas features
+# VaultSpell — Roadmap das próximas features
 
 Decisões já tomadas com o usuário estão marcadas. Nada aqui foi implementado
 ainda — é o plano acordado.

@@ -32,7 +32,7 @@ export default function LoginPage() {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <h1 className="font-display text-4xl font-black text-vault-gold tracking-wider">⚔ MagicVault</h1>
+          <h1 className="font-display text-4xl font-black text-vault-gold tracking-wider">📖 VaultSpell</h1>
           <p className="text-vault-muted mt-2 text-sm">{t('auth.loginSubtitle')}</p>
         </div>
 

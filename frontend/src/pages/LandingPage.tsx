@@ -29,7 +29,7 @@ export default function LandingPage() {
       {/* Nav */}
       <header className="border-b border-vault-border/60 backdrop-blur sticky top-0 z-20 bg-vault-bg/80">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="font-display text-xl font-bold text-vault-gold tracking-wider">⚔ MagicVault</span>
+          <span className="font-display text-xl font-bold text-vault-gold tracking-wider">📖 VaultSpell</span>
           <div className="flex items-center gap-3">
             <LanguageSwitcher compact />
             <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text transition-colors">{t('common.login')}</Link>
@@ -112,7 +112,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-vault-border/60">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-vault-muted">
-          <span className="font-display text-vault-gold">⚔ MagicVault</span>
+          <span className="font-display text-vault-gold">📖 VaultSpell</span>
           <span>{t('landing.footerDisclaimer')}</span>
           <a href="https://github.com/Janoti/magicvault" target="_blank" rel="noreferrer"
             className="flex items-center gap-2 hover:text-vault-text transition-colors">

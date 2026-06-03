@@ -30,7 +30,7 @@ async def send_email(to: str, subject: str, html: str) -> bool:
 async def send_password_reset(to: str, reset_url: str) -> bool:
     html = f"""
     <div style="font-family:sans-serif;max-width:480px;margin:auto">
-      <h2 style="color:#b8860b">⚔ MagicVault</h2>
+      <h2 style="color:#b8860b">📖 VaultSpell</h2>
       <p>Recebemos um pedido para redefinir sua senha.</p>
       <p>
         <a href="{reset_url}"
@@ -42,4 +42,4 @@ async def send_password_reset(to: str, reset_url: str) -> bool:
          Se você não pediu isso, ignore este email.</p>
     </div>
     """
-    return await send_email(to, "Redefinir sua senha — MagicVault", html)
+    return await send_email(to, "Redefinir sua senha — VaultSpell", html)

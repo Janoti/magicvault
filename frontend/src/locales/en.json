@@ -116,7 +116,7 @@
     "empty": "Nothing shared with you yet.",
     "by": "by {{name}}",
     "invalidLink": "Invalid or removed link.",
-    "goToApp": "Go to MagicVault"
+    "goToApp": "Go to VaultSpell"
   },
   "pages": {
     "bindersTitle": "Binders",

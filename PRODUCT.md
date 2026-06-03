@@ -1,4 +1,4 @@
-# MagicVault — Estratégia de Produto
+# VaultSpell — Estratégia de Produto
 
 > Foco: **Magic: The Gathering apenas** (sem Pokémon / outros TCGs por enquanto).
 > Modelo: **freemium** — núcleo grátis para crescer, recursos avançados pagos.
@@ -10,7 +10,7 @@ O mercado está dividido:
 - **Deck builders** (Moxfield, Archidekt) montam decks lindos.
 - Quase ninguém faz os dois **conversando bem**.
 
-**A aposta do MagicVault: "o app conhece a SUA coleção" e age como um assistente
+**A aposta do VaultSpell: "o app conhece a SUA coleção" e age como um assistente
 pessoal de MTG** — não só um banco de cartas. Tudo (deck builder, sugestões,
 análise) leva em conta o que você realmente possui. Esse é o diferencial e o fio
 condutor de todas as decisões abaixo.

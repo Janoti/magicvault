@@ -116,7 +116,7 @@
     "empty": "Nada compartido contigo todavía.",
     "by": "de {{name}}",
     "invalidLink": "Enlace inválido o eliminado.",
-    "goToApp": "Ir a MagicVault"
+    "goToApp": "Ir a VaultSpell"
   },
   "pages": {
     "bindersTitle": "Carpetas",

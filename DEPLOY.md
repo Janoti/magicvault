@@ -1,6 +1,6 @@
-# Deploy do MagicVault no Render
+# Deploy do VaultSpell no Render
 
-O MagicVault é publicado como **um único web service**: o FastAPI serve a SPA
+O VaultSpell é publicado como **um único web service**: o FastAPI serve a SPA
 React buildada + a API na mesma origem. Mais Postgres e Redis gerenciados.
 Tudo está declarado em [`render.yaml`](./render.yaml).
 

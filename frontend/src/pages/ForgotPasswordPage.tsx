@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
     <AuthLayout>
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="font-display text-4xl font-black text-vault-gold tracking-wider">⚔ MagicVault</h1>
+          <h1 className="font-display text-4xl font-black text-vault-gold tracking-wider">📖 VaultSpell</h1>
           <p className="text-vault-muted mt-2 text-sm">{t('auth.forgotSubtitle')}</p>
         </div>
 

@@ -1,1 +1,1 @@
-# MagicVault Backend
+# VaultSpell Backend

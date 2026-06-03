@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="MagicVault API",
+    title="VaultSpell API",
     description="Magic: The Gathering collection manager",
     version="1.0.0",
     lifespan=lifespan,
@@ -63,7 +63,7 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": "MagicVault API"}
+    return {"status": "ok", "service": "VaultSpell API"}
 
 
 # --- Serve the built frontend (production single-service deploy) ---

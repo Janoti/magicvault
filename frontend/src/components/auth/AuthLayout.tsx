@@ -51,7 +51,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="hidden xl:flex flex-col justify-center gap-8 absolute left-16 top-1/2 -translate-y-1/2 max-w-sm z-10">
         <div className="flex items-center gap-2 text-vault-gold">
           <Dices size={20} />
-          <span className="font-display text-lg font-bold tracking-wider">⚔ MagicVault</span>
+          <span className="font-display text-lg font-bold tracking-wider">📖 VaultSpell</span>
         </div>
         <motion.h2
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}

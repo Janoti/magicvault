@@ -17,7 +17,7 @@ export default function PublicViewPage() {
   return (
     <div className="min-h-screen bg-vault-bg">
       <header className="border-b border-vault-border bg-vault-surface px-6 py-3 flex items-center justify-between">
-        <Link to="/" className="font-display text-lg font-bold text-vault-gold tracking-wider">⚔ MagicVault</Link>
+        <Link to="/" className="font-display text-lg font-bold text-vault-gold tracking-wider">📖 VaultSpell</Link>
         <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
       </header>
 

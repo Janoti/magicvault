@@ -42,7 +42,7 @@ export default function Layout() {
         {/* Logo */}
         <Link to="/" className="block p-5 border-b border-vault-border hover:bg-vault-card/30 transition-colors">
           <h1 className="font-display text-xl font-bold text-vault-gold tracking-wider">
-            ⚔ MagicVault
+            📖 VaultSpell
           </h1>
           <p className="text-xs text-vault-muted mt-0.5">{t('nav.subtitle')}</p>
         </Link>

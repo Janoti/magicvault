@@ -1,4 +1,4 @@
-# MagicVault — Backlog do Projeto
+# VaultSpell — Backlog do Projeto
 
 Lista priorizada de tudo que foi pedido. Trabalhamos **aos poucos**, um item por
 vez, com **um commit por feature**. Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande.

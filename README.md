@@ -1,4 +1,4 @@
-# ⚔ MagicVault — MTG Collection Manager
+# 📖 VaultSpell — MTG Collection Manager
 
 A full-featured manager for your **Magic: The Gathering** collection — track cards,
 build themed binders and decks, watch real-time prices, and import/export your
@@ -75,7 +75,7 @@ cd frontend && npm install && npm run dev
 
 ## ☁️ Deploy
 
-MagicVault ships as a **single web service**: FastAPI serves the built React SPA
+VaultSpell ships as a **single web service**: FastAPI serves the built React SPA
 and the API on one origin (no CORS). The root `Dockerfile` builds the frontend
 into `/app/static`, and [`render.yaml`](./render.yaml) declares the web service,
 PostgreSQL, and Redis on [Render](https://render.com). Every push to `main`

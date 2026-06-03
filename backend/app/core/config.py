@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Email / password reset
     resend_api_key: str = ""  # if empty, reset links are logged instead of emailed
-    email_from: str = "MagicVault <onboarding@resend.dev>"
+    email_from: str = "VaultSpell <onboarding@resend.dev>"
     app_url: str = "http://localhost:5173"  # base URL the reset link points to
     reset_token_expire_minutes: int = 60
 
