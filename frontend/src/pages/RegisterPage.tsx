@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import AuthLayout from '@/components/auth/AuthLayout'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -26,14 +26,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-vault-bg p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-vault-accent/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-vault-gold/5 rounded-full blur-3xl" />
-      </div>
-
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm relative z-10">
-        <div className="flex justify-center mb-2"><LanguageSwitcher /></div>
+    <AuthLayout>
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="font-display text-4xl font-black text-vault-gold tracking-wider">⚔ MagicVault</h1>
           <p className="text-vault-muted mt-2 text-sm">{t('auth.registerSubtitle')}</p>
@@ -70,6 +64,6 @@ export default function RegisterPage() {
           </p>
         </div>
       </motion.div>
-    </div>
+    </AuthLayout>
   )
 }

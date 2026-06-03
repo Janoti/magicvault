@@ -65,6 +65,11 @@
     "signUp": "Cadastre-se",
     "signIn": "Entrar",
     "loginError": "Email ou senha inválidos",
-    "registerError": "Erro ao criar conta"
+    "registerError": "Erro ao criar conta",
+    "heroTagline": "Sua coleção, organizada como um grimório.",
+    "heroB1": "Catalogue cada carta",
+    "heroB2": "Monte decks e binders temáticos",
+    "heroB3": "Compartilhe com seus aliados",
+    "forgotPassword": "Esqueci minha senha"
   }
 }

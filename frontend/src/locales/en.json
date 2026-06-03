@@ -65,6 +65,11 @@
     "signUp": "Sign up",
     "signIn": "Log in",
     "loginError": "Invalid email or password",
-    "registerError": "Error creating account"
+    "registerError": "Error creating account",
+    "heroTagline": "Your collection, organized like a spellbook.",
+    "heroB1": "Catalog every card",
+    "heroB2": "Build themed decks and binders",
+    "heroB3": "Share with your allies",
+    "forgotPassword": "Forgot my password"
   }
 }

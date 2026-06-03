@@ -65,6 +65,11 @@
     "signUp": "Regístrate",
     "signIn": "Entrar",
     "loginError": "Email o contraseña inválidos",
-    "registerError": "Error al crear la cuenta"
+    "registerError": "Error al crear la cuenta",
+    "heroTagline": "Tu colección, organizada como un grimorio.",
+    "heroB1": "Cataloga cada carta",
+    "heroB2": "Arma mazos y carpetas temáticas",
+    "heroB3": "Comparte con tus aliados",
+    "forgotPassword": "Olvidé mi contraseña"
   }
 }
