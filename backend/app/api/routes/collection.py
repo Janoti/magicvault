@@ -98,6 +98,7 @@ async def list_collection(
     order: str = "desc",
     page: int = 1,
     per_page: int = 20,
+    with_cards: bool = False,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -140,6 +141,12 @@ async def list_collection(
         total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar()
         paged = query.offset((page - 1) * per_page).limit(per_page)
         items = [serialize(e) for e in (await db.execute(paged)).scalars().all()]
+
+    if with_cards and items:
+        cards = await get_cards_bulk([i["scryfall_id"] for i in items])
+        for i in items:
+            raw = cards.get(i["scryfall_id"])
+            i["card"] = extract_card_summary(raw) if raw else None
 
     return {
         "items": items,

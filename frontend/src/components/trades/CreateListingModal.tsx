@@ -2,9 +2,11 @@ import { useState, useRef } from 'react'
 import { X, Search, Upload, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { cardsApi, listingsApi } from '@/lib/api'
+import { useQuery } from '@tanstack/react-query'
+import { cardsApi, listingsApi, collectionApi, bindersApi, decksApi } from '@/lib/api'
 
 const CONDITIONS = ['M', 'NM', 'LP', 'MP', 'HP', 'DMG']
+type Source = 'collection' | 'binder' | 'deck' | 'search'
 
 function resizePhoto(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -24,8 +26,12 @@ function resizePhoto(file: File): Promise<string> {
 
 export default function CreateListingModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { t } = useTranslation()
+  const [source, setSource] = useState<Source>('collection')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
+  const [binderId, setBinderId] = useState<number | null>(null)
+  const [deckId, setDeckId] = useState<number | null>(null)
+
   const [card, setCard] = useState<any>(null)
   const [condition, setCondition] = useState('NM')
   const [foil, setFoil] = useState(false)
@@ -36,6 +42,17 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
   const [busy, setBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  const { data: collection } = useQuery({ queryKey: ['col-pick'], queryFn: () => collectionApi.list({ with_cards: true, per_page: 300 }), enabled: source === 'collection' && !card })
+  const { data: binders = [] } = useQuery({ queryKey: ['binders'], queryFn: bindersApi.list, enabled: source === 'binder' && !card })
+  const { data: decks = [] } = useQuery({ queryKey: ['decks'], queryFn: decksApi.list, enabled: source === 'deck' && !card })
+  const { data: binder } = useQuery({ queryKey: ['binder', binderId], queryFn: () => bindersApi.get(binderId as number), enabled: !!binderId && source === 'binder' && !card })
+  const { data: deck } = useQuery({ queryKey: ['deck', deckId], queryFn: () => decksApi.get(deckId as number), enabled: !!deckId && source === 'deck' && !card })
+
+  const pick = (c: any, entry?: any) => {
+    setCard(c)
+    if (entry) { if (entry.condition) setCondition(entry.condition); if (entry.foil != null) setFoil(entry.foil) }
+  }
+
   const search = async (e: React.FormEvent) => {
     e.preventDefault()
     if (query.length < 2) return
@@ -45,8 +62,7 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
 
   const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; e.target.value = ''
-    if (!f) return
-    if (f.size > 5 * 1024 * 1024) return
+    if (!f || f.size > 5 * 1024 * 1024) return
     try { setPhoto(await resizePhoto(f)) } catch {}
   }
 
@@ -64,6 +80,20 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
     setBusy(false)
   }
 
+  // Build the grid of pickable cards for the current source
+  let grid: { key: string; card: any; entry?: any }[] = []
+  if (source === 'collection') grid = (collection?.items || []).filter((i: any) => i.card).map((i: any) => ({ key: `c${i.id}`, card: i.card, entry: i }))
+  else if (source === 'binder' && binder) grid = (binder.cards || []).map((c: any) => ({ key: `b${c.binder_card_id}`, card: c.card, entry: c }))
+  else if (source === 'deck' && deck) grid = (deck.cards || []).map((c: any) => ({ key: `d${c.id}`, card: c.card, entry: c }))
+  else if (source === 'search') grid = results.map((c: any) => ({ key: c.id, card: c }))
+
+  const TABS: { v: Source; label: string }[] = [
+    { v: 'collection', label: t('nav.collection') },
+    { v: 'binder', label: t('nav.binders') },
+    { v: 'deck', label: t('nav.decks') },
+    { v: 'search', label: t('search.button') },
+  ]
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -78,17 +108,45 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
 
           {!card ? (
             <>
-              <form onSubmit={search} className="flex gap-2 mb-3">
-                <input className="input-field flex-1" placeholder={t('trades.pickCard')} value={query} onChange={e => setQuery(e.target.value)} />
-                <button className="btn-primary !px-3"><Search size={16} /></button>
-              </form>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-72 overflow-y-auto">
-                {results.map(c => (
-                  <button key={c.id} onClick={() => setCard(c)} className="rounded-lg overflow-hidden border border-vault-border hover:border-vault-accent">
-                    {c.image_small ? <img src={c.image_small} alt={c.name} className="w-full" /> : <div className="p-2 text-xs">{c.name}</div>}
+              {/* Source tabs */}
+              <div className="flex gap-1 mb-3 flex-wrap">
+                {TABS.map(tb => (
+                  <button key={tb.v} onClick={() => setSource(tb.v)}
+                    className={`px-3 py-1.5 rounded-lg text-xs transition-all ${source === tb.v ? 'bg-vault-accent/20 text-vault-accent border border-vault-accent/30' : 'text-vault-muted hover:text-vault-text border border-transparent'}`}>
+                    {tb.label}
                   </button>
                 ))}
               </div>
+
+              {source === 'search' && (
+                <form onSubmit={search} className="flex gap-2 mb-3">
+                  <input className="input-field flex-1" placeholder={t('trades.pickCard')} value={query} onChange={e => setQuery(e.target.value)} />
+                  <button className="btn-primary !px-3"><Search size={16} /></button>
+                </form>
+              )}
+              {source === 'binder' && (
+                <select className="input-field mb-3" value={binderId ?? ''} onChange={e => setBinderId(e.target.value ? Number(e.target.value) : null)}>
+                  <option value="">— {t('nav.binders')} —</option>
+                  {binders.map((b: any) => <option key={b.id} value={b.id}>{b.name} ({b.card_count})</option>)}
+                </select>
+              )}
+              {source === 'deck' && (
+                <select className="input-field mb-3" value={deckId ?? ''} onChange={e => setDeckId(e.target.value ? Number(e.target.value) : null)}>
+                  <option value="">— {t('nav.decks')} —</option>
+                  {decks.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              )}
+
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-72 overflow-y-auto">
+                {grid.map(g => (
+                  <button key={g.key} onClick={() => pick(g.card, g.entry)} className="rounded-lg overflow-hidden border border-vault-border hover:border-vault-accent" title={g.card?.name}>
+                    {g.card?.image_small ? <img src={g.card.image_small} alt={g.card.name} className="w-full" loading="lazy" /> : <div className="p-2 text-[11px]">{g.card?.name}</div>}
+                  </button>
+                ))}
+              </div>
+              {grid.length === 0 && source !== 'search' && (
+                <p className="text-xs text-vault-muted text-center py-6">{t('pages.empty')}</p>
+              )}
             </>
           ) : (
             <div className="space-y-4">
