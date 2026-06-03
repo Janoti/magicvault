@@ -238,6 +238,7 @@
     "forgotPassword": "Olvidé mi contraseña",
     "forgotTitle": "Recuperar contraseña",
     "forgotSubtitle": "Te enviaremos un enlace de restablecimiento a tu email",
+    "forgotIdentifier": "Email o nombre de usuario",
     "forgotButton": "Enviar enlace",
     "forgotSent": "Si el email existe, enviamos un enlace de restablecimiento. Revisa tu bandeja.",
     "backToLogin": "Volver al login",

@@ -8,7 +8,7 @@ import { authApi } from '@/lib/api'
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation()
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await authApi.forgotPassword(email)
+      await authApi.forgotPassword(identifier)
       setSent(true)
     } catch {
       setSent(true) // don't reveal whether the email exists
@@ -44,9 +44,9 @@ export default function ForgotPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('auth.email')}</label>
-                <input type="email" className="input-field" placeholder="seu@email.com"
-                  value={email} onChange={e => setEmail(e.target.value)} required />
+                <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('auth.forgotIdentifier')}</label>
+                <input type="text" className="input-field" placeholder="seu@email.com / username"
+                  value={identifier} onChange={e => setIdentifier(e.target.value)} required />
               </div>
               <button type="submit" disabled={loading}
                 className="btn-primary w-full py-2.5 flex items-center justify-center gap-2 disabled:opacity-60">

@@ -238,6 +238,7 @@
     "forgotPassword": "Esqueci minha senha",
     "forgotTitle": "Recuperar senha",
     "forgotSubtitle": "Enviaremos um link de redefinição pro seu email",
+    "forgotIdentifier": "Email ou nome de usuário",
     "forgotButton": "Enviar link",
     "forgotSent": "Se o email existir, enviamos um link de redefinição. Confira sua caixa de entrada.",
     "backToLogin": "Voltar ao login",

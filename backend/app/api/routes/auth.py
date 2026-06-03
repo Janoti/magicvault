@@ -134,7 +134,7 @@ async def update_me(
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    identifier: str  # email or username
 
 
 class ResetPasswordRequest(BaseModel):
@@ -144,8 +144,11 @@ class ResetPasswordRequest(BaseModel):
 
 @router.post("/forgot-password")
 async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
-    """Always returns 200 (don't reveal whether the email exists)."""
-    user = (await db.execute(select(User).where(User.email == data.email))).scalar_one_or_none()
+    """Accepts email or username. Always returns 200 (don't reveal existence)."""
+    ident = data.identifier.strip().lower()
+    user = (await db.execute(
+        select(User).where(or_(User.email == ident, User.username == ident))
+    )).scalar_one_or_none()
     if user:
         token = secrets.token_urlsafe(32)
         db.add(PasswordResetToken(

@@ -238,6 +238,7 @@
     "forgotPassword": "Forgot my password",
     "forgotTitle": "Recover password",
     "forgotSubtitle": "We'll send a reset link to your email",
+    "forgotIdentifier": "Email or username",
     "forgotButton": "Send link",
     "forgotSent": "If the email exists, we've sent a reset link. Check your inbox.",
     "backToLogin": "Back to login",
