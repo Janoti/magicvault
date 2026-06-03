@@ -1,43 +1,51 @@
 # VaultSpell — Backlog do Projeto
 
-Lista priorizada de tudo que foi pedido. Trabalhamos **aos poucos**, um item por
-vez, com **um commit por feature**. Legenda de esforço: 🟢 pequeno · 🟡 médio · 🔴 grande.
+Lista priorizada. Trabalhamos **aos poucos**, um item por vez, **um commit por feature**.
+Esforço: 🟢 pequeno · 🟡 médio · 🔴 grande.
 
 ## ✅ Já entregue
-- Coleção: editar carta (+merge), valor da carta, coluna de Set, preview grande no hover, linhas/página, título "Coleção de {username}"
-- Sets: ver cartas, adicionar individual ou set inteiro
-- Coleção → binder
-- Importar/Exportar CSV (formato grimdeck)
-- Amigos + Compartilhamento (amigos por username/email, link público, view read-only)
-- Landing page pública
-- Logo → link pra home
-- Deploy no Render + README com link ao vivo + PRODUCT.md + topics no GitHub + histórico sem menções a IA
-- i18n: base + seletor de idioma + telas de entrada (nav, landing, login, registro) — _em finalização_
+**Coleção & cartas**
+- Editar carta (+merge), valor da carta, coluna de Set + ícone, preview grande no hover, linhas/página, filtro por set
+- Sets: ver cartas, adicionar individual ou set inteiro · Coleção → binder · Import/Export CSV (grimdeck)
+
+**Social & compartilhamento**
+- Amigos (por username/email, pedido/aceitar) + Compartilhar (coleção/binder/deck com amigos ou link público read-only)
+- Links públicos bonitos e editáveis: `/p/username/slug`
+
+**Contas & perfil**
+- Recuperação de senha (email **ou** username, email no domínio próprio via Resend)
+- Login por email **ou** username · confirmar senha + aviso de email no cadastro
+- Editar conta (nome/nickname/email) · **Avatar** (galeria temática **+ upload** de imagem) · bio + links
+- Página de **perfil público** `/u/username`
+
+**Plataforma & marca**
+- Rebrand **VaultSpell** (📖) + **domínio próprio** `vaultspell.com` (Render + email no domínio)
+- **i18n completo** PT/EN/ES (todas as telas) · seletor de idioma
+- Landing page pública · fundo animado de fagulhas · logo → home
+- **Admin** (dashboard + gerenciar usuários: ativo/admin/premium)
+- **Fale conosco / report de bugs** (form, anônimo ou logado) → visível no Admin
+- Deploy no Render + docs (README/PRODUCT/ROADMAP) + topics no GitHub
+
+**Monetização**
+- **Premium (Stripe)** 🔴 — checkout + webhook + portal + página de planos (R$10/mês) + selos de segurança. _Test mode ativo._
+- **Trocas & Vendas MVP** 🔴 — criar oferta (venda/troca) escolhendo da coleção/binder/deck/busca, **foto real**, vitrine pública + busca, "tenho interesse" (email pro vendedor), minhas ofertas. Criar = premium.
 
 ## 🎯 Próximos (prioridade)
 
-### P0 — Terminar o que está em andamento / contas
-0. **Recuperação de senha** 🟡 — fluxo "esqueci a senha" → email com link (Resend) → redefinir. (precisa de RESEND_API_KEY)
-1. **i18n — completar nas telas internas** 🟡
-   Falta traduzir: coleção (tabela/filtros/modais), binders, decks, sets, wishlist, amigos, compartilhados, scan, search. (base e telas de entrada já prontas)
-2. **Editar conta** 🟡 — mudar email, nome, nickname; **avatar** (galeria de avatares públicos com tema MTG/D&D).
-3. **Página de perfil** 🟡 — bio, links e "coisas desse mundo"; visível no compartilhamento/perfil público.
+### P1 — Qualidade & base
+1. **Testes** 🔴 — backend (pytest: auth, coleção, amigos, shares, listings, billing) + frontend.
+2. **Logs** 🟡 — logging estruturado (requests, erros, webhooks Stripe).
+3. **Segurança** 🟡 — revisão de auth/JWT, autorização (ownership) nos endpoints, rate limit, headers, validação de input.
+4. **Perf** 🟡 — resolução de cartas (N+1) em coleções grandes (export/share/listings) — usar batch/paginar mais.
 
-### P1 — Qualidade & base (você sinalizou que vai pedir)
-4. **Testes** 🔴 — backend (pytest: auth, coleção, amigos, shares) + frontend (componentes-chave).
-5. **Logs** 🟡 — logging estruturado no backend (requests, erros, jobs), níveis por ambiente.
-6. **Validação de segurança** 🟡 — revisão de auth/JWT, autorização nos endpoints (ownership), rate limit, headers, CORS de produção, validação de input.
-7. **Perf**: view de coleção compartilhada com muitos cards (N+1 / paginar) 🟡.
+### P2 — Monetização (continuação)
+5. **Premium → produção** 🟢 — trocar chaves test por **live** (`sk_live`) + webhook live, quando for cobrar de verdade.
+6. **Trocas Fase 2** 🔴 — matchmaking ("você tem o que ele quer") + **reputação/avaliações** entre quem troca.
+7. **Trocas Fase 3** 🔴 — pagamento/escrow integrado (bem depois).
+8. **Mais gates premium** 🟡 — definir o que mais é premium (ex: binders/decks ilimitados, histórico de valor) + limites do free.
 
-### P2 — Monetização
-8. **Premium (Stripe + gates)** 🔴 — flag de plano no usuário, checkout/webhook, travar recursos premium, limites do free. (ver PRODUCT.md)
-8b. **🔥 Trocas & Vendas (cartas físicas)** 🔴 — feature premium. Marcar cartas à venda (preço) ou troca (lista de desejos), **foto real da carta** (condição), vitrine/busca pública, botão "tenho interesse" que conecta as pessoas. Acerto/envio **fora da plataforma** no v1. Reaproveita coleção + amigos.
-   - Fase 1 (MVP): listings (venda/troca) + foto real + vitrine + contato. Criar listing = premium.
-   - Fase 2: matchmaking ("você tem o que ele quer") + reputação/avaliações.
-   - Fase 3 (depois): pagamento/escrow integrado.
-
-### P3 — Diferenciais de produto (ver PRODUCT.md / ROADMAP.md)
-9. **Deck × coleção** (collection-aware: tem/falta/custo) 🟢
+### P3 — Diferenciais de produto (ver PRODUCT.md)
+9. **Deck × coleção** (tem/falta/custo) 🟢 — alto valor, rápido
 10. **Notificações de preço** (wishlist/variação/valor total) 🟡
 11. **Categorias inteligentes** do deck (ramp/draw/removal…) 🟡
 12. **Página pública do deck + QR + export** 🟡
@@ -46,22 +54,15 @@ vez, com **um commit por feature**. Legenda de esforço: 🟢 pequeno · 🟡 m�
 15. **Deck DNA** (arquétipo) 🔴 — premium
 16. **Builder ciente da coleção** (substituições) 🔴
 17. **Scanner de cartas por câmera** 🔴 (paridade ManaBox)
-
-### P3 — outras ideias da análise (lista completa, nada perdido)
-18. **Primer do deck** (estratégia: win conditions, mulligan, combos, sideboard guide) 🟡 — estilo Moxfield
-19. **Playtest instantâneo** (mão inicial, comprar, simular) 🔴 — estilo Moxfield
-20. **Visualização por pilhas** (pile view: curva/distribuição) 🟡 — estilo Archidekt
-21. **Localização física** (binder X, página Y, slot Z) 🟡 — estilo Dragon Shield
-22. **Coleção familiar** (várias coleções por pessoa numa conta) 🔴
-23. **Meta Simulator** (define meta local → simula win rate) 🔴
-24. **Trade Analyzer** (compara valor de duas pilhas) 🟡
-25. **Evolução automática do deck** (novos sets/bans → upgrades) 🔴
-26. **IA de treino pós-partida** (estilo Chess.com) 🔴🔴
+18. **Primer do deck** (estratégia/win cons/mulligan/combos) 🟡 · **Playtest instantâneo** 🔴 · **Pile view** 🟡
+19. **Localização física** (binder/página/slot) 🟡 · **Coleção familiar** 🔴
+20. **Meta Simulator** 🔴 · **Trade Analyzer** 🟡 · **Evolução automática do deck** 🔴 · **IA de treino pós-partida** 🔴🔴
 
 ## ❌ Fora de escopo (decisão do usuário)
 - Pokémon / outros TCGs · App mobile nativo · Scanner por código de barras
 
 ---
 
-**Sugestão de ordem:** P0 (i18n → conta → perfil) → P1 (testes → logs → segurança)
-→ P2 (premium) → P3 (diferenciais). Mas você manda — escolhe o próximo e eu faço só ele.
+**Sugestão de ordem:** P1 (testes → logs → segurança) é o mais saudável agora que o app
+está público e cobrando. Mas **Deck × coleção** (P3.9) é um quick win de alto valor.
+Você escolhe o próximo e eu faço só ele.
