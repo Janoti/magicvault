@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { collectionApi } from '@/lib/api'
 import LanguageSwitcher from './LanguageSwitcher'
+import EmberBackground from '@/components/EmberBackground'
 
 const navItems = [
   { to: '/collection', icon: Library, key: 'nav.collection' },
@@ -36,9 +37,10 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-vault-bg">
+      <EmberBackground />
       {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 border-r border-vault-border bg-vault-surface flex flex-col">
+      <aside className="w-60 flex-shrink-0 border-r border-vault-border bg-vault-surface/90 backdrop-blur-sm flex flex-col relative z-10">
         {/* Logo */}
         <Link to="/" className="block p-5 border-b border-vault-border hover:bg-vault-card/30 transition-colors">
           <h1 className="font-display text-xl font-bold text-vault-gold tracking-wider">
@@ -106,7 +108,7 @@ export default function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-vault-bg">
+      <main className="flex-1 overflow-y-auto bg-transparent relative z-10">
         <Outlet />
       </main>
     </div>
