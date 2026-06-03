@@ -2,7 +2,7 @@ import logging
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.core.config import settings
 from app.core.database import get_db
@@ -37,6 +37,15 @@ async def get_price():
     except Exception as e:
         logger.error("Stripe price fetch failed: %s", e)
         return {"configured": False}
+
+
+@router.get("/beta")
+async def beta_status(db: AsyncSession = Depends(get_db)):
+    """Public: how many free early-adopter premium slots remain."""
+    limit = settings.beta_premium_limit
+    taken = (await db.execute(select(func.count(User.id)))).scalar() or 0
+    left = max(0, limit - taken)
+    return {"limit": limit, "taken": taken, "left": left, "active": left > 0}
 
 
 @router.post("/checkout")

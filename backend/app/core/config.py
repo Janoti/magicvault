@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     stripe_price_id: str = ""
     stripe_webhook_secret: str = ""
 
+    # Beta: the first N registered accounts get premium for free, forever.
+    beta_premium_limit: int = 100
+
     class Config:
         env_file = ".env"
         case_sensitive = False

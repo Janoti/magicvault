@@ -56,6 +56,7 @@ export const usersApi = {
 // Billing (Stripe premium)
 export const billingApi = {
   price: () => api.get('/api/billing/price').then(r => r.data),
+  beta: () => api.get('/api/billing/beta').then(r => r.data),
   checkout: () => api.post('/api/billing/checkout').then(r => r.data),
   portal: () => api.post('/api/billing/portal').then(r => r.data),
 }

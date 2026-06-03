@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { billingApi } from '@/lib/api'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
-  ArrowRight, Check, Github, ArrowLeftRight,
+  ArrowRight, Check, Github, ArrowLeftRight, Crown,
 } from 'lucide-react'
 
 const features = [
@@ -24,6 +26,7 @@ const fadeUp = {
 
 export default function LandingPage() {
   const { t } = useTranslation()
+  const { data: beta } = useQuery({ queryKey: ['beta-status'], queryFn: billingApi.beta })
   return (
     <div className="min-h-screen bg-vault-bg text-vault-text">
       {/* Nav */}
@@ -50,6 +53,18 @@ export default function LandingPage() {
             className="text-vault-muted text-lg mt-5 max-w-2xl mx-auto">
             {t('landing.heroSubtitle')}
           </motion.p>
+          {beta?.active && (
+            <motion.div {...fadeUp} transition={{ delay: 0.12 }}
+              className="mt-7 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-vault-gold/40 bg-vault-gold/10 px-5 py-2.5">
+              <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-bold text-vault-gold">
+                <Crown size={13} /> {t('landing.betaBadge')}
+              </span>
+              <span className="text-sm text-vault-text">
+                {t('landing.betaPitch')}
+                <span className="font-bold text-vault-gold"> {t('landing.betaSlotsLeft', { count: beta.left })}</span>
+              </span>
+            </motion.div>
+          )}
           <motion.div {...fadeUp} transition={{ delay: 0.15 }}
             className="flex items-center justify-center gap-3 mt-8">
             <Link to="/register" className="btn-primary flex items-center gap-2 text-base px-6 py-3">

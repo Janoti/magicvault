@@ -27,6 +27,7 @@ _COLUMN_MIGRATIONS = [
     "ALTER TABLE users ALTER COLUMN avatar TYPE TEXT",  # widen for base64 avatars
     "ALTER TABLE shares ADD COLUMN IF NOT EXISTS slug VARCHAR(120)",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(64)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_beta BOOLEAN DEFAULT FALSE",
 ]
 
 

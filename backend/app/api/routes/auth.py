@@ -38,6 +38,7 @@ class UserOut(BaseModel):
     links: List[LinkItem] = []
     is_admin: bool = False
     is_premium: bool = False
+    is_beta: bool = False
 
 
 def to_user_out(u: User) -> UserOut:
@@ -46,6 +47,7 @@ def to_user_out(u: User) -> UserOut:
         display_name=u.display_name, avatar=u.avatar, bio=u.bio,
         links=json.loads(u.links) if u.links else [],
         is_admin=bool(u.is_admin), is_premium=bool(u.is_premium),
+        is_beta=bool(u.is_beta),
     )
 
 
@@ -65,10 +67,16 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Username already taken")
 
+    # Beta perk: the first N accounts to register get premium free, forever.
+    total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0
+    beta = total_users < settings.beta_premium_limit
+
     user = User(
         email=data.email,
         username=data.username,
         hashed_password=hash_password(data.password),
+        is_premium=beta,
+        is_beta=beta,
     )
     db.add(user)
     await db.flush()

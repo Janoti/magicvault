@@ -12,6 +12,7 @@ export default function PremiumPage() {
   const user = useAuthStore((s) => s.user)
   const setUser = useAuthStore((s) => s.setUser)
   const isPremium = !!(user?.is_premium || user?.is_admin)
+  const isBeta = !!user?.is_beta
   const [params, setParams] = useSearchParams()
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState(false)
@@ -65,6 +66,11 @@ export default function PremiumPage() {
           <Sparkles size={32} className="mx-auto text-vault-gold mb-3" />
           <h2 className="font-display text-xl font-bold text-vault-gold">{t('premium.youArePremium')}</h2>
           <p className="text-sm text-vault-muted mt-2">{t('premium.youArePremiumDesc')}</p>
+          {isBeta && (
+            <p className="mt-3 inline-block text-[11px] font-medium text-vault-gold bg-vault-gold/10 border border-vault-gold/30 rounded-full px-3 py-1">
+              {t('premium.betaMember')}
+            </p>
+          )}
           <ul className="mt-5 space-y-2 text-left max-w-sm mx-auto">
             {benefits.map((b, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-vault-text">
@@ -72,7 +78,7 @@ export default function PremiumPage() {
               </li>
             ))}
           </ul>
-          {user?.is_premium && price?.configured && (
+          {user?.is_premium && !isBeta && price?.configured && (
             <button onClick={manage} disabled={busy} className="btn-ghost mt-6 inline-flex items-center gap-2 disabled:opacity-50">
               <ExternalLink size={15} /> {t('premium.manage')}
             </button>
