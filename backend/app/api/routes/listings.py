@@ -1,3 +1,4 @@
+from html import escape
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
@@ -11,6 +12,9 @@ from app.services.scryfall import get_cards_bulk, get_card_by_id, extract_card_s
 from app.services.email import send_email
 
 router = APIRouter()
+
+MAX_PHOTO_LEN = 700_000   # ~512 KB image as base64
+MAX_TEXT_LEN = 500
 
 
 class ListingRequest(BaseModel):
@@ -89,14 +93,20 @@ async def my_listings(current_user: User = Depends(get_current_user), db: AsyncS
 async def create_listing(data: ListingRequest, premium: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
     if data.price is None and not (data.wanted and data.wanted.strip()):
         raise HTTPException(status_code=400, detail="Defina um preço ou o que deseja em troca")
+    if data.price is not None and (data.price < 0 or data.price > 1_000_000):
+        raise HTTPException(status_code=400, detail="Preço inválido")
+    if data.photo and len(data.photo) > MAX_PHOTO_LEN:
+        raise HTTPException(status_code=400, detail="Foto muito grande (máx. ~512 KB)")
     try:
         await get_card_by_id(data.scryfall_id)
     except Exception:
         raise HTTPException(status_code=404, detail="Carta não encontrada")
     l = Listing(
         user_id=premium.id, scryfall_id=data.scryfall_id, condition=data.condition.upper()[:3],
-        foil=data.foil, price=data.price, wanted=(data.wanted or None),
-        photo=(data.photo or None), notes=(data.notes or None),
+        foil=data.foil, price=data.price,
+        wanted=((data.wanted or "").strip()[:MAX_TEXT_LEN] or None),
+        photo=(data.photo or None),
+        notes=((data.notes or "").strip()[:MAX_TEXT_LEN] or None),
     )
     db.add(l)
     await db.flush()
@@ -128,10 +138,19 @@ async def express_interest(listing_id: int, data: InterestRequest, current_user:
     if l.user_id == current_user.id:
         raise HTTPException(status_code=400, detail="É sua própria oferta")
 
-    db.add(Interest(listing_id=listing_id, buyer_id=current_user.id, message=(data.message or None)))
+    # One interest per buyer per listing (avoids spamming the seller's inbox).
+    already = (await db.execute(select(Interest).where(
+        Interest.listing_id == listing_id, Interest.buyer_id == current_user.id
+    ))).scalar_one_or_none()
+    if already:
+        return {"message": "Você já demonstrou interesse nesta oferta."}
+
+    message = (data.message or "").strip()[:MAX_TEXT_LEN] or None
+    db.add(Interest(listing_id=listing_id, buyer_id=current_user.id, message=message))
     await db.flush()
 
-    # Notify the seller by email (best-effort)
+    # Notify the seller by email (best-effort). All user-supplied values are
+    # HTML-escaped so they can't inject markup into the email.
     seller = (await db.execute(select(User).where(User.id == l.user_id))).scalar_one_or_none()
     try:
         card = extract_card_summary(await get_card_by_id(l.scryfall_id))
@@ -139,14 +158,16 @@ async def express_interest(listing_id: int, data: InterestRequest, current_user:
     except Exception:
         cardname = "sua carta"
     if seller and seller.email:
-        html = f"""
+        uname = escape(current_user.username)
+        cname = escape(cardname)
+        body = f"""
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
           <h2 style="color:#b8860b">📖 VaultSpell</h2>
-          <p><b>{current_user.username}</b> tem interesse na sua oferta de <b>{cardname}</b>.</p>
-          {f'<p style="background:#f5f5f5;padding:10px;border-radius:8px">{data.message}</p>' if data.message else ''}
-          <p style="color:#666;font-size:13px">Veja o perfil: vaultspell.com/u/{current_user.username}</p>
+          <p><b>{uname}</b> tem interesse na sua oferta de <b>{cname}</b>.</p>
+          {f'<p style="background:#f5f5f5;padding:10px;border-radius:8px">{escape(message)}</p>' if message else ''}
+          <p style="color:#666;font-size:13px">Veja o perfil: vaultspell.com/u/{uname}</p>
         </div>"""
-        await send_email(seller.email, f"Interesse na sua carta — {cardname}", html)
+        await send_email(seller.email, f"Interesse na sua carta — {cardname}", body)
 
     return {"message": "Interesse enviado! O vendedor foi avisado."}
 

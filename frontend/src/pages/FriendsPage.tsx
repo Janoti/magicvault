@@ -63,8 +63,8 @@ export default function FriendsPage() {
               <motion.div key={r.friendship_id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 className="surface p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-vault-text font-medium">{r.username}</p>
-                  <p className="text-xs text-vault-muted">{r.email}</p>
+                  <p className="text-sm text-vault-text font-medium">{r.display_name || r.username}</p>
+                  {r.display_name && <p className="text-xs text-vault-muted">@{r.username}</p>}
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => acceptMut.mutate(r.friendship_id)} className="btn-primary !py-1.5 flex items-center gap-1 text-xs"><Check size={14} /> {t('friends.accept')}</button>
@@ -107,8 +107,8 @@ export default function FriendsPage() {
                   {f.username?.[0]?.toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm text-vault-text font-medium">{f.username}</p>
-                  <p className="text-xs text-vault-muted">{f.email}</p>
+                  <p className="text-sm text-vault-text font-medium">{f.display_name || f.username}</p>
+                  {f.display_name && <p className="text-xs text-vault-muted">@{f.username}</p>}
                 </div>
               </div>
               <button onClick={() => removeMut.mutate(f.friendship_id)} className="text-vault-muted hover:text-red-400 text-xs">{t('friends.remove')}</button>

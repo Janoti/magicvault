@@ -353,6 +353,8 @@ async def import_collection(
 ):
     """Import a grimdeck-style CSV into the collection (add/increment)."""
     raw = await file.read()
+    if len(raw) > 5_000_000:  # 5 MB cap — guards against memory-exhaustion uploads
+        raise HTTPException(status_code=413, detail="Arquivo muito grande (máx. 5 MB)")
     try:
         text = raw.decode("utf-8-sig")
     except UnicodeDecodeError:
@@ -369,6 +371,9 @@ async def import_collection(
     errors: List[str] = []
 
     for i, row in enumerate(reader, start=2):  # row 1 is the header
+        if i > 10_001:  # cap at 10k rows to bound work + external lookups
+            errors.append("Importação limitada a 10.000 linhas; o restante foi ignorado.")
+            break
         row = {(k or "").strip().lower(): (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
         scryfall_id = row.get("scryfall_id") or ""
         name = row.get("name") or ""

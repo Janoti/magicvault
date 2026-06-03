@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -61,6 +61,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Baseline hardening headers on every response."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if settings.environment == "production":
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+    return response
+
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(cards.router, prefix="/api/cards", tags=["cards"])
 app.include_router(collection.router, prefix="/api/collection", tags=["collection"])
@@ -90,13 +104,21 @@ if os.path.isdir(STATIC_DIR):
 
     index_file = os.path.join(STATIC_DIR, "index.html")
 
+    static_root = os.path.realpath(STATIC_DIR)
+
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # API/docs routes are registered above and take precedence; anything
         # else falls back to the SPA so client-side routing works on refresh.
         if full_path.startswith(("api/", "docs", "openapi.json", "redoc")):
             return FileResponse(index_file, status_code=404)
-        candidate = os.path.join(STATIC_DIR, full_path)
-        if full_path and os.path.isfile(candidate):
+        # Resolve and confine to STATIC_DIR so crafted paths (e.g. ../../etc/passwd)
+        # can never escape the static root.
+        candidate = os.path.realpath(os.path.join(STATIC_DIR, full_path))
+        if (
+            full_path
+            and (candidate == static_root or candidate.startswith(static_root + os.sep))
+            and os.path.isfile(candidate)
+        ):
             return FileResponse(candidate)
         return FileResponse(index_file)

@@ -1,4 +1,5 @@
 import json
+import re
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional, List
@@ -15,6 +16,21 @@ from app.models.user import User, PasswordResetToken
 from app.services.email import send_password_reset
 
 router = APIRouter()
+
+USERNAME_RE = re.compile(r"^[a-zA-Z0-9_.-]{3,30}$")
+MIN_PASSWORD_LEN = 6
+MAX_AVATAR_LEN = 350_000   # ~256 KB image as base64
+MAX_BIO_LEN = 1000
+
+
+def _validate_username(username: str) -> str:
+    u = (username or "").strip()
+    if not USERNAME_RE.match(u):
+        raise HTTPException(
+            status_code=400,
+            detail="Nome de usuário inválido (3–30 caracteres: letras, números, _ . -)",
+        )
+    return u
 
 
 class UserRegister(BaseModel):
@@ -59,11 +75,15 @@ class Token(BaseModel):
 
 @router.post("/register", response_model=Token, status_code=201)
 async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == data.email))
+    username = _validate_username(data.username)
+    if len(data.password) < MIN_PASSWORD_LEN:
+        raise HTTPException(status_code=400, detail=f"Senha muito curta (mínimo {MIN_PASSWORD_LEN})")
+
+    result = await db.execute(select(User).where(func.lower(User.email) == data.email.lower()))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    result = await db.execute(select(User).where(User.username == data.username))
+    result = await db.execute(select(User).where(func.lower(User.username) == username.lower()))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Username already taken")
 
@@ -73,7 +93,7 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
 
     user = User(
         email=data.email,
-        username=data.username,
+        username=username,
         hashed_password=hash_password(data.password),
         is_premium=beta,
         is_beta=beta,
@@ -131,16 +151,19 @@ async def update_me(
             raise HTTPException(status_code=400, detail="Email já em uso")
         current_user.email = data.email
     if data.username and data.username != current_user.username:
-        dup = (await db.execute(select(User).where(User.username == data.username, User.id != current_user.id))).scalar_one_or_none()
+        username = _validate_username(data.username)
+        dup = (await db.execute(select(User).where(func.lower(User.username) == username.lower(), User.id != current_user.id))).scalar_one_or_none()
         if dup:
             raise HTTPException(status_code=400, detail="Username já em uso")
-        current_user.username = data.username
+        current_user.username = username
     if data.display_name is not None:
-        current_user.display_name = data.display_name or None
+        current_user.display_name = (data.display_name or None) and data.display_name[:100]
     if data.avatar is not None:
+        if data.avatar and len(data.avatar) > MAX_AVATAR_LEN:
+            raise HTTPException(status_code=400, detail="Imagem muito grande (máx. ~256 KB)")
         current_user.avatar = data.avatar or None
     if data.bio is not None:
-        current_user.bio = data.bio or None
+        current_user.bio = (data.bio or None) and data.bio[:MAX_BIO_LEN]
     if data.links is not None:
         current_user.links = json.dumps([l.model_dump() for l in data.links])
 

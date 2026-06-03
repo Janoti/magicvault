@@ -15,7 +15,9 @@ class FriendRequest(BaseModel):
 
 
 def _user_public(u: User) -> dict:
-    return {"id": u.id, "username": u.username, "email": u.email}
+    # Note: email is intentionally NOT exposed to other users (PII).
+    return {"id": u.id, "username": u.username,
+            "display_name": u.display_name, "avatar": u.avatar}
 
 
 @router.get("")
