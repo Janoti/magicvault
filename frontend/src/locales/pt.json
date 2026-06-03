@@ -151,6 +151,7 @@
     "decksTitle": "Decks",
     "decksSubtitle": "Construa e gerencie seus decks",
     "newDeck": "Novo Deck",
+    "importDeck": "Importar",
     "confirmDeleteDeck": "Deletar o deck \"{{name}}\"?",
     "wishlistTitle": "Wishlist",
     "wishlistSubtitle": "Cartas que você quer comprar",
@@ -244,7 +245,14 @@
     "newDeck": "Novo Deck",
     "format": "Formato",
     "deckNamePh": "Nome do deck",
-    "createDeck": "Criar Deck"
+    "createDeck": "Criar Deck",
+    "importDeckTitle": "Importar deck",
+    "importDeckHint": "Cole uma decklist (ex: \"4 Lightning Bolt\"). Aceita seções Sideboard e Commander, e formatos do Moxfield/Arena.",
+    "decklist": "Decklist",
+    "importBtn": "Importar",
+    "importing": "Importando...",
+    "importDone": "{{added}} cartas adicionadas, {{skipped}} não encontradas.",
+    "openDeck": "Abrir deck"
   },
   "coverage": {
     "compare": "Comparar com coleção",

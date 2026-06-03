@@ -135,6 +135,7 @@ export const bindersApi = {
 export const decksApi = {
   list: () => api.get('/api/decks').then(r => r.data),
   create: (data: object) => api.post('/api/decks', data).then(r => r.data),
+  import: (data: { name: string; format: string; list: string }) => api.post('/api/decks/import', data).then(r => r.data),
   get: (id: number) => api.get(`/api/decks/${id}`).then(r => r.data),
   delete: (id: number) => api.delete(`/api/decks/${id}`),
   addCard: (deckId: number, data: object) => api.post(`/api/decks/${deckId}/cards`, data).then(r => r.data),

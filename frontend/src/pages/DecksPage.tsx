@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi } from '@/lib/api'
 import { useState } from 'react'
-import { Plus, Trash2, Swords, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, Swords, ChevronRight, Upload } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 const FORMATS = ['casual', 'commander', 'standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'draft']
@@ -11,14 +11,31 @@ const FORMATS = ['casual', 'commander', 'standard', 'pioneer', 'modern', 'legacy
 export default function DecksPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', format: 'casual', description: '' })
+  const [showImport, setShowImport] = useState(false)
+  const [importForm, setImportForm] = useState({ name: '', format: 'casual', list: '' })
+  const [importResult, setImportResult] = useState<any>(null)
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
   const { data: decks = [], isLoading } = useQuery({ queryKey: ['decks'], queryFn: decksApi.list })
 
   const createMutation = useMutation({
     mutationFn: decksApi.create,
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['decks'] }); setShowCreate(false); setForm({ name: '', format: 'casual', description: '' }) },
+  })
+
+  const importMutation = useMutation({
+    mutationFn: () => decksApi.import(importForm),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['decks'] })
+      if (res.skipped > 0) {
+        setImportResult(res)  // show what couldn't be resolved before leaving
+      } else {
+        setShowImport(false)
+        navigate(`/decks/${res.id}`)
+      }
+    },
   })
 
   const deleteMutation = useMutation({
@@ -33,9 +50,14 @@ export default function DecksPage() {
           <h1 className="font-display text-3xl font-bold text-vault-gold">{t('pages.decksTitle')}</h1>
           <p className="text-vault-muted text-sm">{t('pages.decksSubtitle')}</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
-          <Plus size={16} /> {t('pages.newDeck')}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setShowImport(true); setImportResult(null) }} className="btn-ghost flex items-center gap-2">
+            <Upload size={16} /> {t('pages.importDeck')}
+          </button>
+          <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
+            <Plus size={16} /> {t('pages.newDeck')}
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -122,6 +144,65 @@ export default function DecksPage() {
                   {createMutation.isPending ? t('modal.creating') : t('modal.createDeck')}
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Import deck modal */}
+      <AnimatePresence>
+        {showImport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowImport(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[88vh] overflow-y-auto">
+              <h2 className="font-display text-xl font-bold text-vault-gold mb-1">{t('modal.importDeckTitle')}</h2>
+              <p className="text-xs text-vault-muted mb-4">{t('modal.importDeckHint')}</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.nameReq')}</label>
+                    <input className="input-field" placeholder={t('modal.deckNamePh')} value={importForm.name} onChange={e => setImportForm(f => ({ ...f, name: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.format')}</label>
+                    <select className="input-field" value={importForm.format} onChange={e => setImportForm(f => ({ ...f, format: e.target.value }))}>
+                      {FORMATS.map(f => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.decklist')}</label>
+                  <textarea
+                    className="input-field resize-none font-mono text-xs" rows={9}
+                    placeholder={"4 Lightning Bolt\n2 Counterspell\n1 Sol Ring\n\nSideboard\n2 Negate"}
+                    value={importForm.list}
+                    onChange={e => setImportForm(f => ({ ...f, list: e.target.value }))}
+                  />
+                </div>
+                {importResult && (
+                  <div className="rounded-lg border border-vault-gold/30 bg-vault-gold/5 p-3 text-xs">
+                    <p className="text-vault-text mb-1">{t('modal.importDone', { added: importResult.added, skipped: importResult.skipped })}</p>
+                    {importResult.errors?.length > 0 && (
+                      <ul className="text-vault-muted list-disc list-inside max-h-24 overflow-y-auto">
+                        {importResult.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}
+                      </ul>
+                    )}
+                    <button onClick={() => { setShowImport(false); navigate(`/decks/${importResult.id}`) }} className="btn-primary w-full mt-3">
+                      {t('modal.openDeck')}
+                    </button>
+                  </div>
+                )}
+              </div>
+              {!importResult && (
+                <div className="flex gap-3 mt-6">
+                  <button onClick={() => setShowImport(false)} className="btn-ghost flex-1">{t('common.cancel')}</button>
+                  <button onClick={() => importMutation.mutate()} disabled={!importForm.name || !importForm.list.trim() || importMutation.isPending} className="btn-primary flex-1 disabled:opacity-50">
+                    {importMutation.isPending ? t('modal.importing') : t('modal.importBtn')}
+                  </button>
+                </div>
+              )}
             </motion.div>
           </div>
         )}

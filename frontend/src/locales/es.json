@@ -151,6 +151,7 @@
     "decksTitle": "Mazos",
     "decksSubtitle": "Construye y gestiona tus mazos",
     "newDeck": "Nuevo Mazo",
+    "importDeck": "Importar",
     "confirmDeleteDeck": "¿Eliminar el mazo \"{{name}}\"?",
     "wishlistTitle": "Lista de deseos",
     "wishlistSubtitle": "Cartas que quieres comprar",
@@ -244,7 +245,14 @@
     "newDeck": "Nuevo Mazo",
     "format": "Formato",
     "deckNamePh": "Nombre del mazo",
-    "createDeck": "Crear Mazo"
+    "createDeck": "Crear Mazo",
+    "importDeckTitle": "Importar mazo",
+    "importDeckHint": "Pega una lista (ej: \"4 Lightning Bolt\"). Admite secciones Sideboard y Commander, y formatos de Moxfield/Arena.",
+    "decklist": "Lista del mazo",
+    "importBtn": "Importar",
+    "importing": "Importando...",
+    "importDone": "{{added}} cartas añadidas, {{skipped}} no encontradas.",
+    "openDeck": "Abrir mazo"
   },
   "coverage": {
     "compare": "Comparar con colección",

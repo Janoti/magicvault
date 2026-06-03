@@ -233,6 +233,76 @@ async def create_deck(data: CreateDeckRequest, current_user: User = Depends(get_
     return {"id": deck.id, "name": deck.name}
 
 
+class ImportDeckRequest(BaseModel):
+    name: str
+    format: str = "casual"
+    list: str  # pasted decklist text
+
+
+_CARD_LINE = re.compile(r"^\s*(\d+)\s*[xX]?\s+(.+?)\s*$")
+
+
+@router.post("/import", status_code=201)
+async def import_deck(data: ImportDeckRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Create a deck from a pasted decklist (e.g. '4 Lightning Bolt'). Handles
+    Sideboard/Commander section headers and Moxfield/Arena set annotations."""
+    deck = Deck(user_id=current_user.id, name=data.name[:120], format=data.format[:30])
+    db.add(deck)
+    await db.flush()
+
+    section = "main"  # main | sideboard | commander
+    resolved: dict = {}  # name_lower -> scryfall_id or None (cache lookups)
+    added = skipped = 0
+    errors = []
+
+    for raw in data.list.splitlines()[:400]:
+        line = raw.strip()
+        if not line or line.startswith(("//", "#")):
+            continue
+        low = line.lower().rstrip(":")
+        if low in ("sideboard", "sb"):
+            section = "sideboard"; continue
+        if low in ("commander", "commanders"):
+            section = "commander"; continue
+        if low in ("deck", "mainboard", "main"):
+            section = "main"; continue
+
+        m = _CARD_LINE.match(line)
+        if not m:
+            # A bare card name with no quantity → treat as 1.
+            qty, name = 1, line
+        else:
+            qty, name = int(m.group(1)), m.group(2)
+        qty = max(1, min(qty, 99))
+        # Strip trailing set/collector annotations: "(C21) 263 *F*", "[LEA]", etc.
+        name = re.sub(r"\s*[\(\[].*$", "", name).strip()
+        if not name:
+            continue
+
+        key = name.lower()
+        if key not in resolved:
+            try:
+                card = await get_card_by_name(name, fuzzy=True)
+                resolved[key] = card["id"]
+            except Exception:
+                resolved[key] = None
+        sid = resolved[key]
+        if not sid:
+            skipped += 1
+            errors.append(f"Não encontrada: {name}")
+            continue
+
+        db.add(DeckCard(
+            deck_id=deck.id, scryfall_id=sid, quantity=qty,
+            is_sideboard=(section == "sideboard"),
+            is_commander=(section == "commander"),
+        ))
+        added += 1
+
+    await db.flush()
+    return {"id": deck.id, "name": deck.name, "added": added, "skipped": skipped, "errors": errors[:20]}
+
+
 @router.get("/compare-options")
 async def compare_options(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Decks the user can compare against: their own, friends' public decks, and
