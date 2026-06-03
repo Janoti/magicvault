@@ -25,6 +25,7 @@ export default function CollectionPage() {
   const [search, setSearch] = useState('')
   const [q, setQ] = useState('')          // debounced search actually sent
   const [rarity, setRarity] = useState('')
+  const [cardType, setCardType] = useState('')
   const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
   const [editEntry, setEditEntry] = useState<any>(null)
   const [binderEntry, setBinderEntry] = useState<any>(null)
@@ -42,10 +43,11 @@ export default function CollectionPage() {
   }, [search])
 
   const { data, isLoading } = useQuery({
-    queryKey: ['collection', { page, perPage, condition, foil, setCode, q, rarity }],
+    queryKey: ['collection', { page, perPage, condition, foil, setCode, q, rarity, cardType }],
     queryFn: () => collectionApi.list({
       page, per_page: perPage, condition: condition || undefined, foil,
       set_code: setCode || undefined, q: q || undefined, rarity: rarity || undefined,
+      card_type: cardType || undefined,
     }),
   })
 
@@ -214,6 +216,16 @@ export default function CollectionPage() {
           <option value="uncommon">{t('col.rarityUncommon')}</option>
           <option value="rare">{t('col.rarityRare')}</option>
           <option value="mythic">{t('col.rarityMythic')}</option>
+        </select>
+        <select
+          value={cardType}
+          onChange={(e) => { setCardType(e.target.value); setPage(1) }}
+          className="input-field !w-auto text-xs"
+        >
+          <option value="">{t('col.allTypes')}</option>
+          {['Creature', 'Instant', 'Sorcery', 'Artifact', 'Enchantment', 'Planeswalker', 'Land', 'Equipment', 'Aura', 'Battle'].map(ty => (
+            <option key={ty} value={ty}>{t(`analysis.type_${ty}`, ty)}</option>
+          ))}
         </select>
         <select
           value={setCode}

@@ -114,6 +114,7 @@ async def list_collection(
     foil: Optional[bool] = None,
     q: Optional[str] = None,
     rarity: Optional[str] = None,
+    card_type: Optional[str] = None,
     sort_by: str = "added_at",
     order: str = "desc",
     page: int = 1,
@@ -149,13 +150,14 @@ async def list_collection(
 
     # Name/set/rarity aren't stored on the entry, so when any of those filters is
     # used we resolve all of the user's cards in bulk (cached) and filter in Python.
-    needs_card_data = bool(set_code or q or rarity)
+    needs_card_data = bool(set_code or q or rarity or card_type)
     if needs_card_data:
         all_entries = (await db.execute(query)).scalars().all()
         cards = await get_cards_bulk([e.scryfall_id for e in all_entries])
         set_target = set_code.lower() if set_code else None
         rarity_target = rarity.lower() if rarity else None
         name_target = q.strip().lower() if q else None
+        type_target = card_type.strip().lower() if card_type else None
 
         def matches(e):
             c = cards.get(e.scryfall_id, {})
@@ -164,6 +166,8 @@ async def list_collection(
             if rarity_target and c.get("rarity", "").lower() != rarity_target:
                 return False
             if name_target and name_target not in c.get("name", "").lower():
+                return False
+            if type_target and type_target not in c.get("type_line", "").lower():
                 return False
             return True
 
