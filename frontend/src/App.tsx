@@ -43,6 +43,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/p/:token" element={<PublicViewPage />} />
+      <Route path="/p/:username/:slug" element={<PublicViewPage />} />
       <Route path="/u/:username" element={<ProfilePage />} />
 
       {/* Authenticated app */}

@@ -6,11 +6,13 @@ import SharedResourceView from '@/components/sharing/SharedResourceView'
 
 export default function PublicViewPage() {
   const { t } = useTranslation()
-  const { token = '' } = useParams()
+  const { token, username, slug } = useParams()
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['public-share', token],
-    queryFn: () => sharesApi.viewPublic(token),
-    enabled: !!token,
+    queryKey: ['public-share', token, username, slug],
+    queryFn: () => (username && slug)
+      ? sharesApi.viewBySlug(username, slug)
+      : sharesApi.viewPublic(token as string),
+    enabled: !!token || (!!username && !!slug),
     retry: false,
   })
 

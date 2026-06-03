@@ -15,9 +15,12 @@ interface ShareModalProps {
 export default function ShareModal({ resourceType, resourceId = null, resourcelabel, onClose }: ShareModalProps) {
   const { t } = useTranslation()
   const [sharedFriends, setSharedFriends] = useState<number[]>([])
-  const [publicUrl, setPublicUrl] = useState<string | null>(null)
+  const [pub, setPub] = useState<{ id: number; slug: string; username: string } | null>(null)
+  const [slugDraft, setSlugDraft] = useState('')
   const [copying, setCopying] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  const publicUrl = pub ? `${window.location.origin}/p/${pub.username}/${pub.slug}` : null
 
   const { data: friends = [], isLoading } = useQuery({ queryKey: ['friends'], queryFn: friendsApi.list })
 
@@ -34,7 +37,19 @@ export default function ShareModal({ resourceType, resourceId = null, resourcela
     setBusy(true)
     try {
       const res = await sharesApi.createPublic({ resource_type: resourceType, resource_id: resourceId })
-      setPublicUrl(`${window.location.origin}/p/${res.token}`)
+      setPub({ id: res.id, slug: res.slug, username: res.username })
+      setSlugDraft(res.slug)
+    } catch {}
+    setBusy(false)
+  }
+
+  const saveSlug = async () => {
+    if (!pub || !slugDraft.trim() || slugDraft === pub.slug) return
+    setBusy(true)
+    try {
+      const res = await sharesApi.updateSlug(pub.id, slugDraft)
+      setPub({ ...pub, slug: res.slug })
+      setSlugDraft(res.slug)
     } catch {}
     setBusy(false)
   }
@@ -66,12 +81,27 @@ export default function ShareModal({ resourceType, resourceId = null, resourcela
           {/* Public link */}
           <div className="mb-5">
             <p className="text-xs text-vault-muted font-medium mb-2 flex items-center gap-2"><Link2 size={13} /> {t('modal.publicLink')}</p>
-            {publicUrl ? (
-              <div className="flex gap-2">
-                <input readOnly value={publicUrl} className="input-field text-xs flex-1" onFocus={e => e.target.select()} />
-                <button onClick={copy} className="btn-ghost !px-3" title="Copiar">
-                  {copying ? <Check size={15} className="text-green-400" /> : <Copy size={15} />}
-                </button>
+            {publicUrl && pub ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input readOnly value={publicUrl} className="input-field text-xs flex-1" onFocus={e => e.target.select()} />
+                  <button onClick={copy} className="btn-ghost !px-3" title="Copiar">
+                    {copying ? <Check size={15} className="text-green-400" /> : <Copy size={15} />}
+                  </button>
+                </div>
+                {/* Editable slug */}
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="text-vault-muted font-mono shrink-0">/p/{pub.username}/</span>
+                  <input
+                    value={slugDraft}
+                    onChange={e => setSlugDraft(e.target.value)}
+                    className="input-field !py-1 text-xs flex-1 font-mono"
+                  />
+                  <button onClick={saveSlug} disabled={busy || !slugDraft.trim() || slugDraft === pub.slug}
+                    className="btn-ghost !px-2 !py-1 disabled:opacity-40" title="Salvar">
+                    <Check size={14} />
+                  </button>
+                </div>
               </div>
             ) : (
               <button onClick={makePublic} disabled={busy} className="btn-ghost w-full text-sm disabled:opacity-40">

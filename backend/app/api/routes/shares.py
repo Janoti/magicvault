@@ -1,4 +1,6 @@
+import re
 import secrets
+import unicodedata
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, and_
@@ -11,6 +13,24 @@ from app.models.user import User, Friendship, Share, Binder, Deck
 from app.services.sharing import build_resource_view, assert_owns_resource
 
 router = APIRouter()
+
+
+def _slugify(s: str) -> str:
+    s = unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode()
+    s = re.sub(r"[^a-zA-Z0-9]+", "-", s).strip("-").lower()
+    return s[:80] or "share"
+
+
+async def _unique_slug(db: AsyncSession, owner_id: int, base: str, exclude_id: Optional[int] = None) -> str:
+    slug, i = base, 2
+    while True:
+        q = select(Share).where(Share.owner_id == owner_id, Share.slug == slug)
+        if exclude_id:
+            q = q.where(Share.id != exclude_id)
+        if not (await db.execute(q)).scalar_one_or_none():
+            return slug
+        slug = f"{base}-{i}"
+        i += 1
 
 
 class ShareWithFriendRequest(BaseModel):
@@ -89,15 +109,47 @@ async def create_public_link(data: PublicShareRequest, current_user: User = Depe
             Share.public_token.is_not(None),
         )
     )).scalar_one_or_none()
+
+    base = _slugify(await _resource_label(db, data.resource_type, data.resource_id))
     if existing:
-        return {"id": existing.id, "token": existing.public_token}
+        if not existing.slug:
+            existing.slug = await _unique_slug(db, current_user.id, base, exclude_id=existing.id)
+        return {"id": existing.id, "token": existing.public_token, "slug": existing.slug, "username": current_user.username}
 
     token = secrets.token_urlsafe(12)
     s = Share(owner_id=current_user.id, resource_type=data.resource_type,
-              resource_id=data.resource_id, public_token=token)
+              resource_id=data.resource_id, public_token=token,
+              slug=await _unique_slug(db, current_user.id, base))
     db.add(s)
     await db.flush()
-    return {"id": s.id, "token": token}
+    return {"id": s.id, "token": token, "slug": s.slug, "username": current_user.username}
+
+
+class UpdateSlugRequest(BaseModel):
+    slug: str
+
+
+@router.patch("/{share_id}/slug")
+async def update_share_slug(share_id: int, data: UpdateSlugRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    s = (await db.execute(select(Share).where(Share.id == share_id, Share.owner_id == current_user.id))).scalar_one_or_none()
+    if not s:
+        raise HTTPException(status_code=404, detail="Não encontrado")
+    base = _slugify(data.slug)
+    s.slug = await _unique_slug(db, current_user.id, base, exclude_id=s.id)
+    return {"slug": s.slug, "username": current_user.username}
+
+
+@router.get("/by-slug/{username}/{slug}")
+async def view_by_slug(username: str, slug: str, db: AsyncSession = Depends(get_db)):
+    owner = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
+    if not owner:
+        raise HTTPException(status_code=404, detail="Link inválido")
+    s = (await db.execute(select(Share).where(
+        Share.owner_id == owner.id, Share.slug == slug, Share.public_token.is_not(None)
+    ))).scalar_one_or_none()
+    if not s:
+        raise HTTPException(status_code=404, detail="Link inválido")
+    return await build_resource_view(db, s.owner_id, s.resource_type, s.resource_id)
 
 
 @router.get("/mine")

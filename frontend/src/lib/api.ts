@@ -146,5 +146,7 @@ export const sharesApi = {
   withMe: () => api.get('/api/shares/with-me').then(r => r.data),
   viewWithMe: (id: number) => api.get(`/api/shares/with-me/${id}`).then(r => r.data),
   viewPublic: (token: string) => api.get(`/api/shares/public/${token}`).then(r => r.data),
+  viewBySlug: (username: string, slug: string) => api.get(`/api/shares/by-slug/${username}/${slug}`).then(r => r.data),
+  updateSlug: (id: number, slug: string) => api.patch(`/api/shares/${id}/slug`, { slug }).then(r => r.data),
   remove: (id: number) => api.delete(`/api/shares/${id}`),
 }

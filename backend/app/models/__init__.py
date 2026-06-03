@@ -188,4 +188,5 @@ class Share(Base):
     resource_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     friend_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     public_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    slug: Mapped[Optional[str]] = mapped_column(String(120), nullable=True, index=True)  # pretty URL: /p/{username}/{slug}
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
