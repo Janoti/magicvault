@@ -112,6 +112,8 @@ async def list_collection(
     set_code: Optional[str] = None,
     condition: Optional[str] = None,
     foil: Optional[bool] = None,
+    q: Optional[str] = None,
+    rarity: Optional[str] = None,
     sort_by: str = "added_at",
     order: str = "desc",
     page: int = 1,
@@ -145,16 +147,31 @@ async def list_collection(
             "added_at": entry.added_at.isoformat(),
         }
 
-    if set_code:
-        # The set isn't stored on the entry, so resolve cards in bulk (cached)
-        # and filter in Python, then paginate the filtered list.
+    # Name/set/rarity aren't stored on the entry, so when any of those filters is
+    # used we resolve all of the user's cards in bulk (cached) and filter in Python.
+    needs_card_data = bool(set_code or q or rarity)
+    if needs_card_data:
         all_entries = (await db.execute(query)).scalars().all()
         cards = await get_cards_bulk([e.scryfall_id for e in all_entries])
-        target = set_code.lower()
-        filtered = [e for e in all_entries if (cards.get(e.scryfall_id, {}).get("set", "").lower() == target)]
+        set_target = set_code.lower() if set_code else None
+        rarity_target = rarity.lower() if rarity else None
+        name_target = q.strip().lower() if q else None
+
+        def matches(e):
+            c = cards.get(e.scryfall_id, {})
+            if set_target and c.get("set", "").lower() != set_target:
+                return False
+            if rarity_target and c.get("rarity", "").lower() != rarity_target:
+                return False
+            if name_target and name_target not in c.get("name", "").lower():
+                return False
+            return True
+
+        filtered = [e for e in all_entries if matches(e)]
         total = len(filtered)
         start = (page - 1) * per_page
-        items = [serialize(e) for e in filtered[start:start + per_page]]
+        page_entries = filtered[start:start + per_page]
+        items = [serialize(e) for e in page_entries]
     else:
         total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar()
         paged = query.offset((page - 1) * per_page).limit(per_page)

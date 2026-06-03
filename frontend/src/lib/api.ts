@@ -97,7 +97,7 @@ export const cardsApi = {
 
 // Collection
 export const collectionApi = {
-  list: (params?: object) => api.get('/api/collection', { params }).then(r => r.data),
+  list: (params?: object) => api.get('/api/collection', { params }).then(r => r.data),  // params: page, per_page, condition, foil, set_code, q, rarity
   stats: () => api.get('/api/collection/stats').then(r => r.data),
   sets: () => api.get('/api/collection/sets').then(r => r.data),
   add: (data: object) => api.post('/api/collection', data).then(r => r.data),

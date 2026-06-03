@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { collectionApi, cardsApi, bindersApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Download, Upload, Share2 } from 'lucide-react'
+import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Download, Upload, Share2, Search, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import EditCardModal from '@/components/collection/EditCardModal'
@@ -21,6 +21,9 @@ export default function CollectionPage() {
   const [condition, setCondition] = useState('')
   const [setCode, setSetCode] = useState('')
   const [foil, setFoil] = useState<boolean | undefined>(undefined)
+  const [search, setSearch] = useState('')
+  const [q, setQ] = useState('')          // debounced search actually sent
+  const [rarity, setRarity] = useState('')
   const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
   const [editEntry, setEditEntry] = useState<any>(null)
   const [binderEntry, setBinderEntry] = useState<any>(null)
@@ -30,9 +33,18 @@ export default function CollectionPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const qc = useQueryClient()
 
+  // Debounce the name search so we don't refetch on every keystroke.
+  useEffect(() => {
+    const id = setTimeout(() => { setQ(search.trim()); setPage(1) }, 350)
+    return () => clearTimeout(id)
+  }, [search])
+
   const { data, isLoading } = useQuery({
-    queryKey: ['collection', { page, perPage, condition, foil, setCode }],
-    queryFn: () => collectionApi.list({ page, per_page: perPage, condition: condition || undefined, foil, set_code: setCode || undefined }),
+    queryKey: ['collection', { page, perPage, condition, foil, setCode, q, rarity }],
+    queryFn: () => collectionApi.list({
+      page, per_page: perPage, condition: condition || undefined, foil,
+      set_code: setCode || undefined, q: q || undefined, rarity: rarity || undefined,
+    }),
   })
 
   const { data: binders = [] } = useQuery({ queryKey: ['binders'], queryFn: bindersApi.list })
@@ -151,7 +163,21 @@ export default function CollectionPage() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6 surface p-4">
+      <div className="flex flex-wrap items-center gap-3 mb-6 surface p-4">
+        <div className="relative w-full sm:w-72">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('col.searchByName')}
+            className="input-field w-full text-xs pl-8 pr-8"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-vault-muted hover:text-vault-text">
+              <X size={13} />
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <Filter size={14} className="text-vault-muted" />
           <span className="text-xs text-vault-muted font-medium">{t('col.filters')}</span>
@@ -163,6 +189,17 @@ export default function CollectionPage() {
         >
           <option value="">{t('col.allConditions')}</option>
           {CONDITIONS.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select
+          value={rarity}
+          onChange={(e) => { setRarity(e.target.value); setPage(1) }}
+          className="input-field !w-auto text-xs"
+        >
+          <option value="">{t('col.allRarities')}</option>
+          <option value="common">{t('col.rarityCommon')}</option>
+          <option value="uncommon">{t('col.rarityUncommon')}</option>
+          <option value="rare">{t('col.rarityRare')}</option>
+          <option value="mythic">{t('col.rarityMythic')}</option>
         </select>
         <select
           value={setCode}
