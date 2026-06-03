@@ -54,23 +54,39 @@ export default function DecksPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {decks.map((deck: any, i: number) => (
             <motion.div key={deck.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <div className="surface p-5 hover:border-vault-accent/40 transition-all group">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-display font-bold text-vault-text">{deck.name}</h3>
-                  <button onClick={() => deleteMutation.mutate(deck.id)} className="opacity-0 group-hover:opacity-100 text-vault-muted hover:text-red-400 transition-all p-1.5 rounded-lg hover:bg-red-400/10">
-                    <Trash2 size={14} />
-                  </button>
+              <Link to={`/decks/${deck.id}`}
+                className="block surface p-5 hover:border-vault-accent/40 transition-all group relative overflow-hidden min-h-[130px]">
+                {/* Faded card-art cover */}
+                {deck.cover ? (
+                  <>
+                    <img src={deck.cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.13] group-hover:opacity-20 transition-opacity pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-vault-surface via-vault-surface/80 to-transparent pointer-events-none" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-vault-accent/5 to-transparent pointer-events-none" />
+                )}
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-display font-bold text-vault-text">{deck.name}</h3>
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirm(t('pages.confirmDeleteDeck', { name: deck.name }))) deleteMutation.mutate(deck.id) }}
+                      className="opacity-0 group-hover:opacity-100 text-vault-muted hover:text-red-400 transition-all p-1.5 rounded-lg hover:bg-red-400/10"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-vault-accent/20 text-vault-accent">
+                      {deck.format}
+                    </span>
+                  </div>
+                  {deck.description && <p className="text-xs text-vault-muted mb-3 line-clamp-2">{deck.description}</p>}
+                  <p className="text-xs text-vault-muted flex items-center justify-between">
+                    <span>{t('common.cardsCount', { count: deck.card_count })}</span>
+                    <ChevronRight size={15} className="text-vault-muted group-hover:text-vault-accent transition-colors" />
+                  </p>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-vault-accent/20 text-vault-accent">
-                    {deck.format}
-                  </span>
-                </div>
-                {deck.description && <p className="text-xs text-vault-muted mb-3 line-clamp-2">{deck.description}</p>}
-                <p className="text-xs text-vault-muted">
-                  <span className="font-mono font-bold text-vault-accent">{deck.card_count}</span> cartas
-                </p>
-              </div>
+              </Link>
             </motion.div>
           ))}
         </div>

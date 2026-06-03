@@ -179,19 +179,39 @@ class AddDeckCardRequest(BaseModel):
     is_commander: bool = False
 
 
+def _art_crop(raw: dict) -> Optional[str]:
+    iu = raw.get("image_uris") or {}
+    if not iu and raw.get("card_faces"):
+        iu = raw["card_faces"][0].get("image_uris", {})
+    return iu.get("art_crop") or iu.get("normal")
+
+
 @router.get("")
 async def list_decks(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Deck).where(Deck.user_id == current_user.id).order_by(Deck.updated_at.desc())
     )
     decks = result.scalars().all()
+
+    # A representative card art for each deck (used as a faded cover background).
+    first_card: dict = {}
+    for d in decks:
+        dc = (await db.execute(
+            select(DeckCard).where(DeckCard.deck_id == d.id).order_by(DeckCard.is_commander.desc(), DeckCard.id).limit(1)
+        )).scalar_one_or_none()
+        if dc:
+            first_card[d.id] = dc.scryfall_id
+    covers = await get_cards_bulk(list(set(first_card.values()))) if first_card else {}
+
     items = []
     for d in decks:
         count_r = await db.execute(select(func.sum(DeckCard.quantity)).where(DeckCard.deck_id == d.id))
+        raw = covers.get(first_card.get(d.id))
         items.append({
             "id": d.id, "name": d.name, "format": d.format,
             "description": d.description, "is_public": d.is_public,
             "card_count": count_r.scalar() or 0,
+            "cover": _art_crop(raw) if raw else None,
             "created_at": d.created_at.isoformat(),
         })
     return items

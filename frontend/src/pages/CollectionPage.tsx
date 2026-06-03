@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { collectionApi, cardsApi, bindersApi } from '@/lib/api'
+import { collectionApi, cardsApi, bindersApi, decksApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Download, Upload, Share2, Search, X } from 'lucide-react'
+import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import EditCardModal from '@/components/collection/EditCardModal'
 import AddToBinderModal from '@/components/collection/AddToBinderModal'
+import AddToDeckModal from '@/components/collection/AddToDeckModal'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useAuthStore } from '@/store/auth'
 import { useTranslation } from 'react-i18next'
@@ -27,6 +28,7 @@ export default function CollectionPage() {
   const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
   const [editEntry, setEditEntry] = useState<any>(null)
   const [binderEntry, setBinderEntry] = useState<any>(null)
+  const [deckEntry, setDeckEntry] = useState<any>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [preview, setPreview] = useState<{ src: string; x: number; y: number } | null>(null)
   const [showShare, setShowShare] = useState(false)
@@ -48,6 +50,7 @@ export default function CollectionPage() {
   })
 
   const { data: binders = [] } = useQuery({ queryKey: ['binders'], queryFn: bindersApi.list })
+  const { data: decks = [] } = useQuery({ queryKey: ['decks'], queryFn: decksApi.list })
   const { data: collectionSets = [] } = useQuery({ queryKey: ['collection-sets'], queryFn: collectionApi.sets })
 
   const removeMutation = useMutation({
@@ -76,6 +79,17 @@ export default function CollectionPage() {
       setNotice(t('col.addedToBinder'))
     },
     onError: () => setNotice(t('col.binderError')),
+  })
+
+  const addToDeckMutation = useMutation({
+    mutationFn: (vars: { deckId: number; scryfallId: string }) =>
+      decksApi.addCard(vars.deckId, { scryfall_id: vars.scryfallId, quantity: 1 }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['decks'] })
+      setDeckEntry(null)
+      setNotice(t('col.addedToDeck'))
+    },
+    onError: () => setNotice(t('col.deckError')),
   })
 
   const importMutation = useMutation({
@@ -361,6 +375,15 @@ export default function CollectionPage() {
                               <BookMarked size={14} />
                             </button>
                           )}
+                          {decks.length > 0 && (
+                            <button
+                              onClick={() => setDeckEntry(entry)}
+                              title={t('col.deckTip')}
+                              className="text-vault-muted hover:text-vault-accent transition-colors p-1.5 rounded-lg hover:bg-vault-accent/10"
+                            >
+                              <Swords size={14} />
+                            </button>
+                          )}
                           <button
                             onClick={() => removeMutation.mutate(entry.id)}
                             title={t('col.removeTip')}
@@ -453,6 +476,16 @@ export default function CollectionPage() {
           onClose={() => setBinderEntry(null)}
           onConfirm={(binderId) => addToBinderMutation.mutate({ binderId, entryId: binderEntry.id })}
           isLoading={addToBinderMutation.isPending}
+        />
+      )}
+
+      {deckEntry && (
+        <AddToDeckModal
+          entry={deckEntry}
+          card={cardDetails[deckEntry.scryfall_id]}
+          onClose={() => setDeckEntry(null)}
+          onConfirm={(deckId) => addToDeckMutation.mutate({ deckId, scryfallId: deckEntry.scryfall_id })}
+          isLoading={addToDeckMutation.isPending}
         />
       )}
     </div>
