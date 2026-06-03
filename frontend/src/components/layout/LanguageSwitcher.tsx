@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Globe, Check } from 'lucide-react'
 import { LANGUAGES } from '@/i18n'
 
-export default function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
+export default function LanguageSwitcher({ compact = false, direction = 'up' }: { compact?: boolean; direction?: 'up' | 'down' }) {
   const { i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -29,7 +29,7 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
         {compact ? <span>{current.flag}</span> : <span>{current.flag} {current.label}</span>}
       </button>
       {open && (
-        <div className="absolute right-0 bottom-full mb-1 w-40 bg-vault-surface border border-vault-border rounded-lg shadow-xl py-1 z-50">
+        <div className={`absolute right-0 ${direction === 'down' ? 'top-full mt-1' : 'bottom-full mb-1'} w-40 bg-vault-surface border border-vault-border rounded-lg shadow-xl py-1 z-50`}>
           {LANGUAGES.map(l => (
             <button
               key={l.code}

@@ -31,7 +31,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <span className="font-display text-xl font-bold text-vault-gold tracking-wider">📖 VaultSpell</span>
           <div className="flex items-center gap-3">
-            <LanguageSwitcher compact />
+            <LanguageSwitcher compact direction="down" />
             <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text transition-colors">{t('common.login')}</Link>
             <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
           </div>

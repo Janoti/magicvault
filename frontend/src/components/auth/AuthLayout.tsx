@@ -79,7 +79,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Language switcher pinned top-right of the viewport */}
-      <div className="absolute top-4 right-4 z-20"><LanguageSwitcher /></div>
+      <div className="absolute top-4 right-4 z-20"><LanguageSwitcher direction="down" /></div>
 
       {/* Form centered on the page */}
       <div className="relative z-10 w-full max-w-sm">
