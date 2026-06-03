@@ -12,7 +12,8 @@
     "logout": "Sair",
     "subtitle": "MTG Collection Manager",
     "total": "Total",
-    "unique": "Únicas"
+    "unique": "Únicas",
+    "totalValue": "Valor total"
   },
   "common": {
     "login": "Entrar",

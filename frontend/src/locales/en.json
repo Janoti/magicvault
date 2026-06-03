@@ -12,7 +12,8 @@
     "logout": "Log out",
     "subtitle": "MTG Collection Manager",
     "total": "Total",
-    "unique": "Unique"
+    "unique": "Unique",
+    "totalValue": "Total value"
   },
   "common": {
     "login": "Log in",

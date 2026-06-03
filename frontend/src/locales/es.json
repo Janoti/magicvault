@@ -12,7 +12,8 @@
     "logout": "Salir",
     "subtitle": "Gestor de Colección MTG",
     "total": "Total",
-    "unique": "Únicas"
+    "unique": "Únicas",
+    "totalValue": "Valor total"
   },
   "common": {
     "login": "Entrar",

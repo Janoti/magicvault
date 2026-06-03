@@ -83,9 +83,27 @@ async def stats(
         ).where(CollectionEntry.user_id == current_user.id)
     )
     row = result.one()
+
+    # Live total value (USD): resolve every card once (batched + cached) and sum
+    # price × quantity, using the foil price for foil entries.
+    entries = (await db.execute(
+        select(CollectionEntry).where(CollectionEntry.user_id == current_user.id)
+    )).scalars().all()
+    total_value = 0.0
+    if entries:
+        cards = await get_cards_bulk([e.scryfall_id for e in entries])
+        for e in entries:
+            raw = cards.get(e.scryfall_id)
+            if not raw:
+                continue
+            summary = extract_card_summary(raw)
+            unit = summary["price_usd_foil"] if e.foil else summary["price_usd"]
+            total_value += (unit or 0) * e.quantity
+
     return {
         "unique_cards": row.unique_cards or 0,
         "total_cards": row.total_cards or 0,
+        "total_value": round(total_value, 2),
     }
 
 
