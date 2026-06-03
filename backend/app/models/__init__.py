@@ -176,13 +176,26 @@ class Listing(Base):
 
 
 class Interest(Base):
-    """Someone expressed interest in a listing."""
+    """Someone expressed interest in a listing — also the chat thread between
+    the buyer and the seller."""
     __tablename__ = "interests"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     listing_id: Mapped[int] = mapped_column(Integer, ForeignKey("listings.id"), index=True)
     buyer_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
-    message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # first note from the buyer
+    status: Mapped[str] = mapped_column(String(12), default="open")      # open | sold | traded | cancelled
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Message(Base):
+    """A chat message within an interest thread (buyer ↔ seller)."""
+    __tablename__ = "messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    interest_id: Mapped[int] = mapped_column(Integer, ForeignKey("interests.id"), index=True)
+    sender_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    body: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

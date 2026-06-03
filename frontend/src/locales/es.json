@@ -383,7 +383,16 @@
     "statTraded": "{{count}} cambiadas",
     "interestsTitle": "Quién tiene interés",
     "noInterests": "Nadie ha mostrado interés todavía.",
-    "interestsHint": "Coordina el intercambio/venta por el perfil de la persona. Luego márcala como vendida o cambiada — queda privado y puedes borrarlo cuando quieras."
+    "interestsHint": "Abre el chat para coordinar. Al cerrar el trato, márcalo como vendida, cambiada o cancelada.",
+    "chats": "Chats",
+    "noChats": "Aún no hay conversaciones.",
+    "openChat": "Abrir chat",
+    "roleSeller": "Vendiendo",
+    "roleBuyer": "Comprando",
+    "chatEmpty": "Saluda y coordina el intercambio o venta 👋",
+    "chatPh": "Escribe un mensaje...",
+    "chatClosed": "Negociación cerrada.",
+    "markCancelled": "Cancelar"
   },
   "premium": {
     "nav": "Premium",

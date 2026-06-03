@@ -383,7 +383,16 @@
     "statTraded": "{{count}} trocadas",
     "interestsTitle": "Quem tem interesse",
     "noInterests": "Ninguém marcou interesse ainda.",
-    "interestsHint": "Combine a troca/venda pelo perfil da pessoa. Depois marque como vendida ou trocada — fica privado e você pode apagar quando quiser."
+    "interestsHint": "Abra a conversa pra combinar. Ao fechar negócio, marque como vendida, trocada ou cancelada.",
+    "chats": "Conversas",
+    "noChats": "Nenhuma conversa ainda.",
+    "openChat": "Abrir conversa",
+    "roleSeller": "Vendendo",
+    "roleBuyer": "Comprando",
+    "chatEmpty": "Diga oi e combine a troca ou venda 👋",
+    "chatPh": "Escreva uma mensagem...",
+    "chatClosed": "Negociação encerrada.",
+    "markCancelled": "Cancelar"
   },
   "premium": {
     "nav": "Premium",

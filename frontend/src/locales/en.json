@@ -383,7 +383,16 @@
     "statTraded": "{{count}} traded",
     "interestsTitle": "Who's interested",
     "noInterests": "No one is interested yet.",
-    "interestsHint": "Arrange the trade/sale via the person's profile. Then mark it as sold or traded — it stays private and you can delete it anytime."
+    "interestsHint": "Open the chat to arrange it. When the deal closes, mark it sold, traded or cancelled.",
+    "chats": "Chats",
+    "noChats": "No conversations yet.",
+    "openChat": "Open chat",
+    "roleSeller": "Selling",
+    "roleBuyer": "Buying",
+    "chatEmpty": "Say hi and arrange the trade or sale 👋",
+    "chatPh": "Write a message...",
+    "chatClosed": "Negotiation closed.",
+    "markCancelled": "Cancel"
   },
   "premium": {
     "nav": "Premium",

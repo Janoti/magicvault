@@ -2,14 +2,14 @@ import json
 from html import escape
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, func
+from sqlalchemy import select, desc, func, or_
 from pydantic import BaseModel
 from typing import Optional, List
 
 from app.core.database import get_db
 from app.core.security import get_current_user, get_premium_user
 from app.core.ratelimit import limiter
-from app.models.user import User, Listing, Interest
+from app.models.user import User, Listing, Interest, Message
 from app.services.scryfall import get_cards_bulk, get_card_by_id, extract_card_summary
 from app.services.email import send_email
 
@@ -160,15 +160,134 @@ async def set_status(listing_id: int, status: str = Query(...), current_user: Us
 
 @router.patch("/{listing_id}/resolve")
 async def resolve_listing(listing_id: int, outcome: str = Query(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    """Owner marks how the deal ended: sold, traded or cancelled."""
+    """Owner marks how the deal ended. sold/traded removes it from the market;
+    cancelled keeps the card listed (the deal simply fell through)."""
     if outcome not in ("sold", "traded", "cancelled"):
         raise HTTPException(status_code=400, detail="Resultado inválido")
     l = (await db.execute(select(Listing).where(Listing.id == listing_id, Listing.user_id == current_user.id))).scalar_one_or_none()
     if not l:
         raise HTTPException(status_code=404, detail="Não encontrado")
-    l.status = "resolved"
-    l.resolved_as = outcome
+    if outcome == "cancelled":
+        l.status = "active"
+        l.resolved_as = None
+    else:
+        l.status = "resolved"
+        l.resolved_as = outcome
     return {"status": l.status, "resolved_as": l.resolved_as}
+
+
+async def _load_thread(db: AsyncSession, interest_id: int, user: User):
+    """Load an interest + its listing, ensuring the user is a participant."""
+    interest = (await db.execute(select(Interest).where(Interest.id == interest_id))).scalar_one_or_none()
+    if not interest:
+        raise HTTPException(status_code=404, detail="Conversa não encontrada")
+    listing = (await db.execute(select(Listing).where(Listing.id == interest.listing_id))).scalar_one_or_none()
+    if not listing or user.id not in (interest.buyer_id, listing.user_id):
+        raise HTTPException(status_code=404, detail="Conversa não encontrada")
+    return interest, listing
+
+
+@router.get("/conversations")
+async def my_conversations(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Every negotiation the user is part of, as buyer or as seller."""
+    my_listing_ids = [r[0] for r in (await db.execute(
+        select(Listing.id).where(Listing.user_id == current_user.id)
+    )).all()]
+    interests = (await db.execute(
+        select(Interest).where(
+            or_(Interest.buyer_id == current_user.id, Interest.listing_id.in_(my_listing_ids or [-1]))
+        ).order_by(desc(Interest.created_at))
+    )).scalars().all()
+
+    listings = {l.id: l for l in (await db.execute(
+        select(Listing).where(Listing.id.in_([i.listing_id for i in interests] or [-1]))
+    )).scalars().all()}
+    cards = await get_cards_bulk([l.scryfall_id for l in listings.values()])
+    user_ids = {i.buyer_id for i in interests} | {l.user_id for l in listings.values()}
+    users = {u.id: u for u in (await db.execute(select(User).where(User.id.in_(user_ids or [-1])))).scalars().all()}
+    last = {}
+    for m in (await db.execute(
+        select(Message).where(Message.interest_id.in_([i.id for i in interests] or [-1])).order_by(Message.created_at)
+    )).scalars().all():
+        last[m.interest_id] = m
+
+    out = []
+    for i in interests:
+        l = listings.get(i.listing_id)
+        if not l:
+            continue
+        raw = cards.get(l.scryfall_id)
+        seller = users.get(l.user_id)
+        buyer = users.get(i.buyer_id)
+        i_am_seller = l.user_id == current_user.id
+        other = seller if not i_am_seller else buyer
+        lm = last.get(i.id)
+        out.append({
+            "interest_id": i.id, "listing_id": l.id, "status": i.status,
+            "role": "seller" if i_am_seller else "buyer",
+            "card": extract_card_summary(raw) if raw else {"id": l.scryfall_id, "name": "?"},
+            "other": _seller(other),
+            "last_message": (lm.body[:80] if lm else (i.message[:80] if i.message else None)),
+            "last_at": (lm.created_at if lm else i.created_at).isoformat(),
+        })
+    out.sort(key=lambda c: c["last_at"], reverse=True)
+    return out
+
+
+@router.get("/interest/{interest_id}/messages")
+async def get_thread(interest_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    interest, listing = await _load_thread(db, interest_id, current_user)
+    msgs = (await db.execute(
+        select(Message).where(Message.interest_id == interest_id).order_by(Message.created_at)
+    )).scalars().all()
+    raw = (await get_cards_bulk([listing.scryfall_id])).get(listing.scryfall_id)
+    thread = []
+    # The buyer's original note is the first message in the thread.
+    if interest.message:
+        thread.append({"id": 0, "sender_id": interest.buyer_id, "body": interest.message,
+                       "created_at": interest.created_at.isoformat()})
+    thread += [{"id": m.id, "sender_id": m.sender_id, "body": m.body,
+                "created_at": m.created_at.isoformat()} for m in msgs]
+    return {
+        "interest_id": interest.id, "status": interest.status,
+        "role": "seller" if listing.user_id == current_user.id else "buyer",
+        "is_owner": listing.user_id == current_user.id,
+        "listing": {"id": listing.id, "status": listing.status, "resolved_as": listing.resolved_as,
+                    "card": extract_card_summary(raw) if raw else {"id": listing.scryfall_id, "name": "?"}},
+        "messages": thread,
+    }
+
+
+@router.post("/interest/{interest_id}/messages", status_code=201)
+@limiter.limit("30/minute")
+async def send_message(request: Request, interest_id: int, data: InterestRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    interest, listing = await _load_thread(db, interest_id, current_user)
+    body = (data.message or "").strip()
+    if not body:
+        raise HTTPException(status_code=400, detail="Mensagem vazia")
+    m = Message(interest_id=interest_id, sender_id=current_user.id, body=body[:2000])
+    db.add(m)
+    await db.flush()
+    return {"id": m.id}
+
+
+@router.patch("/interest/{interest_id}/resolve")
+async def resolve_thread(interest_id: int, outcome: str = Query(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Seller closes a negotiation. sold/traded removes the listing from the
+    market; cancelled keeps it live for other buyers."""
+    if outcome not in ("sold", "traded", "cancelled"):
+        raise HTTPException(status_code=400, detail="Resultado inválido")
+    interest, listing = await _load_thread(db, interest_id, current_user)
+    if listing.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Apenas o vendedor pode finalizar")
+    interest.status = outcome
+    if outcome == "cancelled":
+        listing.status = "active"
+        listing.resolved_as = None
+    else:
+        listing.status = "resolved"
+        listing.resolved_as = outcome
+    return {"status": interest.status, "listing_status": listing.status}
 
 
 @router.get("/stats")

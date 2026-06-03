@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Trash2, Heart, Send, X, Lock, Bell, ExternalLink } from 'lucide-react'
+import { Plus, Search, Trash2, Heart, Send, X, Lock, Bell, ExternalLink, MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { listingsApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
 import CreateListingModal from '@/components/trades/CreateListingModal'
+import ChatModal from '@/components/trades/ChatModal'
 
 const RESOLVED_LABEL: Record<string, string> = { sold: '💰', traded: '🔄', cancelled: '✖️' }
 
@@ -87,17 +88,19 @@ export default function TradesPage() {
   const canCreate = !!(user?.is_premium || user?.is_admin)
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const [tab, setTab] = useState<'browse' | 'mine'>('browse')
+  const [tab, setTab] = useState<'browse' | 'mine' | 'chats'>('browse')
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [interestFor, setInterestFor] = useState<any>(null)
   const [interestMsg, setInterestMsg] = useState('')
   const [interestsFor, setInterestsFor] = useState<any>(null)  // owner viewing who's interested
+  const [chat, setChat] = useState<{ id: number; other?: any } | null>(null)
   const [notice, setNotice] = useState('')
 
   const { data: browse } = useQuery({ queryKey: ['listings', search], queryFn: () => listingsApi.browse({ q: search || undefined, per_page: 48 }), enabled: tab === 'browse' })
   const { data: mine = [] } = useQuery({ queryKey: ['listings-mine'], queryFn: listingsApi.mine, enabled: tab === 'mine' })
   const { data: pstats } = useQuery({ queryKey: ['listings-stats'], queryFn: listingsApi.stats })
+  const { data: conversations = [] } = useQuery({ queryKey: ['conversations'], queryFn: listingsApi.conversations })
   const { data: interestList = [] } = useQuery({
     queryKey: ['listing-interests', interestsFor?.id],
     queryFn: () => listingsApi.interests(interestsFor.id),
@@ -139,11 +142,14 @@ export default function TradesPage() {
       {notice && <div className="surface p-3 mb-4 text-sm text-green-400 border-green-500/30">{notice}</div>}
 
       <div className="flex gap-2 mb-5">
-        {(['browse', 'mine'] as const).map(tb => (
+        {(['browse', 'mine', 'chats'] as const).map(tb => (
           <button key={tb} onClick={() => setTab(tb)} className={`px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${tab === tb ? 'bg-vault-accent/20 text-vault-accent border border-vault-accent/30' : 'text-vault-muted hover:text-vault-text'}`}>
-            {tb === 'browse' ? t('trades.marketplace') : t('trades.mine')}
+            {tb === 'browse' ? t('trades.marketplace') : tb === 'mine' ? t('trades.mine') : t('trades.chats')}
             {tb === 'mine' && myInterestTotal > 0 && (
               <span className="text-[10px] font-bold bg-vault-accent text-white rounded-full px-1.5 py-0.5 leading-none">{myInterestTotal}</span>
+            )}
+            {tb === 'chats' && conversations.length > 0 && (
+              <span className="text-[10px] font-bold bg-vault-card text-vault-text rounded-full px-1.5 py-0.5 leading-none">{conversations.length}</span>
             )}
           </button>
         ))}
@@ -162,7 +168,7 @@ export default function TradesPage() {
             {items.map((l: any) => <ListingCard key={l.id} l={l} onInterest={setInterestFor} />)}
           </div>
         )
-      ) : (
+      ) : tab === 'mine' ? (
         mine.length === 0 ? <p className="surface p-10 text-center text-vault-muted">{t('trades.noMine')}</p> : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {mine.map((l: any) => (
@@ -173,6 +179,26 @@ export default function TradesPage() {
                 onReopen={(x: any) => reopenMut.mutate(x)}
                 onDelete={(x: any) => delMut.mutate(x)}
               />
+            ))}
+          </div>
+        )
+      ) : (
+        conversations.length === 0 ? <p className="surface p-10 text-center text-vault-muted">{t('trades.noChats')}</p> : (
+          <div className="space-y-2 max-w-2xl">
+            {conversations.map((c: any) => (
+              <button key={c.interest_id} onClick={() => setChat({ id: c.interest_id, other: c.other })}
+                className="w-full surface p-3 flex items-center gap-3 hover:border-vault-accent/40 text-left">
+                {c.card?.image_small && <img src={c.card.image_small} className="w-8 rounded shadow flex-shrink-0" />}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-vault-text truncate">{c.card?.name}</p>
+                  <p className="text-xs text-vault-muted truncate">
+                    <span className="text-vault-accent">{c.role === 'seller' ? t('trades.roleSeller') : t('trades.roleBuyer')}</span>
+                    {c.other?.username ? ` · ${c.other.display_name || c.other.username}` : ''}
+                    {c.last_message ? ` · ${c.last_message}` : ''}
+                  </p>
+                </div>
+                {c.status !== 'open' && <span className="text-[10px] text-vault-gold">{t(`trades.resolved_${c.status}`)}</span>}
+              </button>
             ))}
           </div>
         )
@@ -223,6 +249,12 @@ export default function TradesPage() {
                         </Link>
                       </div>
                       {it.message && <p className="text-xs text-vault-muted mt-2 bg-vault-card/50 rounded-lg p-2">{it.message}</p>}
+                      <button
+                        onClick={() => { setChat({ id: it.id, other: it.buyer }); setInterestsFor(null) }}
+                        className="mt-2 w-full text-xs btn-ghost !py-1.5 flex items-center justify-center gap-1.5 border border-vault-accent/30"
+                      >
+                        <MessageCircle size={13} /> {t('trades.openChat')}
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -232,6 +264,8 @@ export default function TradesPage() {
           </motion.div>
         </div>
       )}
+
+      {chat && <ChatModal interestId={chat.id} other={chat.other} onClose={() => setChat(null)} />}
     </div>
   )
 }

@@ -72,6 +72,10 @@ export const listingsApi = {
   stats: () => api.get('/api/listings/stats').then(r => r.data),
   interest: (id: number, message: string) => api.post(`/api/listings/${id}/interest`, { message }).then(r => r.data),
   interests: (id: number) => api.get(`/api/listings/${id}/interests`).then(r => r.data),
+  conversations: () => api.get('/api/listings/conversations').then(r => r.data),
+  thread: (interestId: number) => api.get(`/api/listings/interest/${interestId}/messages`).then(r => r.data),
+  sendMessage: (interestId: number, message: string) => api.post(`/api/listings/interest/${interestId}/messages`, { message }).then(r => r.data),
+  resolveThread: (interestId: number, outcome: string) => api.patch(`/api/listings/interest/${interestId}/resolve`, null, { params: { outcome } }).then(r => r.data),
 }
 
 // Feedback / contact
