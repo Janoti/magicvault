@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
   Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2, ShieldCheck,
-  ChevronDown, Settings
+  ChevronDown, Settings, ArrowLeftRight
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -23,6 +23,7 @@ const navItems = [
   { to: '/sets', icon: Package, key: 'nav.sets' },
   { to: '/friends', icon: Users, key: 'nav.friends' },
   { to: '/shared', icon: Share2, key: 'nav.shared' },
+  { to: '/trades', icon: ArrowLeftRight, key: 'trades.nav' },
 ]
 
 export default function Layout() {

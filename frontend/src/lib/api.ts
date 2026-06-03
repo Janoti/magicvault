@@ -53,6 +53,17 @@ export const usersApi = {
   profile: (username: string) => api.get(`/api/users/${username}`).then(r => r.data),
 }
 
+// Trades & sales (listings)
+export const listingsApi = {
+  browse: (params?: object) => api.get('/api/listings', { params }).then(r => r.data),
+  mine: () => api.get('/api/listings/mine').then(r => r.data),
+  create: (data: object) => api.post('/api/listings', data).then(r => r.data),
+  remove: (id: number) => api.delete(`/api/listings/${id}`),
+  setStatus: (id: number, status: string) => api.patch(`/api/listings/${id}/status`, null, { params: { status } }).then(r => r.data),
+  interest: (id: number, message: string) => api.post(`/api/listings/${id}/interest`, { message }).then(r => r.data),
+  interests: (id: number) => api.get(`/api/listings/${id}/interests`).then(r => r.data),
+}
+
 // Feedback / contact
 export const feedbackApi = {
   submit: (data: { type: string; message: string; email?: string; page?: string }) =>
