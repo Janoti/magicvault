@@ -163,7 +163,7 @@
   "feat": {
     "badge": "Tudo num só lugar",
     "title": "A central da sua coleção de Magic",
-    "subtitle": "O único lugar que junta coleção, decks e mercado de verdade — não como acessório, mas como o coração do app. Grátis pra usar.",
+    "subtitle": "O único lugar que junta coleção, decks e mercado de verdade — não como acessório, mas como o coração do app. O essencial é grátis; dois recursos avançados são Premium.",
     "cta": "Criar conta grátis",
     "ctaTitle": "Pronto pra organizar sua coleção?",
     "ctaSub": "Crie sua conta em segundos e comece a catalogar, montar decks e trocar.",
@@ -190,7 +190,8 @@
           "Análise: curva de mana, cores, tipos e funções por carta",
           "Deck × coleção: o que falta e o custo pra completar",
           "Compare com decks de amigos ou públicos, com veredito",
-          "Playtest, visualização em pilhas e Deck Doctor por IA",
+          "Playtest e visualização em pilhas",
+          "Deck Doctor por IA: nota, pontos fracos e sugestões de melhoria",
           "Sugestões de cartas (EDHREC) marcando o que você já tem",
           "Deixe o deck público e compartilhe"
         ]
@@ -235,6 +236,22 @@
           "Domínio próprio, seguro e em constante evolução"
         ]
       }
+    },
+    "premium": {
+      "tag": "Premium",
+      "title": "O que é Premium — e por quê",
+      "intro": "Quase tudo aqui é grátis. Só dois recursos precisam de Premium pra rodar — e este é o motivo, sem letra miúda.",
+      "f1Title": "Deck Doctor por IA",
+      "f1Desc": "Uma IA lê seu deck e devolve nota, pontos fracos e sugestões concretas de melhoria.",
+      "f2Title": "Vender e trocar no mercado",
+      "f2Desc": "Anunciar suas cartas físicas pra venda ou troca. Ver, comprar e conversar continuam grátis.",
+      "why": "O Premium cobre os custos reais do app — servidores, os modelos de IA e manter preços e dados de cartas sempre atualizados — pra que o VaultSpell siga no ar, rápido e independente. Sem anúncios, e a gente nunca vende seus dados.",
+      "priceLabel": "Premium",
+      "perInterval": "/{{interval}}",
+      "free": "Grátis",
+      "soon": "Em breve",
+      "betaNote": "Beta: grátis pros primeiros {{count}} membros — pra sempre.",
+      "betaNoteClosed": "Vantagem de quem chegou cedo: membros iniciais têm Premium de graça, pra sempre."
     }
   },
   "friends": {

@@ -163,7 +163,7 @@
   "feat": {
     "badge": "Todo en un solo lugar",
     "title": "El centro de tu colección de Magic",
-    "subtitle": "El único lugar que une de verdad tu colección, tus mazos y un mercado — no como accesorio, sino como el corazón de la app. Gratis para usar.",
+    "subtitle": "El único lugar que une de verdad tu colección, tus mazos y un mercado — no como accesorio, sino como el corazón de la app. Lo esencial es gratis; dos funciones avanzadas son Premium.",
     "cta": "Crear cuenta gratis",
     "ctaTitle": "¿Listo para organizar tu colección?",
     "ctaSub": "Crea tu cuenta en segundos y empieza a catalogar, armar mazos e intercambiar.",
@@ -190,7 +190,8 @@
           "Análisis: curva de maná, colores, tipos y roles por carta",
           "Mazo vs colección: qué falta y el costo para completar",
           "Compara con mazos de amigos o públicos, con veredicto",
-          "Playtest, vista en pilas y un Deck Doctor por IA",
+          "Playtest y vista en pilas",
+          "Deck Doctor por IA: nota, puntos débiles y sugerencias de mejora",
           "Sugerencias de cartas (EDHREC) marcando lo que ya tienes",
           "Haz público un mazo y compártelo"
         ]
@@ -235,6 +236,22 @@
           "Dominio propio, seguro y en constante evolución"
         ]
       }
+    },
+    "premium": {
+      "tag": "Premium",
+      "title": "Qué es Premium — y por qué",
+      "intro": "Casi todo aquí es gratis. Solo dos funciones necesitan Premium para funcionar — y este es el motivo, sin letra chica.",
+      "f1Title": "Deck Doctor por IA",
+      "f1Desc": "Una IA lee tu mazo y devuelve nota, puntos débiles y sugerencias concretas de mejora.",
+      "f2Title": "Vender e intercambiar en el mercado",
+      "f2Desc": "Publicar tus cartas físicas para vender o cambiar. Ver, comprar y chatear siguen gratis.",
+      "why": "Premium cubre los costos reales de la app — servidores, los modelos de IA y mantener precios y datos de cartas siempre al día — para que VaultSpell siga en línea, rápido e independiente. Sin anuncios, y nunca vendemos tus datos.",
+      "priceLabel": "Premium",
+      "perInterval": "/{{interval}}",
+      "free": "Gratis",
+      "soon": "Próximamente",
+      "betaNote": "Beta: gratis para los primeros {{count}} miembros — para siempre.",
+      "betaNoteClosed": "Ventaja de los primeros: los miembros iniciales tienen Premium gratis, para siempre."
     }
   },
   "friends": {

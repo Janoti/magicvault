@@ -163,7 +163,7 @@
   "feat": {
     "badge": "Everything in one place",
     "title": "The home base for your Magic collection",
-    "subtitle": "The only place that truly ties together your collection, decks and a marketplace — not as an add-on, but as the heart of the app. Free to use.",
+    "subtitle": "The only place that truly ties together your collection, decks and a marketplace — not as an add-on, but as the heart of the app. The essentials are free; two advanced features are Premium.",
     "cta": "Create a free account",
     "ctaTitle": "Ready to organize your collection?",
     "ctaSub": "Create your account in seconds and start cataloging, building decks and trading.",
@@ -190,7 +190,8 @@
           "Analysis: mana curve, colors, types and per-card roles",
           "Deck vs collection: what's missing and the cost to complete",
           "Compare against friends' or public decks, with a verdict",
-          "Playtest, pile view and an AI Deck Doctor",
+          "Playtest and pile (stack) view",
+          "AI Deck Doctor: rating, weak spots and upgrade suggestions",
           "Card suggestions (EDHREC) flagging what you already own",
           "Make a deck public and share it"
         ]
@@ -235,6 +236,22 @@
           "Own domain, secure and constantly evolving"
         ]
       }
+    },
+    "premium": {
+      "tag": "Premium",
+      "title": "What's Premium — and why",
+      "intro": "Almost everything here is free. Only two features need Premium to run — and here's exactly why, no fine print.",
+      "f1Title": "AI Deck Doctor",
+      "f1Desc": "An AI reads your deck and returns a rating, weak spots and concrete upgrade suggestions.",
+      "f2Title": "Sell & trade on the marketplace",
+      "f2Desc": "Listing your physical cards for sale or trade. Browsing, buying and chatting stay free.",
+      "why": "Premium covers the app's real costs — servers, the AI models, and keeping prices and card data fresh — so VaultSpell stays online, fast and independent. No ads, and we never sell your data.",
+      "priceLabel": "Premium",
+      "perInterval": "/{{interval}}",
+      "free": "Free",
+      "soon": "Coming soon",
+      "betaNote": "Beta: free for the first {{count}} members — forever.",
+      "betaNoteClosed": "Early-bird perk: early members get Premium free, forever."
     }
   },
   "friends": {

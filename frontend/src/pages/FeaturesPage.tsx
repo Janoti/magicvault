@@ -2,20 +2,32 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { billingApi } from '@/lib/api'
 import {
-  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X,
+  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X, Crown, BrainCircuit, Store,
 } from 'lucide-react'
 
 // key = i18n namespace · icon · img = optional screenshot in /public/screenshots/<img>
+// premiumItems = indices of bullets that require Premium (everything else is free).
 const CATS = [
-  { key: 'collection', icon: Library, img: 'collection.png' },
-  { key: 'decks', icon: Swords, img: 'decks.png' },
-  { key: 'search', icon: SearchCode, img: 'search.png' },
-  { key: 'trades', icon: ArrowLeftRight, img: 'trades.png' },
-  { key: 'social', icon: Share2, img: 'profile.png' },
-  { key: 'platform', icon: Settings, img: 'premium.png' },
+  { key: 'collection', icon: Library, img: 'collection.png', premiumItems: [] as number[] },
+  { key: 'decks', icon: Swords, img: 'decks.png', premiumItems: [6] },
+  { key: 'search', icon: SearchCode, img: 'search.png', premiumItems: [] },
+  { key: 'trades', icon: ArrowLeftRight, img: 'trades.png', premiumItems: [0, 1, 3] },
+  { key: 'social', icon: Share2, img: 'profile.png', premiumItems: [] },
+  { key: 'platform', icon: Settings, img: 'premium.png', premiumItems: [] },
 ]
+
+function PremiumPill() {
+  const { t } = useTranslation()
+  return (
+    <span className="inline-flex items-center gap-1 align-middle text-[10px] font-bold uppercase tracking-wider text-vault-gold bg-vault-gold/10 border border-vault-gold/30 rounded-full px-1.5 py-0.5 ml-1.5">
+      <Crown size={10} /> {t('feat.premium.tag')}
+    </span>
+  )
+}
 
 const fadeUp = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true } }
 
@@ -64,6 +76,61 @@ function Shot({ img, Icon }: { img: string; Icon: any }) {
   )
 }
 
+// Honest, friendly explainer: what costs money, the price, and why we charge.
+function PremiumBlock() {
+  const { t } = useTranslation()
+  const { data: price } = useQuery({ queryKey: ['billing-price'], queryFn: billingApi.price, staleTime: 1000 * 60 * 60 })
+  const { data: beta } = useQuery({ queryKey: ['billing-beta'], queryFn: billingApi.beta, staleTime: 1000 * 60 * 5 })
+
+  const priceLabel = price?.configured
+    ? `${price.amount % 1 === 0 ? price.amount : price.amount.toFixed(2)} ${String(price.currency || '').toUpperCase()}${t('feat.premium.perInterval', { interval: price.interval })}`
+    : t('feat.premium.soon')
+
+  return (
+    <motion.div {...fadeUp} className="surface p-8 sm:p-10 border-vault-gold/25 bg-gradient-to-br from-vault-gold/[0.07] to-transparent">
+      <div className="flex items-center gap-2.5 mb-2">
+        <span className="w-9 h-9 rounded-xl bg-vault-gold/15 border border-vault-gold/30 flex items-center justify-center">
+          <Crown size={18} className="text-vault-gold" />
+        </span>
+        <h2 className="font-display text-2xl font-bold text-vault-gold">{t('feat.premium.title')}</h2>
+      </div>
+      <p className="text-vault-muted leading-relaxed mb-6 max-w-2xl">{t('feat.premium.intro')}</p>
+
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        <div className="rounded-xl border border-vault-border bg-vault-card/60 p-4">
+          <div className="flex items-center gap-2 text-vault-text font-medium mb-1">
+            <BrainCircuit size={17} className="text-vault-accent" /> {t('feat.premium.f1Title')}
+          </div>
+          <p className="text-sm text-vault-muted leading-relaxed">{t('feat.premium.f1Desc')}</p>
+        </div>
+        <div className="rounded-xl border border-vault-border bg-vault-card/60 p-4">
+          <div className="flex items-center gap-2 text-vault-text font-medium mb-1">
+            <Store size={17} className="text-vault-accent" /> {t('feat.premium.f2Title')}
+          </div>
+          <p className="text-sm text-vault-muted leading-relaxed">{t('feat.premium.f2Desc')}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-4">
+        <span className="text-vault-muted text-sm">{t('feat.premium.priceLabel')}:</span>
+        {beta?.active ? (
+          <>
+            <span className="text-lg font-bold text-green-400">{t('feat.premium.free')}</span>
+            {price?.configured && <span className="text-sm text-vault-muted line-through">{priceLabel}</span>}
+            <span className="text-xs text-vault-gold">{t('feat.premium.betaNote', { count: beta.left })}</span>
+          </>
+        ) : (
+          <span className="text-lg font-bold text-vault-text">{priceLabel}</span>
+        )}
+      </div>
+
+      <p className="text-sm text-vault-muted leading-relaxed max-w-2xl border-t border-vault-border/60 pt-4">
+        {t('feat.premium.why')}
+      </p>
+    </motion.div>
+  )
+}
+
 export default function FeaturesPage() {
   const { t } = useTranslation()
   return (
@@ -108,7 +175,8 @@ export default function FeaturesPage() {
                 <ul className="space-y-2.5">
                   {(Array.isArray(items) ? items : []).map((it, j) => (
                     <li key={j} className="flex items-start gap-2.5 text-sm text-vault-text">
-                      <Check size={16} className="text-vault-accent shrink-0 mt-0.5" /> {it}
+                      <Check size={16} className="text-vault-accent shrink-0 mt-0.5" />
+                      <span>{it}{c.premiumItems.includes(j) && <PremiumPill />}</span>
                     </li>
                   ))}
                 </ul>
@@ -116,6 +184,10 @@ export default function FeaturesPage() {
             </motion.div>
           )
         })}
+      </section>
+
+      <section className="max-w-5xl mx-auto px-6 pb-8">
+        <PremiumBlock />
       </section>
 
       <section className="max-w-5xl mx-auto px-6 pb-24 text-center">
