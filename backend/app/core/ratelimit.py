@@ -20,4 +20,5 @@ limiter = Limiter(
     key_func=_client_ip,
     storage_uri=settings.redis_url or "memory://",
     swallow_errors=True,
+    enabled=settings.environment != "test",  # off in the test suite
 )
