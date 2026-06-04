@@ -230,11 +230,11 @@
       },
       "platform": {
         "title": "Feito pra durar",
-        "intro": "Em três idiomas, com domínio próprio, pagamentos seguros via Stripe e sempre evoluindo. É um projeto vivo — e os primeiros 100 membros ganham Premium de graça pra sempre.",
+        "intro": "Em três idiomas, com domínio próprio, pagamentos seguros via Stripe e sempre evoluindo. É um projeto vivo — e os primeiros 50 membros ganham Premium de graça pra sempre.",
         "items": [
           "Em 3 idiomas: português, inglês e espanhol",
           "Recuperação de senha por email ou username",
-          "Premium via Stripe — beta: grátis pros 100 primeiros",
+          "Premium via Stripe — beta: grátis pros 50 primeiros",
           "Domínio próprio, seguro e em constante evolução"
         ]
       }

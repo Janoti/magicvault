@@ -42,7 +42,7 @@ Esforço: 🟢 pequeno · 🟡 médio · 🔴 grande.
 
 **Plataforma**
 - i18n PT/EN/ES · recuperação de senha · conta/avatar/bio/links/**contato (WhatsApp)**
-- **Premium (Stripe)** R$10/mês + **beta grátis pros 100 primeiros**
+- **Premium (Stripe)** R$10/mês + **beta grátis pros 50 primeiros**
 - **Admin** (stats, editar email, deletar conta) · Fale conosco/bugs
 - Rebrand VaultSpell + domínio próprio · **landing + /features** · **menu modernizado**
 - **Fundo de art de cartas rotacionando** (landing + login)

@@ -230,11 +230,11 @@
       },
       "platform": {
         "title": "Hecho para durar",
-        "intro": "En tres idiomas, con dominio propio, pagos seguros vía Stripe y siempre mejorando. Es un proyecto vivo — y los primeros 100 miembros tienen Premium gratis para siempre.",
+        "intro": "En tres idiomas, con dominio propio, pagos seguros vía Stripe y siempre mejorando. Es un proyecto vivo — y los primeros 50 miembros tienen Premium gratis para siempre.",
         "items": [
           "En 3 idiomas: español, inglés y portugués",
           "Recuperación de contraseña por email o usuario",
-          "Premium vía Stripe — beta: gratis para los primeros 100",
+          "Premium vía Stripe — beta: gratis para los primeros 50",
           "Dominio propio, seguro y en constante evolución"
         ]
       }

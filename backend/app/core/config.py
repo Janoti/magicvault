@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = ""
 
     # Beta: the first N registered accounts get premium for free, forever.
-    beta_premium_limit: int = 100
+    beta_premium_limit: int = 50
 
     # AI Deck Doctor. Keys are set in the environment only. If both are set,
     # Anthropic (Claude) is preferred. Pick a model your account has access to.

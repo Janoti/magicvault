@@ -230,11 +230,11 @@
       },
       "platform": {
         "title": "Built to last",
-        "intro": "In three languages, with its own domain, secure Stripe payments and always improving. It's a living project — and the first 100 members get Premium free, forever.",
+        "intro": "In three languages, with its own domain, secure Stripe payments and always improving. It's a living project — and the first 50 members get Premium free, forever.",
         "items": [
           "In 3 languages: English, Portuguese and Spanish",
           "Password recovery by email or username",
-          "Premium via Stripe — beta: free for the first 100",
+          "Premium via Stripe — beta: free for the first 50",
           "Own domain, secure and constantly evolving"
         ]
       }
