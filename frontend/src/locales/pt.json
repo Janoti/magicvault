@@ -138,7 +138,13 @@
     "tradeDesc": "Anuncie cartas físicas com foto real, defina preço ou as cartas que aceita em troca, e converse direto pelo chat com quem tem interesse — fechando como vendido ou trocado.",
     "tradeB1": "Venda ou troca com foto real",
     "tradeB2": "Chat com comprador/vendedor",
-    "tradeB3": "Aceita propostas e lista de troca"
+    "tradeB3": "Aceita propostas e lista de troca",
+    "eventsBadge": "Em breve",
+    "eventsTitle": "Eventos e lojas perto de você",
+    "eventsDesc": "Uma agenda viva de torneios, FNMs e encontros de Magic, com endereço e horário — e um diretório das lojas da sua região. Estamos fechando parcerias com lojas agora; em breve a cena local na palma da sua mão.",
+    "eventsB1": "Agenda de eventos por cidade e formato",
+    "eventsB2": "Diretório de lojas parceiras",
+    "eventsB3": "Sempre atualizado"
   },
   "wl": {
     "external": "Mercado externo",
@@ -164,6 +170,8 @@
   },
   "feat": {
     "badge": "Tudo num só lugar",
+    "soonBadge": "Em breve",
+    "soonEvents": "🗓️ Eventos e lojas de Magic perto de você",
     "title": "A central da sua coleção de Magic",
     "subtitle": "O único lugar que junta coleção, decks e mercado de verdade — não como acessório, mas como o coração do app. O essencial é grátis; dois recursos avançados são Premium.",
     "cta": "Criar conta grátis",

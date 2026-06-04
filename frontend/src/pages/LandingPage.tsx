@@ -8,7 +8,7 @@ import { useSeo } from '@/components/Seo'
 import { billingApi, cardsApi } from '@/lib/api'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
-  ArrowRight, Check, Github, ArrowLeftRight, Crown, Layers, SearchCode, Users, Instagram,
+  ArrowRight, Check, Github, ArrowLeftRight, Crown, Layers, SearchCode, Users, Instagram, CalendarDays,
 } from 'lucide-react'
 
 const INSTAGRAM_URL = 'https://www.instagram.com/vault.spell/'
@@ -180,6 +180,27 @@ export default function LandingPage() {
                 <span className="flex items-center gap-2"><Check size={15} className="text-vault-gold" /> {t('landing.tradeB1')}</span>
                 <span className="flex items-center gap-2"><Check size={15} className="text-vault-gold" /> {t('landing.tradeB2')}</span>
                 <span className="flex items-center gap-2"><Check size={15} className="text-vault-gold" /> {t('landing.tradeB3')}</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Events & stores (coming soon) */}
+      <section className="max-w-6xl mx-auto px-6 py-12">
+        <motion.div {...fadeUp} className="surface p-8 sm:p-12 bg-gradient-to-br from-vault-accent/10 to-transparent border-vault-accent/20">
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            <CalendarDays size={28} className="text-vault-accent shrink-0" />
+            <div>
+              <span className="inline-block text-[10px] uppercase tracking-wider font-bold text-vault-accent bg-vault-accent/10 border border-vault-accent/30 rounded-full px-2 py-0.5 mb-3">
+                {t('landing.eventsBadge')}
+              </span>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-vault-gold">{t('landing.eventsTitle')}</h2>
+              <p className="text-vault-muted mt-3 max-w-2xl">{t('landing.eventsDesc')}</p>
+              <div className="flex flex-wrap gap-4 mt-5 text-sm text-vault-text">
+                <span className="flex items-center gap-2"><Check size={15} className="text-vault-accent" /> {t('landing.eventsB1')}</span>
+                <span className="flex items-center gap-2"><Check size={15} className="text-vault-accent" /> {t('landing.eventsB2')}</span>
+                <span className="flex items-center gap-2"><Check size={15} className="text-vault-accent" /> {t('landing.eventsB3')}</span>
               </div>
             </div>
           </div>

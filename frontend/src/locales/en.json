@@ -138,7 +138,13 @@
     "tradeDesc": "List physical cards with a real photo, set a price or the cards you accept in trade, and chat directly with interested players — closing as sold or traded.",
     "tradeB1": "Sell or trade with a real photo",
     "tradeB2": "Chat with buyer/seller",
-    "tradeB3": "Accept offers and trade lists"
+    "tradeB3": "Accept offers and trade lists",
+    "eventsBadge": "Coming soon",
+    "eventsTitle": "Events and stores near you",
+    "eventsDesc": "A living agenda of tournaments, FNMs and Magic meetups, with address and time — plus a directory of stores in your area. We're closing partnerships with stores right now; the local scene is coming to your pocket.",
+    "eventsB1": "Events by city and format",
+    "eventsB2": "Partner store directory",
+    "eventsB3": "Always up to date"
   },
   "wl": {
     "external": "External market",
@@ -164,6 +170,8 @@
   },
   "feat": {
     "badge": "Everything in one place",
+    "soonBadge": "Coming soon",
+    "soonEvents": "🗓️ Magic events and stores near you",
     "title": "The home base for your Magic collection",
     "subtitle": "The only place that truly ties together your collection, decks and a marketplace — not as an add-on, but as the heart of the app. The essentials are free; two advanced features are Premium.",
     "cta": "Create a free account",

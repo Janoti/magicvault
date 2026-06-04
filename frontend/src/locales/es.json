@@ -138,7 +138,13 @@
     "tradeDesc": "Publica cartas físicas con foto real, define el precio o las cartas que aceptas a cambio, y chatea directo con los interesados — cerrando como vendida o cambiada.",
     "tradeB1": "Venta o intercambio con foto real",
     "tradeB2": "Chat con comprador/vendedor",
-    "tradeB3": "Acepta propuestas y listas de cambio"
+    "tradeB3": "Acepta propuestas y listas de cambio",
+    "eventsBadge": "Próximamente",
+    "eventsTitle": "Eventos y tiendas cerca de ti",
+    "eventsDesc": "Una agenda viva de torneos, FNMs y encuentros de Magic, con dirección y horario — más un directorio de tiendas de tu zona. Estamos cerrando alianzas con tiendas ahora; pronto la escena local en tu bolsillo.",
+    "eventsB1": "Eventos por ciudad y formato",
+    "eventsB2": "Directorio de tiendas aliadas",
+    "eventsB3": "Siempre actualizado"
   },
   "wl": {
     "external": "Mercado externo",
@@ -164,6 +170,8 @@
   },
   "feat": {
     "badge": "Todo en un solo lugar",
+    "soonBadge": "Próximamente",
+    "soonEvents": "🗓️ Eventos y tiendas de Magic cerca de ti",
     "title": "El centro de tu colección de Magic",
     "subtitle": "El único lugar que une de verdad tu colección, tus mazos y un mercado — no como accesorio, sino como el corazón de la app. Lo esencial es gratis; dos funciones avanzadas son Premium.",
     "cta": "Crear cuenta gratis",
