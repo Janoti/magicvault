@@ -11,7 +11,7 @@ import io
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.user import User, CollectionEntry
+from app.models.user import User, CollectionEntry, Binder, BinderCard
 from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk
 from app.services.sharing import build_resource_view
 
@@ -158,9 +158,11 @@ async def list_collection(
             "added_at": entry.added_at.isoformat(),
         }
 
-    # Name/set/rarity aren't stored on the entry, so when any of those filters is
-    # used we resolve all of the user's cards in bulk (cached) and filter in Python.
-    needs_card_data = bool(set_code or q or rarity or card_type)
+    # Sorting by a card field (or filtering on one) needs the resolved card data,
+    # so we fetch all of the user's cards in bulk (cached) and sort/filter in Python.
+    _CARD_SORTS = {"name", "price", "rarity", "cmc"}
+    card_sort = sort_by in _CARD_SORTS
+    needs_card_data = bool(set_code or q or rarity or card_type or card_sort)
     if needs_card_data:
         all_entries = (await db.execute(query)).scalars().all()
         cards = await get_cards_bulk([e.scryfall_id for e in all_entries])
@@ -182,6 +184,23 @@ async def list_collection(
             return True
 
         filtered = [e for e in all_entries if matches(e)]
+
+        if card_sort:
+            _RARITY = {"common": 0, "uncommon": 1, "rare": 2, "mythic": 3, "special": 4, "bonus": 5}
+
+            def sort_key(e):
+                c = cards.get(e.scryfall_id, {})
+                if sort_by == "name":
+                    return c.get("name", "").lower()
+                if sort_by == "price":
+                    return c.get("price_usd", 0) or 0
+                if sort_by == "rarity":
+                    return _RARITY.get(c.get("rarity", ""), 0)
+                if sort_by == "cmc":
+                    return c.get("cmc", 0) or 0
+                return 0
+            filtered.sort(key=sort_key, reverse=(order == "desc"))
+
         total = len(filtered)
         start = (page - 1) * per_page
         page_entries = filtered[start:start + per_page]
@@ -196,6 +215,20 @@ async def list_collection(
         for i in items:
             raw = cards.get(i["scryfall_id"])
             i["card"] = extract_card_summary(raw) if raw else None
+
+    # Which binders each card sits in (the link already exists in binder_cards).
+    entry_ids = [i["id"] for i in items]
+    if entry_ids:
+        rows = (await db.execute(
+            select(BinderCard.collection_entry_id, Binder.id, Binder.name, Binder.color)
+            .join(Binder, BinderCard.binder_id == Binder.id)
+            .where(BinderCard.collection_entry_id.in_(entry_ids))
+        )).all()
+        bmap: dict = {}
+        for ce_id, bid, bname, bcolor in rows:
+            bmap.setdefault(ce_id, []).append({"id": bid, "name": bname, "color": bcolor})
+        for i in items:
+            i["binders"] = bmap.get(i["id"], [])
 
     return {
         "items": items,

@@ -78,6 +78,7 @@ export default function DeckDetailPage() {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
   const [view, setView] = useState<'grid' | 'list' | 'pile'>('list')
+  const [deckSort, setDeckSort] = useState('name')
   const [showShare, setShowShare] = useState(false)
   const [showCoverage, setShowCoverage] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
@@ -139,7 +140,13 @@ export default function DeckDetailPage() {
   }
 
   // Group cards by type
-  const mainboard = deck?.cards?.filter((c: any) => !c.is_sideboard && !c.is_commander) || []
+  const mainboardRaw = deck?.cards?.filter((c: any) => !c.is_sideboard && !c.is_commander) || []
+  const mainboard = [...mainboardRaw].sort((a: any, b: any) => {
+    if (deckSort === 'cmc') return (a.card?.cmc || 0) - (b.card?.cmc || 0)
+    if (deckSort === 'price') return (b.card?.price_usd || 0) - (a.card?.price_usd || 0)
+    if (deckSort === 'type') return (a.card?.type_line || '').localeCompare(b.card?.type_line || '')
+    return (a.card?.name || '').localeCompare(b.card?.name || '')
+  })
   const sideboard = deck?.cards?.filter((c: any) => c.is_sideboard) || []
   const commanders = deck?.cards?.filter((c: any) => c.is_commander) || []
 
@@ -509,10 +516,18 @@ export default function DeckDetailPage() {
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text">
                   {t('detail.mainDeck')} ({t('common.cardsCount', { count: totalCards })})
                 </h2>
+                <div className="flex items-center gap-2">
+                <select value={deckSort} onChange={(e) => setDeckSort(e.target.value)} className="input-field !w-auto text-xs !py-1.5">
+                  <option value="name">{t('col.sortName')}</option>
+                  <option value="cmc">{t('col.sortCmc')}</option>
+                  <option value="price">{t('col.sortPrice')}</option>
+                  <option value="type">{t('detail.thType')}</option>
+                </select>
                 <div className="flex items-center gap-1 bg-vault-card/50 p-1 rounded-lg">
                   <button onClick={() => setView('list')} title={t('detail.viewList')} className={`p-1.5 rounded ${view === 'list' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><List size={15} /></button>
                   <button onClick={() => setView('grid')} title={t('detail.viewGrid')} className={`p-1.5 rounded ${view === 'grid' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><LayoutGrid size={15} /></button>
                   <button onClick={() => setView('pile')} title={t('detail.viewPile')} className={`p-1.5 rounded text-xs font-bold px-2 ${view === 'pile' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}>{t('detail.pile')}</button>
+                </div>
                 </div>
               </div>
               {view === 'pile' ? (

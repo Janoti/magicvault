@@ -29,6 +29,8 @@ export default function CollectionPage() {
   const [q, setQ] = useState('')          // debounced search actually sent
   const [rarity, setRarity] = useState('')
   const [cardType, setCardType] = useState('')
+  const [sortBy, setSortBy] = useState('added_at')
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc')
   const [view, setView] = useState<'list' | 'grid'>('list')
   const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
   const [editEntry, setEditEntry] = useState<any>(null)
@@ -47,11 +49,11 @@ export default function CollectionPage() {
   }, [search])
 
   const { data, isLoading } = useQuery({
-    queryKey: ['collection', { page, perPage, condition, foil, setCode, q, rarity, cardType }],
+    queryKey: ['collection', { page, perPage, condition, foil, setCode, q, rarity, cardType, sortBy, order }],
     queryFn: () => collectionApi.list({
       page, per_page: perPage, condition: condition || undefined, foil,
       set_code: setCode || undefined, q: q || undefined, rarity: rarity || undefined,
-      card_type: cardType || undefined,
+      card_type: cardType || undefined, sort_by: sortBy, order,
     }),
   })
 
@@ -266,7 +268,22 @@ export default function CollectionPage() {
           <option value="false">{t('col.normal')}</option>
           <option value="true">{t('col.foil')}</option>
         </select>
-        <div className="flex items-center gap-1 ml-auto bg-vault-card/50 p-1 rounded-lg">
+        <div className="flex items-center gap-1 ml-auto">
+          <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1) }} className="input-field !w-auto text-xs">
+            <option value="added_at">{t('col.sortAdded')}</option>
+            <option value="name">{t('col.sortName')}</option>
+            <option value="price">{t('col.sortPrice')}</option>
+            <option value="quantity">{t('col.sortQty')}</option>
+            <option value="rarity">{t('col.sortRarity')}</option>
+            <option value="cmc">{t('col.sortCmc')}</option>
+          </select>
+          <button onClick={() => { setOrder(o => o === 'asc' ? 'desc' : 'asc'); setPage(1) }}
+            title={order === 'asc' ? t('col.asc') : t('col.desc')}
+            className="input-field !w-auto !px-2 text-xs">
+            {order === 'asc' ? '↑' : '↓'}
+          </button>
+        </div>
+        <div className="flex items-center gap-1 bg-vault-card/50 p-1 rounded-lg">
           <button onClick={() => setView('list')} title={t('col.viewList')}
             className={`p-1.5 rounded ${view === 'list' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}>
             <List size={15} />
@@ -365,9 +382,17 @@ export default function CollectionPage() {
                           )}
                           <div>
                             <p className="font-medium text-vault-text">{card?.name || entry.scryfall_id.slice(0, 8) + '...'}</p>
-                            {card && (
-                              <p className="text-xs text-vault-muted">#{card.collector_number}</p>
-                            )}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {card && <p className="text-xs text-vault-muted">#{card.collector_number}</p>}
+                              {entry.binders?.map((b: any) => (
+                                <Link key={b.id} to={`/binders/${b.id}`} onClick={(e) => e.stopPropagation()}
+                                  title={b.name}
+                                  className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border border-vault-border text-vault-muted hover:text-vault-text hover:border-vault-accent/40">
+                                  <span className="w-2 h-2 rounded-full" style={{ background: b.color || '#6366f1' }} />
+                                  {b.name}
+                                </Link>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </td>

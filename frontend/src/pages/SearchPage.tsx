@@ -71,7 +71,9 @@ export default function SearchPage() {
   const runAbility = (label: string) => {
     setMode('effect')
     setSearchInput(label)
-    setQuery(`keyword:"${label}"`)
+    // oracle: (mentions it anywhere) is broader than keyword: (only cards that
+    // intrinsically have the ability) — e.g. Hexproof 321 vs 93.
+    setQuery(`oracle:"${label}"`)
     setPage(1)
   }
 
