@@ -129,6 +129,7 @@
   "wl": {
     "external": "External market",
     "inMarket": "On our market: {{count}} from {{price}}",
+    "notInMarket": "Not listed on our market",
     "searchMarket": "Search our marketplace",
     "bought": "I bought it",
     "toDeck": "To deck",

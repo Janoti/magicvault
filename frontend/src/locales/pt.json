@@ -129,6 +129,7 @@
   "wl": {
     "external": "Mercado externo",
     "inMarket": "No nosso mercado: {{count}} a partir de {{price}}",
+    "notInMarket": "Sem ofertas no nosso mercado",
     "searchMarket": "Procurar no nosso mercado",
     "bought": "Já comprei",
     "toDeck": "Pro deck",

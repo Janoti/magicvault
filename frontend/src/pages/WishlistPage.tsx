@@ -1,22 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { wishlistApi, cardsApi, collectionApi, decksApi } from '@/lib/api'
-import { Trash2, Star, Search, Plus, X, ShoppingCart, Swords, Check } from 'lucide-react'
+import { Trash2, Star, Search, Plus, X, ShoppingCart, Swords, Check, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/store/auth'
 import CardPrice from '@/components/cards/CardPrice'
 import AddToDeckModal from '@/components/collection/AddToDeckModal'
 
 export default function WishlistPage() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const isPremium = !!(user?.is_premium || user?.is_admin)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [deckFor, setDeckFor] = useState<any>(null)
   const owned = new Set<string>()
+
+  // Open our marketplace for a card — premium only.
+  const openMarket = (name: string) => {
+    if (isPremium) navigate(`/trades?q=${encodeURIComponent(name)}`)
+    else navigate('/premium')
+  }
 
   const flash = (msg: string) => { setToast(msg); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2500) }
 
@@ -52,14 +62,18 @@ export default function WishlistPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['decks'] }); setDeckFor(null); flash(t('col.addedToDeck')) },
   })
 
-  const search = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (query.trim().length < 2) return
+  // Dynamic search: results update as you type (debounced).
+  useEffect(() => {
+    const q = query.trim()
+    if (q.length < 2) { setResults([]); setSearching(false); return }
     setSearching(true)
-    try { const d = await cardsApi.search(query.trim()); setResults((d.cards || []).slice(0, 12)) }
-    catch { setResults([]) }
-    finally { setSearching(false) }
-  }
+    const id = setTimeout(async () => {
+      try { const d = await cardsApi.search(q); setResults((d.cards || []).slice(0, 12)) }
+      catch { setResults([]) }
+      finally { setSearching(false) }
+    }, 350)
+    return () => clearTimeout(id)
+  }, [query])
 
   const totalValue = items.reduce((sum: number, item: any) => sum + (item.card?.price_usd || 0) * item.quantity, 0)
 
@@ -78,19 +92,16 @@ export default function WishlistPage() {
         )}
       </div>
 
-      {/* Inline search to add cards without leaving the page */}
+      {/* Inline dynamic search to add cards without leaving the page */}
       <div className="surface p-4 mb-6">
-        <form onSubmit={search} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
-            <input className="input-field pl-9" placeholder={t('pages.wlSearchPh')} value={query}
-              onChange={e => setQuery(e.target.value)} />
-            {query && (
-              <button type="button" onClick={() => { setQuery(''); setResults([]) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-vault-muted hover:text-vault-text"><X size={14} /></button>
-            )}
-          </div>
-          <button type="submit" className="btn-primary flex items-center gap-2"><Search size={15} /> {t('search.button')}</button>
-        </form>
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
+          <input className="input-field pl-9" placeholder={t('pages.wlSearchPh')} value={query}
+            onChange={e => setQuery(e.target.value)} autoFocus />
+          {query && (
+            <button type="button" onClick={() => { setQuery(''); setResults([]) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-vault-muted hover:text-vault-text"><X size={14} /></button>
+          )}
+        </div>
         {searching ? (
           <div className="flex justify-center py-6"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" /></div>
         ) : results.length > 0 && (
@@ -142,18 +153,21 @@ export default function WishlistPage() {
                   </div>
                 </div>
 
-                {/* Our marketplace */}
+                {/* Our marketplace status (premium to open) */}
                 {item.market?.count > 0 ? (
-                  <Link to={`/trades?q=${encodeURIComponent(item.card?.name || '')}`}
-                    className="flex items-center gap-2 text-xs rounded-lg border border-vault-accent/30 bg-vault-accent/10 px-3 py-2 text-vault-accent hover:bg-vault-accent/20">
+                  <button onClick={() => openMarket(item.card?.name || '')}
+                    className="flex items-center gap-2 text-xs rounded-lg border border-vault-accent/30 bg-vault-accent/10 px-3 py-2 text-vault-accent hover:bg-vault-accent/20 text-left">
                     <ShoppingCart size={13} />
-                    {t('wl.inMarket', { count: item.market.count, price: `R$${item.market.min_price.toFixed(2).replace('.', ',')}` })}
-                  </Link>
+                    <span className="flex-1">{t('wl.inMarket', { count: item.market.count, price: `R$${item.market.min_price.toFixed(2).replace('.', ',')}` })}</span>
+                    {!isPremium && <Lock size={11} />}
+                  </button>
                 ) : (
-                  <Link to={`/trades?q=${encodeURIComponent(item.card?.name || '')}`}
-                    className="flex items-center gap-2 text-xs text-vault-muted hover:text-vault-accent px-3 py-1">
-                    <ShoppingCart size={13} /> {t('wl.searchMarket')}
-                  </Link>
+                  <button onClick={() => openMarket(item.card?.name || '')}
+                    className="flex items-center gap-2 text-xs rounded-lg border border-vault-border px-3 py-2 text-vault-muted hover:text-vault-text text-left">
+                    <ShoppingCart size={13} />
+                    <span className="flex-1">{t('wl.notInMarket')}</span>
+                    {!isPremium && <Lock size={11} />}
+                  </button>
                 )}
 
                 {item.notes && <p className="text-xs text-vault-muted italic">{item.notes}</p>}
