@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { billingApi } from '@/lib/api'
 import {
-  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X, Crown, BrainCircuit, Store,
+  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X, Crown, BrainCircuit, Store, MessageCircle,
 } from 'lucide-react'
 
 // key = i18n namespace · icon · img = optional screenshot in /public/screenshots/<img>
@@ -188,6 +188,18 @@ export default function FeaturesPage() {
 
       <section className="max-w-5xl mx-auto px-6 pb-8">
         <PremiumBlock />
+      </section>
+
+      <section className="max-w-5xl mx-auto px-6 pb-8">
+        <motion.div {...fadeUp} className="surface p-6 sm:p-7 flex items-start gap-4">
+          <span className="w-10 h-10 rounded-xl bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center shrink-0">
+            <MessageCircle size={18} className="text-vault-accent" />
+          </span>
+          <div>
+            <h3 className="font-display text-lg font-bold text-vault-gold mb-1">{t('feat.listeningTitle')}</h3>
+            <p className="text-sm text-vault-muted leading-relaxed">{t('feat.listeningText')}</p>
+          </div>
+        </motion.div>
       </section>
 
       <section className="max-w-5xl mx-auto px-6 pb-24 text-center">

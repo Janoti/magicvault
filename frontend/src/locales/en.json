@@ -167,6 +167,8 @@
     "cta": "Create a free account",
     "ctaTitle": "Ready to organize your collection?",
     "ctaSub": "Create your account in seconds and start cataloging, building decks and trading.",
+    "listeningTitle": "We actually listen",
+    "listeningText": "Missing something? Found a bug? Got an idea? Tell us — we're always listening, and the app grows with what you ask for.",
     "cats": {
       "collection": {
         "title": "Collection & cards",
@@ -228,7 +230,7 @@
       },
       "platform": {
         "title": "Built to last",
-        "intro": "In three languages, with its own domain, secure Stripe payments and new features every week. It's a living project — and the first 100 members get Premium free, forever.",
+        "intro": "In three languages, with its own domain, secure Stripe payments and always improving. It's a living project — and the first 100 members get Premium free, forever.",
         "items": [
           "In 3 languages: English, Portuguese and Spanish",
           "Password recovery by email or username",

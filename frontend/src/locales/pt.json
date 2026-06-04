@@ -167,6 +167,8 @@
     "cta": "Criar conta grátis",
     "ctaTitle": "Pronto pra organizar sua coleção?",
     "ctaSub": "Crie sua conta em segundos e comece a catalogar, montar decks e trocar.",
+    "listeningTitle": "A gente ouve de verdade",
+    "listeningText": "Falta alguma coisa? Achou um bug? Tem uma ideia? Conta pra gente — estamos sempre ouvindo, e o app cresce com o que vocês pedem.",
     "cats": {
       "collection": {
         "title": "Coleção & cartas",
@@ -228,7 +230,7 @@
       },
       "platform": {
         "title": "Feito pra durar",
-        "intro": "Em três idiomas, com domínio próprio, pagamentos seguros via Stripe e novas funções toda semana. É um projeto vivo — e os primeiros 100 membros ganham Premium de graça pra sempre.",
+        "intro": "Em três idiomas, com domínio próprio, pagamentos seguros via Stripe e sempre evoluindo. É um projeto vivo — e os primeiros 100 membros ganham Premium de graça pra sempre.",
         "items": [
           "Em 3 idiomas: português, inglês e espanhol",
           "Recuperação de senha por email ou username",
