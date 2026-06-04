@@ -53,7 +53,7 @@ export default function DeckDetailPage() {
   const isPremium = !!(user?.is_premium || user?.is_admin)
 
   const { data: doctorCfg } = useQuery({ queryKey: ['doctor-status'], queryFn: decksApi.doctorStatus })
-  const doctorMutation = useMutation({ mutationFn: () => decksApi.doctor(deckId, i18n.language) })
+  const doctorMutation = useMutation({ mutationFn: (refresh?: boolean) => decksApi.doctor(deckId, i18n.language, !!refresh) })
 
   const { data: deck, isLoading } = useQuery({
     queryKey: ['deck', deckId],
@@ -181,7 +181,7 @@ export default function DeckDetailPage() {
             onClick={() => {
               if (!isPremium) { navigate('/premium'); return }
               setShowDoctor(v => !v)
-              if (!doctorMutation.data && !doctorMutation.isPending) doctorMutation.mutate()
+              if (!doctorMutation.data && !doctorMutation.isPending) doctorMutation.mutate(false)
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
               showDoctor ? 'bg-vault-gold/20 border-vault-gold/50 text-vault-gold'
@@ -204,7 +204,7 @@ export default function DeckDetailPage() {
                   <Sparkles size={15} /> {t('doctor.title')}
                 </h2>
                 {!doctorMutation.isPending && (
-                  <button onClick={() => doctorMutation.mutate()} className="text-xs text-vault-muted hover:text-vault-gold">{t('doctor.regenerate')}</button>
+                  <button onClick={() => doctorMutation.mutate(true)} className="text-xs text-vault-muted hover:text-vault-gold">{t('doctor.regenerate')}</button>
                 )}
               </div>
               {doctorMutation.isPending ? (

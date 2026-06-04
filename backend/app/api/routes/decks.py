@@ -1,5 +1,6 @@
 import re
 import logging
+import hashlib
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -12,6 +13,7 @@ from sqlalchemy import or_, and_
 from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship
 from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary, get_cards_bulk
 from app.services import deck_doctor
+from app.core.cache import cache_get, cache_set
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -130,8 +132,10 @@ async def doctor_status():
 
 
 @router.post("/{deck_id}/doctor")
-async def deck_doctor_run(deck_id: int, lang: str = "en", premium: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
-    """Premium: AI review of the deck (xAI Grok), grounded in the real card data."""
+async def deck_doctor_run(deck_id: int, lang: str = "en", refresh: bool = False, premium: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
+    """Premium: AI review of the deck, grounded in the real card data. Cached per
+    deck content + language (only re-calls the model when the deck changes or on
+    an explicit refresh)."""
     if not deck_doctor.is_configured():
         raise HTTPException(status_code=503, detail="IA ainda não configurada")
     deck = await _viewable_deck(db, deck_id, premium)
@@ -148,6 +152,14 @@ async def deck_doctor_run(deck_id: int, lang: str = "en", premium: User = Depend
         cards.append({"qty": dc.quantity, "name": c.get("name", "?"),
                       "type": c.get("type_line", ""), "cmc": int(c.get("cmc") or 0)})
 
+    # Cache key changes whenever the decklist changes → auto-invalidation.
+    sig = hashlib.sha1(("|".join(sorted(f"{c['qty']}x{c['name']}" for c in cards))).encode()).hexdigest()[:16]
+    cache_key = f"doctor:{deck_id}:{lang}:{sig}"
+    if not refresh:
+        cached = await cache_get(cache_key)
+        if cached:
+            return {"text": cached, "cached": True}
+
     try:
         text = await deck_doctor.run_doctor(
             {"name": deck.name, "format": deck.format}, analysis, cards, lang=lang,
@@ -155,7 +167,8 @@ async def deck_doctor_run(deck_id: int, lang: str = "en", premium: User = Depend
     except Exception as e:
         logger.error("Deck Doctor failed: %s", e)
         raise HTTPException(status_code=502, detail="Erro ao consultar a IA")
-    return {"text": text}
+    await cache_set(cache_key, text, ttl=60 * 60 * 24 * 14)  # 14 days
+    return {"text": text, "cached": False}
 
 
 @router.get("/{deck_id}/coverage")

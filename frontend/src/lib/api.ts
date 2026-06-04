@@ -144,7 +144,7 @@ export const decksApi = {
   update: (id: number, data: object) => api.patch(`/api/decks/${id}`, data).then(r => r.data),
   compareOptions: () => api.get('/api/decks/compare-options').then(r => r.data),
   doctorStatus: () => api.get('/api/decks/doctor/status').then(r => r.data),
-  doctor: (id: number, lang: string) => api.post(`/api/decks/${id}/doctor`, null, { params: { lang } }).then(r => r.data),
+  doctor: (id: number, lang: string, refresh = false) => api.post(`/api/decks/${id}/doctor`, null, { params: { lang, refresh } }).then(r => r.data),
 }
 
 // Wishlist
