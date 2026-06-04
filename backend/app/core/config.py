@@ -37,8 +37,10 @@ class Settings(BaseSettings):
     # Beta: the first N registered accounts get premium for free, forever.
     beta_premium_limit: int = 100
 
-    # xAI (Grok) for the AI Deck Doctor. Key is set in the environment only.
-    # Set XAI_MODEL to a model your xAI account has access to (e.g. grok-3, grok-2-1212).
+    # AI Deck Doctor. Keys are set in the environment only. If both are set,
+    # Anthropic (Claude) is preferred. Pick a model your account has access to.
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-haiku-4-5-20251001"
     xai_api_key: str = ""
     xai_model: str = "grok-3"
 

@@ -1,6 +1,6 @@
-"""AI Deck Doctor — sends the deck (grounded in real Scryfall card data) to the
-xAI Grok API and returns natural-language feedback. The API key lives only in the
-environment (XAI_API_KEY); nothing is hardcoded."""
+"""AI Deck Doctor — sends the deck (grounded in real Scryfall card data) to an LLM
+and returns natural-language feedback. Supports Anthropic (Claude) or xAI (Grok);
+if both keys are set, Claude is preferred. Keys live only in the environment."""
 import logging
 import httpx
 
@@ -18,7 +18,7 @@ _SYSTEM = (
 
 
 def is_configured() -> bool:
-    return bool(settings.xai_api_key)
+    return bool(settings.anthropic_api_key or settings.xai_api_key)
 
 
 def build_prompt(deck: dict, analysis: dict, cards: list) -> str:
@@ -41,24 +41,53 @@ def build_prompt(deck: dict, analysis: dict, cards: list) -> str:
     return "\n".join(lines)
 
 
-async def run_doctor(deck: dict, analysis: dict, cards: list, lang: str = "en") -> str:
-    if not is_configured():
-        raise RuntimeError("AI not configured")
-    language = _LANG.get(lang, "English")
-    payload = {
-        "model": settings.xai_model,
-        "temperature": 0.4,
-        "messages": [
-            {"role": "system", "content": _SYSTEM.format(language=language)},
-            {"role": "user", "content": build_prompt(deck, analysis, cards)},
-        ],
-    }
+async def _call_anthropic(system: str, prompt: str) -> str:
+    async with httpx.AsyncClient(timeout=45.0) as client:
+        r = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": settings.anthropic_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": settings.anthropic_model,
+                "max_tokens": 700,
+                "temperature": 0.4,
+                "system": system,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+        r.raise_for_status()
+        data = r.json()
+    return "".join(b.get("text", "") for b in data.get("content", [])).strip()
+
+
+async def _call_xai(system: str, prompt: str) -> str:
     async with httpx.AsyncClient(timeout=45.0) as client:
         r = await client.post(
             "https://api.x.ai/v1/chat/completions",
             headers={"Authorization": f"Bearer {settings.xai_api_key}"},
-            json=payload,
+            json={
+                "model": settings.xai_model,
+                "temperature": 0.4,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt},
+                ],
+            },
         )
         r.raise_for_status()
         data = r.json()
     return data["choices"][0]["message"]["content"].strip()
+
+
+async def run_doctor(deck: dict, analysis: dict, cards: list, lang: str = "en") -> str:
+    if not is_configured():
+        raise RuntimeError("AI not configured")
+    system = _SYSTEM.format(language=_LANG.get(lang, "English"))
+    prompt = build_prompt(deck, analysis, cards)
+    # Prefer Claude when its key is present.
+    if settings.anthropic_api_key:
+        return await _call_anthropic(system, prompt)
+    return await _call_xai(system, prompt)

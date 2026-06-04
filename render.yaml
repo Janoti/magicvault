@@ -59,7 +59,12 @@ services:
         value: price_1TeEVoFUHB1cWMRqfNfV9gSq # monthly subscription (R$10)
       - key: STRIPE_WEBHOOK_SECRET
         sync: false # whsec_... from the Stripe webhook (set in dashboard)
+      # AI Deck Doctor — set ONE provider. Claude is preferred if both are set.
+      - key: ANTHROPIC_API_KEY
+        sync: false # sk-ant-... Claude key (set in dashboard)
+      - key: ANTHROPIC_MODEL
+        value: claude-haiku-4-5-20251001 # cheap & good; or claude-sonnet-4-6
       - key: XAI_API_KEY
-        sync: false # xai-... Grok key for the AI Deck Doctor (set in dashboard)
+        sync: false # xai-... Grok key (alternative to Claude)
       - key: XAI_MODEL
         value: grok-3 # change to a model your xAI account can access
