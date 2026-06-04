@@ -3,12 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi, wishlistApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
 import DeckAnalysis from '@/components/decks/DeckAnalysis'
 import DeckCompare from '@/components/decks/DeckCompare'
+import PlaytestModal from '@/components/decks/PlaytestModal'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useTranslation } from 'react-i18next'
 
@@ -31,6 +32,44 @@ function RoleTag({ role }: { role?: string }) {
   )
 }
 
+// Classic "pile" view: columns by mana value (lands grouped separately).
+function PileView({ entries, t }: { entries: any[]; t: any }) {
+  const buckets: Record<string, any[]> = {}
+  entries.forEach((e) => {
+    const tl = e.card?.type_line || ''
+    const isLand = tl.includes('Land') && !tl.includes('Creature')
+    const cmc = Math.min(7, Math.round(e.card?.cmc || 0))
+    const key = isLand ? 'L' : String(cmc)
+    ;(buckets[key] ||= []).push(e)
+  })
+  const cols = ['L', '0', '1', '2', '3', '4', '5', '6', '7'].filter((k) => buckets[k]?.length)
+  const label = (k: string) => (k === 'L' ? t('analysis.type_Land') : k === '7' ? '7+' : k)
+  const OFFSET = 32
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-2">
+      {cols.map((k) => (
+        <div key={k} className="flex-shrink-0 w-[110px]">
+          <p className="text-xs text-vault-muted text-center mb-2 font-mono">{label(k)} · {buckets[k].length}</p>
+          <div className="relative" style={{ height: (buckets[k].length - 1) * OFFSET + 154 }}>
+            {buckets[k].map((e: any, i: number) => (
+              <div key={e.id} className="absolute left-0 right-0" style={{ top: i * OFFSET }}>
+                {e.card?.image_normal || e.card?.image_small ? (
+                  <img src={e.card.image_small || e.card.image_normal} alt={e.card.name} className="w-full rounded-lg shadow-md border border-black/40" />
+                ) : (
+                  <div className="aspect-[63/88] rounded-lg bg-vault-card border border-vault-border flex items-center justify-center p-1 text-[9px] text-center">{e.card?.name}</div>
+                )}
+                {e.quantity > 1 && (
+                  <span className="absolute top-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{e.quantity}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function DeckDetailPage() {
   const { id } = useParams<{ id: string }>()
   const deckId = Number(id)
@@ -38,12 +77,13 @@ export default function DeckDetailPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
-  const [view, setView] = useState<'grid' | 'list'>('list')
+  const [view, setView] = useState<'grid' | 'list' | 'pile'>('list')
   const [showShare, setShowShare] = useState(false)
   const [showCoverage, setShowCoverage] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [showCompare, setShowCompare] = useState(false)
   const [showExport, setShowExport] = useState(false)
+  const [showPlaytest, setShowPlaytest] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showDoctor, setShowDoctor] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
@@ -175,6 +215,11 @@ export default function DeckDetailPage() {
           {deck?.is_public ? <Globe size={16} /> : <Lock size={16} />}
           {deck?.is_public ? t('detail.public') : t('detail.private')}
         </button>
+        {mainboard.length > 0 && (
+          <button onClick={() => setShowPlaytest(true)} className="btn-ghost flex items-center gap-2">
+            <Dices size={16} /> {t('playtest.title')}
+          </button>
+        )}
         <button onClick={() => setShowExport(true)} className="btn-ghost flex items-center gap-2">
           <Download size={16} /> {t('detail.export')}
         </button>
@@ -260,6 +305,8 @@ export default function DeckDetailPage() {
       {showShare && (
         <ShareModal resourceType="deck" resourceId={deckId} resourcelabel={deck?.name} onClose={() => setShowShare(false)} />
       )}
+
+      {showPlaytest && <PlaytestModal mainboard={mainboard} onClose={() => setShowPlaytest(false)} />}
 
       {/* Export decklist */}
       <AnimatePresence>
@@ -463,11 +510,14 @@ export default function DeckDetailPage() {
                   {t('detail.mainDeck')} ({t('common.cardsCount', { count: totalCards })})
                 </h2>
                 <div className="flex items-center gap-1 bg-vault-card/50 p-1 rounded-lg">
-                  <button onClick={() => setView('list')} className={`p-1.5 rounded ${view === 'list' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><List size={15} /></button>
-                  <button onClick={() => setView('grid')} className={`p-1.5 rounded ${view === 'grid' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><LayoutGrid size={15} /></button>
+                  <button onClick={() => setView('list')} title={t('detail.viewList')} className={`p-1.5 rounded ${view === 'list' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><List size={15} /></button>
+                  <button onClick={() => setView('grid')} title={t('detail.viewGrid')} className={`p-1.5 rounded ${view === 'grid' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><LayoutGrid size={15} /></button>
+                  <button onClick={() => setView('pile')} title={t('detail.viewPile')} className={`p-1.5 rounded text-xs font-bold px-2 ${view === 'pile' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}>{t('detail.pile')}</button>
                 </div>
               </div>
-              {view === 'grid' ? (
+              {view === 'pile' ? (
+                <PileView entries={mainboard} t={t} />
+              ) : view === 'grid' ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {mainboard.map((entry: any) => (
                     <div key={entry.id} className="relative">

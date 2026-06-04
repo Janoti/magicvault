@@ -385,6 +385,15 @@
     "cat_interaction": "Interacción",
     "cat_finisher": "Finalizador"
   },
+  "playtest": {
+    "title": "Playtest",
+    "newHand": "Nueva mano",
+    "mulligan": "Mulligan",
+    "draw": "Robar",
+    "inHand": "{{count}} en la mano",
+    "inLibrary": "{{count}} en la biblioteca",
+    "mulligans": "{{count}} mulligan(s)"
+  },
   "compare": {
     "title": "Comparar con otro mazo",
     "pick": "Elige un mazo para comparar",
@@ -443,6 +452,10 @@
     "nowPrivate": "Este mazo vuelve a ser privado.",
     "seeProfile": "Ver mi perfil",
     "export": "Exportar",
+    "viewList": "Lista",
+    "viewGrid": "Cuadrícula",
+    "viewPile": "Pilas (por coste)",
+    "pile": "Pilas",
     "exportTitle": "Exportar lista del mazo",
     "exportHint": "Cópiala para usar en Moxfield, Arena o donde quieras.",
     "copy": "Copiar",

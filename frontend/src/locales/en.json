@@ -385,6 +385,15 @@
     "cat_interaction": "Interaction",
     "cat_finisher": "Finisher"
   },
+  "playtest": {
+    "title": "Playtest",
+    "newHand": "New hand",
+    "mulligan": "Mulligan",
+    "draw": "Draw",
+    "inHand": "{{count}} in hand",
+    "inLibrary": "{{count}} in library",
+    "mulligans": "{{count}} mulligan(s)"
+  },
   "compare": {
     "title": "Compare with another deck",
     "pick": "Choose a deck to compare",
@@ -443,6 +452,10 @@
     "nowPrivate": "This deck is private again.",
     "seeProfile": "View my profile",
     "export": "Export",
+    "viewList": "List",
+    "viewGrid": "Grid",
+    "viewPile": "Piles (by cost)",
+    "pile": "Piles",
     "exportTitle": "Export decklist",
     "exportHint": "Copy it to use on Moxfield, Arena or anywhere.",
     "copy": "Copy",

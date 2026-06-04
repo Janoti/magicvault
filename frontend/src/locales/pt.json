@@ -385,6 +385,15 @@
     "cat_interaction": "Interação",
     "cat_finisher": "Finalizador"
   },
+  "playtest": {
+    "title": "Playtest",
+    "newHand": "Nova mão",
+    "mulligan": "Mulligan",
+    "draw": "Comprar",
+    "inHand": "{{count}} na mão",
+    "inLibrary": "{{count}} no grimório",
+    "mulligans": "{{count}} mulligan(s)"
+  },
   "compare": {
     "title": "Comparar com outro deck",
     "pick": "Escolha um deck pra comparar",
@@ -443,6 +452,10 @@
     "nowPrivate": "Este deck voltou a ser privado.",
     "seeProfile": "Ver meu perfil",
     "export": "Exportar",
+    "viewList": "Lista",
+    "viewGrid": "Grade",
+    "viewPile": "Pilhas (por custo)",
+    "pile": "Pilhas",
     "exportTitle": "Exportar decklist",
     "exportHint": "Copie pra usar no Moxfield, Arena ou onde quiser.",
     "copy": "Copiar",
