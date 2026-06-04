@@ -9,6 +9,7 @@ import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
 import DeckAnalysis from '@/components/decks/DeckAnalysis'
 import DeckCompare from '@/components/decks/DeckCompare'
+import DeckSuggestions from '@/components/decks/DeckSuggestions'
 import PlaytestModal from '@/components/decks/PlaytestModal'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useTranslation } from 'react-i18next'
@@ -83,6 +84,7 @@ export default function DeckDetailPage() {
   const [showCoverage, setShowCoverage] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [showCompare, setShowCompare] = useState(false)
+  const [showSuggest, setShowSuggest] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showPlaytest, setShowPlaytest] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -244,6 +246,7 @@ export default function DeckDetailPage() {
           { id: 'analysis', icon: BarChart3, label: t('analysis.title'), on: showAnalysis, set: setShowAnalysis },
           { id: 'coverage', icon: Library, label: t('coverage.compare'), on: showCoverage, set: setShowCoverage },
           { id: 'compare', icon: GitCompareArrows, label: t('compare.title'), on: showCompare, set: setShowCompare },
+          { id: 'suggest', icon: Sparkles, label: t('suggest.title'), on: showSuggest, set: setShowSuggest },
         ].map(b => (
           <button
             key={b.id}
@@ -358,6 +361,24 @@ export default function DeckDetailPage() {
                 <button onClick={() => setShowCompare(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
               </div>
               <DeckCompare deckId={deckId} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* EDHREC suggestions */}
+      <AnimatePresence>
+        {showSuggest && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden mb-6">
+            <div className="surface p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent">
+                  <Sparkles size={15} /> {t('suggest.title')}
+                </h2>
+                <button onClick={() => setShowSuggest(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
+              </div>
+              <DeckSuggestions deckId={deckId} />
             </div>
           </motion.div>
         )}

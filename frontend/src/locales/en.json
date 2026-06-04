@@ -439,6 +439,15 @@
     "moreCreatures": "More creatures: {{a}} vs {{b}}",
     "lessCreatures": "Fewer creatures: {{a}} vs {{b}}"
   },
+  "suggest": {
+    "title": "Suggestions",
+    "basedOn": "Cards that pair best with {{name}} (via EDHREC)",
+    "commanderOnly": "Suggestions are available for Commander decks (mark a commander).",
+    "none": "No suggestions found for this commander.",
+    "owned": "You own",
+    "add": "Add to deck",
+    "disclaimer": "Community data via EDHREC. May vary."
+  },
   "doctor": {
     "title": "Deck Doctor (AI)",
     "thinking": "Analyzing your deck with AI...",

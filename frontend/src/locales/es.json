@@ -439,6 +439,15 @@
     "moreCreatures": "Más criaturas: {{a}} vs {{b}}",
     "lessCreatures": "Menos criaturas: {{a}} vs {{b}}"
   },
+  "suggest": {
+    "title": "Sugerencias",
+    "basedOn": "Cartas que mejor combinan con {{name}} (vía EDHREC)",
+    "commanderOnly": "Las sugerencias están disponibles para mazos de Commander (marca un comandante).",
+    "none": "No se encontraron sugerencias para este comandante.",
+    "owned": "La tienes",
+    "add": "Añadir al mazo",
+    "disclaimer": "Datos de la comunidad vía EDHREC. Pueden variar."
+  },
   "doctor": {
     "title": "Deck Doctor (IA)",
     "thinking": "Analizando tu mazo con IA...",

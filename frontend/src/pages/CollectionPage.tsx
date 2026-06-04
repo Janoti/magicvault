@@ -6,6 +6,8 @@ import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Sw
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import CardTile from '@/components/cards/CardTile'
+import RoleTag from '@/components/cards/RoleTag'
+import { cardRole } from '@/lib/cardRole'
 import EditCardModal from '@/components/collection/EditCardModal'
 import AddToBinderModal from '@/components/collection/AddToBinderModal'
 import AddToDeckModal from '@/components/collection/AddToDeckModal'
@@ -381,7 +383,10 @@ export default function CollectionPage() {
                             <div className="w-8 h-11 bg-vault-card rounded" />
                           )}
                           <div>
-                            <p className="font-medium text-vault-text">{card?.name || entry.scryfall_id.slice(0, 8) + '...'}</p>
+                            <p className="font-medium text-vault-text">
+                              <RoleTag role={cardRole(card)} />
+                              {card?.name || entry.scryfall_id.slice(0, 8) + '...'}
+                            </p>
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {card && <p className="text-xs text-vault-muted">#{card.collector_number}</p>}
                               {entry.binders?.map((b: any) => (

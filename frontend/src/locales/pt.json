@@ -439,6 +439,15 @@
     "moreCreatures": "Mais criaturas: {{a}} vs {{b}}",
     "lessCreatures": "Menos criaturas: {{a}} vs {{b}}"
   },
+  "suggest": {
+    "title": "Sugestões",
+    "basedOn": "Cartas que mais combinam com {{name}} (via EDHREC)",
+    "commanderOnly": "Sugestões disponíveis para decks de Commander (marque um comandante).",
+    "none": "Não achei sugestões para este comandante.",
+    "owned": "Você tem",
+    "add": "Adicionar ao deck",
+    "disclaimer": "Dados da comunidade via EDHREC. Pode variar."
+  },
   "doctor": {
     "title": "Deck Doctor (IA)",
     "thinking": "Analisando seu deck com IA...",

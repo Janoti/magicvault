@@ -146,6 +146,7 @@ export const decksApi = {
   analysis: (id: number) => api.get(`/api/decks/${id}/analysis`).then(r => r.data),
   update: (id: number, data: object) => api.patch(`/api/decks/${id}`, data).then(r => r.data),
   compareOptions: () => api.get('/api/decks/compare-options').then(r => r.data),
+  suggestions: (id: number) => api.get(`/api/decks/${id}/suggestions`).then(r => r.data),
   publicView: (id: number) => api.get(`/api/decks/public/${id}`).then(r => r.data),
   doctorStatus: () => api.get('/api/decks/doctor/status').then(r => r.data),
   doctor: (id: number, lang: string, refresh = false) => api.post(`/api/decks/${id}/doctor`, null, { params: { lang, refresh } }).then(r => r.data),

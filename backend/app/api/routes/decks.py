@@ -11,8 +11,8 @@ from app.core.database import get_db
 from app.core.security import get_current_user, get_premium_user
 from sqlalchemy import or_, and_
 from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship
-from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary, get_cards_bulk
-from app.services import deck_doctor
+from app.services.scryfall import get_sets, get_card_by_id, get_card_by_name, extract_card_summary, get_cards_bulk
+from app.services import deck_doctor, edhrec
 from app.services.sharing import build_resource_view
 from app.core.cache import cache_get, cache_set
 
@@ -124,6 +124,45 @@ async def deck_analysis(deck_id: int, current_user: User = Depends(get_current_u
         "types": types,
         "categories": categories,
     }
+
+
+@router.get("/{deck_id}/suggestions")
+async def deck_suggestions(deck_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """EDHREC-style suggestions: cards that often run with this deck's commander,
+    flagged with whether you already own them (collection-aware)."""
+    deck = await _viewable_deck(db, deck_id, current_user)
+    rows = (await db.execute(select(DeckCard).where(DeckCard.deck_id == deck_id))).scalars().all()
+    cards = await get_cards_bulk([dc.scryfall_id for dc in rows])
+
+    # Find a commander; fall back to nothing (EDHREC is commander-centric).
+    commander_name = None
+    for dc in rows:
+        if dc.is_commander and cards.get(dc.scryfall_id):
+            commander_name = cards[dc.scryfall_id].get("name")
+            break
+    if not commander_name:
+        return {"commander": None, "suggestions": []}
+
+    deck_names = {cards[dc.scryfall_id]["name"].lower() for dc in rows if cards.get(dc.scryfall_id)}
+
+    # What the user owns, by card name (any printing).
+    coll = (await db.execute(select(CollectionEntry.scryfall_id).where(CollectionEntry.user_id == current_user.id))).all()
+    coll_cards = await get_cards_bulk([r[0] for r in coll]) if coll else {}
+    owned_names = {c.get("name", "").lower() for c in coll_cards.values()}
+
+    recs = await edhrec.commander_recommendations(commander_name)
+    suggestions = []
+    for name in recs:
+        if name.lower() in deck_names:
+            continue
+        try:
+            summary = extract_card_summary(await get_card_by_name(name, fuzzy=False))
+        except Exception:
+            continue
+        suggestions.append({"card": summary, "owned": name.lower() in owned_names})
+        if len(suggestions) >= 24:
+            break
+    return {"commander": commander_name, "suggestions": suggestions}
 
 
 @router.get("/doctor/status")
