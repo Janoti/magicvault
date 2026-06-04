@@ -194,6 +194,9 @@ class Interest(Base):
     buyer_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
     message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # first note from the buyer
     status: Mapped[str] = mapped_column(String(12), default="open")      # open | sold | traded | cancelled
+    # Per-user soft delete of the conversation (the other party keeps theirs).
+    hidden_by_buyer: Mapped[bool] = mapped_column(Boolean, default=False)
+    hidden_by_seller: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

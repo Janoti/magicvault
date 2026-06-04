@@ -247,6 +247,9 @@ async def my_conversations(current_user: User = Depends(get_current_user), db: A
         seller = users.get(l.user_id)
         buyer = users.get(i.buyer_id)
         i_am_seller = l.user_id == current_user.id
+        # Skip conversations this user has deleted (soft-hidden) from their list.
+        if (i_am_seller and i.hidden_by_seller) or (not i_am_seller and i.hidden_by_buyer):
+            continue
         other = seller if not i_am_seller else buyer
         lm = last.get(i.id)
         out.append({
@@ -294,6 +297,9 @@ async def send_message(request: Request, interest_id: int, data: InterestRequest
         raise HTTPException(status_code=400, detail="Mensagem vazia")
     m = Message(interest_id=interest_id, sender_id=current_user.id, body=body[:2000])
     db.add(m)
+    # New activity re-surfaces the conversation for anyone who had hidden it.
+    interest.hidden_by_buyer = False
+    interest.hidden_by_seller = False
     await db.flush()
 
     # Notify the other participant by email (best-effort).
@@ -335,6 +341,17 @@ async def resolve_thread(interest_id: int, outcome: str = Query(...), current_us
         listing.status = "resolved"
         listing.resolved_as = outcome
     return {"status": interest.status, "listing_status": listing.status}
+
+
+@router.delete("/interest/{interest_id}/conversation", status_code=204)
+async def delete_conversation(interest_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Remove a conversation from the current user's list (soft, per-user).
+    The other participant keeps theirs; new messages re-surface it for both."""
+    interest, listing = await _load_thread(db, interest_id, current_user)
+    if listing.user_id == current_user.id:
+        interest.hidden_by_seller = True
+    else:
+        interest.hidden_by_buyer = True
 
 
 @router.get("/stats")

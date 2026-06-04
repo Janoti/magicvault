@@ -118,6 +118,11 @@ export default function TradesPage() {
   }
   const delMut = useMutation({ mutationFn: (l: any) => listingsApi.remove(l.id), onSuccess: invalidateMine })
   const [deleteTarget, setDeleteTarget] = useState<any>(null)
+  const [deleteConvTarget, setDeleteConvTarget] = useState<any>(null)
+  const delConvMut = useMutation({
+    mutationFn: (c: any) => listingsApi.deleteConversation(c.interest_id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['conversations'] }),
+  })
   const resolveMut = useMutation({ mutationFn: (v: { l: any; outcome: string }) => listingsApi.resolve(v.l.id, v.outcome), onSuccess: invalidateMine })
   const reopenMut = useMutation({ mutationFn: (l: any) => listingsApi.setStatus(l.id, 'active'), onSuccess: invalidateMine })
   const interestMut = useMutation({
@@ -192,19 +197,26 @@ export default function TradesPage() {
         conversations.length === 0 ? <p className="surface p-10 text-center text-vault-muted">{t('trades.noChats')}</p> : (
           <div className="space-y-2 max-w-2xl">
             {conversations.map((c: any) => (
-              <button key={c.interest_id} onClick={() => setChat({ id: c.interest_id, other: c.other })}
-                className="w-full surface p-3 flex items-center gap-3 hover:border-vault-accent/40 text-left">
-                {c.card?.image_small && <img src={c.card.image_small} className="w-8 rounded shadow flex-shrink-0" />}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-vault-text truncate">{c.card?.name}</p>
-                  <p className="text-xs text-vault-muted truncate">
-                    <span className="text-vault-accent">{c.role === 'seller' ? t('trades.roleSeller') : t('trades.roleBuyer')}</span>
-                    {c.other?.username ? ` · ${c.other.display_name || c.other.username}` : ''}
-                    {c.last_message ? ` · ${c.last_message}` : ''}
-                  </p>
-                </div>
-                {c.status !== 'open' && <span className="text-[10px] text-vault-gold">{t(`trades.resolved_${c.status}`)}</span>}
-              </button>
+              <div key={c.interest_id}
+                className="surface p-3 flex items-center gap-3 hover:border-vault-accent/40 group">
+                <button onClick={() => setChat({ id: c.interest_id, other: c.other })}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                  {c.card?.image_small && <img src={c.card.image_small} className="w-8 rounded shadow flex-shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-vault-text truncate">{c.card?.name}</p>
+                    <p className="text-xs text-vault-muted truncate">
+                      <span className="text-vault-accent">{c.role === 'seller' ? t('trades.roleSeller') : t('trades.roleBuyer')}</span>
+                      {c.other?.username ? ` · ${c.other.display_name || c.other.username}` : ''}
+                      {c.last_message ? ` · ${c.last_message}` : ''}
+                    </p>
+                  </div>
+                </button>
+                {c.status !== 'open' && <span className="text-[10px] text-vault-gold flex-shrink-0">{t(`trades.resolved_${c.status}`)}</span>}
+                <button onClick={() => setDeleteConvTarget(c)} title={t('trades.deleteConv')}
+                  className="flex-shrink-0 p-1.5 rounded-lg text-vault-muted hover:text-red-400 hover:bg-red-400/10 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
+                  <Trash2 size={15} />
+                </button>
+              </div>
             ))}
           </div>
         )
@@ -283,6 +295,16 @@ export default function TradesPage() {
         confirmLabel={t('common.delete')}
         onConfirm={() => { delMut.mutate(deleteTarget); setDeleteTarget(null) }}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmModal
+        open={!!deleteConvTarget}
+        danger
+        title={t('trades.deleteConvTitle')}
+        message={t('trades.confirmDeleteConv')}
+        confirmLabel={t('common.delete')}
+        onConfirm={() => { delConvMut.mutate(deleteConvTarget); setDeleteConvTarget(null) }}
+        onClose={() => setDeleteConvTarget(null)}
       />
     </div>
   )

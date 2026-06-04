@@ -78,6 +78,7 @@ export const listingsApi = {
   thread: (interestId: number) => api.get(`/api/listings/interest/${interestId}/messages`).then(r => r.data),
   sendMessage: (interestId: number, message: string) => api.post(`/api/listings/interest/${interestId}/messages`, { message }).then(r => r.data),
   resolveThread: (interestId: number, outcome: string) => api.patch(`/api/listings/interest/${interestId}/resolve`, null, { params: { outcome } }).then(r => r.data),
+  deleteConversation: (interestId: number) => api.delete(`/api/listings/interest/${interestId}/conversation`),
 }
 
 // Feedback / contact
