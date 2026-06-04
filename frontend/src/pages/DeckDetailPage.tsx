@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi, wishlistApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
@@ -458,9 +458,25 @@ export default function DeckDetailPage() {
           {/* Mainboard */}
           {mainboard.length > 0 && (
             <section>
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text mb-3">
-                {t('detail.mainDeck')} ({t('common.cardsCount', { count: totalCards })})
-              </h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text">
+                  {t('detail.mainDeck')} ({t('common.cardsCount', { count: totalCards })})
+                </h2>
+                <div className="flex items-center gap-1 bg-vault-card/50 p-1 rounded-lg">
+                  <button onClick={() => setView('list')} className={`p-1.5 rounded ${view === 'list' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><List size={15} /></button>
+                  <button onClick={() => setView('grid')} className={`p-1.5 rounded ${view === 'grid' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}><LayoutGrid size={15} /></button>
+                </div>
+              </div>
+              {view === 'grid' ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                  {mainboard.map((entry: any) => (
+                    <div key={entry.id} className="relative">
+                      <CardTile card={entry.card} showActions={false} />
+                      <span className="absolute top-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{entry.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="surface overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
@@ -500,6 +516,7 @@ export default function DeckDetailPage() {
                   </tbody>
                 </table>
               </div>
+              )}
             </section>
           )}
 

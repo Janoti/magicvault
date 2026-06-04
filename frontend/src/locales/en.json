@@ -40,6 +40,8 @@
     "allConditions": "All conditions",
     "searchByName": "Search by name...",
     "makePublic": "Make collection public (shows on your profile)",
+    "viewList": "List",
+    "viewGrid": "Grid",
     "nowPublic": "✓ Your collection now shows on your public profile.",
     "nowPrivate": "Your collection is private again.",
     "allRarities": "All rarities",

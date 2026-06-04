@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { collectionApi, cardsApi, bindersApi, decksApi, authApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen, Globe, Lock } from 'lucide-react'
+import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen, Globe, Lock, List, LayoutGrid } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
+import CardTile from '@/components/cards/CardTile'
 import EditCardModal from '@/components/collection/EditCardModal'
 import AddToBinderModal from '@/components/collection/AddToBinderModal'
 import AddToDeckModal from '@/components/collection/AddToDeckModal'
@@ -28,6 +29,7 @@ export default function CollectionPage() {
   const [q, setQ] = useState('')          // debounced search actually sent
   const [rarity, setRarity] = useState('')
   const [cardType, setCardType] = useState('')
+  const [view, setView] = useState<'list' | 'grid'>('list')
   const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
   const [editEntry, setEditEntry] = useState<any>(null)
   const [binderEntry, setBinderEntry] = useState<any>(null)
@@ -264,10 +266,20 @@ export default function CollectionPage() {
           <option value="false">{t('col.normal')}</option>
           <option value="true">{t('col.foil')}</option>
         </select>
+        <div className="flex items-center gap-1 ml-auto bg-vault-card/50 p-1 rounded-lg">
+          <button onClick={() => setView('list')} title={t('col.viewList')}
+            className={`p-1.5 rounded ${view === 'list' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}>
+            <List size={15} />
+          </button>
+          <button onClick={() => setView('grid')} title={t('col.viewGrid')}
+            className={`p-1.5 rounded ${view === 'grid' ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}>
+            <LayoutGrid size={15} />
+          </button>
+        </div>
         <select
           value={perPage}
           onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }}
-          className="input-field !w-auto text-xs ml-auto"
+          className="input-field !w-auto text-xs"
         >
           {[12, 24, 48, 100].map(n => <option key={n} value={n}>{t('col.perPage', { n })}</option>)}
         </select>
@@ -289,7 +301,27 @@ export default function CollectionPage() {
         </div>
       ) : (
         <>
-          {/* Table view */}
+          {view === 'grid' ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {data?.items?.map((entry: any) => {
+                const card = cardDetails[entry.scryfall_id]
+                if (!card) fetchCard(entry.scryfall_id)
+                return (
+                  <div key={entry.id} className="relative group">
+                    <CardTile card={card || { id: entry.scryfall_id, name: '…' }} showActions={false} />
+                    <div className="absolute top-1 left-1 flex gap-1">
+                      <span className="text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{entry.quantity}</span>
+                      <span className="text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">{entry.condition}{entry.foil ? ' ⚡' : ''}</span>
+                    </div>
+                    <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                      <button onClick={() => setEditEntry(entry)} title={t('col.editTip')} className="bg-black/70 text-white p-1 rounded hover:text-vault-accent"><Pencil size={12} /></button>
+                      <button onClick={() => removeMutation.mutate(entry.id)} title={t('col.removeTip')} className="bg-black/70 text-white p-1 rounded hover:text-red-400"><Trash2 size={12} /></button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
           <div className="surface overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -431,6 +463,7 @@ export default function CollectionPage() {
               </tbody>
             </table>
           </div>
+          )}
 
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">

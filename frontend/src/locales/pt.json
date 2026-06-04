@@ -40,6 +40,8 @@
     "allConditions": "Todas as condições",
     "searchByName": "Buscar por nome...",
     "makePublic": "Tornar coleção pública (aparece no seu perfil)",
+    "viewList": "Lista",
+    "viewGrid": "Grade",
     "nowPublic": "✓ Sua coleção agora aparece no seu perfil público.",
     "nowPrivate": "Sua coleção voltou a ser privada.",
     "allRarities": "Todas as raridades",
