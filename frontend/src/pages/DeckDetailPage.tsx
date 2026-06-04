@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { decksApi, cardsApi } from '@/lib/api'
+import { decksApi, cardsApi, wishlistApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
@@ -74,6 +74,12 @@ export default function DeckDetailPage() {
   const publicMutation = useMutation({
     mutationFn: (is_public: boolean) => decksApi.update(deckId, { is_public }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['deck', deckId] }),
+  })
+
+  const [wished, setWished] = useState<Record<string, boolean>>({})
+  const wishlistMutation = useMutation({
+    mutationFn: (scryfallId: string) => wishlistApi.add({ scryfall_id: scryfallId, quantity: 1 }),
+    onSuccess: (_d, scryfallId) => { setWished(w => ({ ...w, [scryfallId]: true })); qc.invalidateQueries({ queryKey: ['wishlist'] }) },
   })
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -203,9 +209,12 @@ export default function DeckDetailPage() {
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-gold">
                   <Sparkles size={15} /> {t('doctor.title')}
                 </h2>
-                {!doctorMutation.isPending && (
-                  <button onClick={() => doctorMutation.mutate(true)} className="text-xs text-vault-muted hover:text-vault-gold">{t('doctor.regenerate')}</button>
-                )}
+                <div className="flex items-center gap-3">
+                  {!doctorMutation.isPending && (
+                    <button onClick={() => doctorMutation.mutate(true)} className="text-xs text-vault-muted hover:text-vault-gold">{t('doctor.regenerate')}</button>
+                  )}
+                  <button onClick={() => setShowDoctor(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
+                </div>
               </div>
               {doctorMutation.isPending ? (
                 <div className="flex items-center gap-3 py-6 justify-center text-sm text-vault-muted">
@@ -213,7 +222,9 @@ export default function DeckDetailPage() {
                   {t('doctor.thinking')}
                 </div>
               ) : doctorMutation.isError ? (
-                <p className="text-sm text-red-400 py-4">{t('doctor.error')}</p>
+                <p className="text-sm text-red-400 py-4">
+                  {(doctorMutation.error as any)?.response?.data?.detail || t('doctor.error')}
+                </p>
               ) : (
                 <p className="text-sm text-vault-text whitespace-pre-wrap leading-relaxed">{doctorMutation.data?.text}</p>
               )}
@@ -263,9 +274,12 @@ export default function DeckDetailPage() {
             className="overflow-hidden mb-6"
           >
             <div className="surface p-5">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent mb-4">
-                <GitCompareArrows size={15} /> {t('compare.title')}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent">
+                  <GitCompareArrows size={15} /> {t('compare.title')}
+                </h2>
+                <button onClick={() => setShowCompare(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
+              </div>
               <DeckCompare deckId={deckId} />
             </div>
           </motion.div>
@@ -280,9 +294,12 @@ export default function DeckDetailPage() {
             className="overflow-hidden mb-6"
           >
             <div className="surface p-5">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent mb-4">
-                <BarChart3 size={15} /> {t('analysis.title')}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent">
+                  <BarChart3 size={15} /> {t('analysis.title')}
+                </h2>
+                <button onClick={() => setShowAnalysis(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
+              </div>
               <DeckAnalysis deckId={deckId} />
             </div>
           </motion.div>
@@ -297,9 +314,12 @@ export default function DeckDetailPage() {
             className="overflow-hidden mb-6"
           >
             <div className="surface p-5">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent mb-4">
-                <Library size={15} /> {t('coverage.title')}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent">
+                  <Library size={15} /> {t('coverage.title')}
+                </h2>
+                <button onClick={() => setShowCoverage(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
+              </div>
               {coverageLoading || !coverage ? (
                 <div className="flex justify-center py-6">
                   <div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
@@ -347,6 +367,19 @@ export default function DeckDetailPage() {
                             <span className="text-xs font-mono text-green-400 w-14 text-right">
                               {c.card?.price_usd > 0 ? `$${(c.card.price_usd * c.missing).toFixed(2)}` : '—'}
                             </span>
+                            <div className="flex items-center gap-1 pl-1">
+                              <button
+                                onClick={() => navigate(`/trades?q=${encodeURIComponent(c.card?.name || '')}`)}
+                                title={t('coverage.findInMarket')}
+                                className="text-vault-muted hover:text-vault-accent p-1 rounded hover:bg-vault-accent/10"
+                              ><ShoppingCart size={13} /></button>
+                              <button
+                                onClick={() => c.card?.id && wishlistMutation.mutate(c.card.id)}
+                                disabled={!!wished[c.card?.id]}
+                                title={t('coverage.addWishlist')}
+                                className={`p-1 rounded hover:bg-vault-gold/10 ${wished[c.card?.id] ? 'text-vault-gold' : 'text-vault-muted hover:text-vault-gold'}`}
+                              ><Star size={13} className={wished[c.card?.id] ? 'fill-vault-gold' : ''} /></button>
+                            </div>
                           </div>
                         ))}
                       </div>

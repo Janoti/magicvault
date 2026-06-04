@@ -41,6 +41,13 @@ def build_prompt(deck: dict, analysis: dict, cards: list) -> str:
     return "\n".join(lines)
 
 
+def _raise_http(provider: str, r: httpx.Response):
+    """Surface the provider's real error (e.g. model not found, no credits)."""
+    body = r.text[:300]
+    logger.error("%s API %s: %s", provider, r.status_code, body)
+    raise RuntimeError(f"{provider} {r.status_code}: {body}")
+
+
 async def _call_anthropic(system: str, prompt: str) -> str:
     async with httpx.AsyncClient(timeout=45.0) as client:
         r = await client.post(
@@ -58,7 +65,8 @@ async def _call_anthropic(system: str, prompt: str) -> str:
                 "messages": [{"role": "user", "content": prompt}],
             },
         )
-        r.raise_for_status()
+        if r.status_code >= 400:
+            _raise_http("Anthropic", r)
         data = r.json()
     return "".join(b.get("text", "") for b in data.get("content", [])).strip()
 
@@ -77,7 +85,8 @@ async def _call_xai(system: str, prompt: str) -> str:
                 ],
             },
         )
-        r.raise_for_status()
+        if r.status_code >= 400:
+            _raise_http("xAI", r)
         data = r.json()
     return data["choices"][0]["message"]["content"].strip()
 

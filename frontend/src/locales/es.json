@@ -331,7 +331,9 @@
     "missingCards": "Cartas faltantes",
     "costToComplete": "Costo para completar",
     "missingList": "Faltan en tu colección",
-    "complete": "¡Tienes el mazo completo!"
+    "complete": "¡Tienes el mazo completo!",
+    "findInMarket": "Buscar en el mercado",
+    "addWishlist": "Añadir a la wishlist"
   },
   "analysis": {
     "title": "Análisis del mazo",
@@ -367,6 +369,7 @@
     "pick": "Elige un mazo para comparar",
     "choose": "— selecciona —",
     "hint": "Selecciona un mazo (tuyo, de un amigo o público) para ver la comparación.",
+    "empty": "No tienes otro mazo para comparar, y ningún amigo ha compartido un mazo público contigo todavía. Crea otro mazo o pídele a un amigo que haga público el suyo.",
     "groupMine": "Mis mazos",
     "groupFriends": "Mazos de amigos (públicos)",
     "groupPublic": "Mazos públicos",
@@ -391,7 +394,7 @@
     "thinking": "Analizando tu mazo con IA...",
     "regenerate": "Generar de nuevo",
     "error": "No pude analizar ahora. Inténtalo de nuevo.",
-    "disclaimer": "Análisis generado por IA (Grok) a partir de las cartas del mazo. Úsalo como sugerencia."
+    "disclaimer": "Análisis generado por IA a partir de las cartas del mazo. Úsalo como sugerencia."
   },
   "detail": {
     "backToSets": "Volver a ediciones",

@@ -331,7 +331,9 @@
     "missingCards": "Cards missing",
     "costToComplete": "Cost to complete",
     "missingList": "Missing from your collection",
-    "complete": "You own the whole deck!"
+    "complete": "You own the whole deck!",
+    "findInMarket": "Find in the marketplace",
+    "addWishlist": "Add to wishlist"
   },
   "analysis": {
     "title": "Deck analysis",
@@ -367,6 +369,7 @@
     "pick": "Choose a deck to compare",
     "choose": "— select —",
     "hint": "Select a deck (yours, a friend's or a public one) to see the comparison.",
+    "empty": "You have no other deck to compare, and no friend has shared a public deck with you yet. Create another deck or ask a friend to make their deck public.",
     "groupMine": "My decks",
     "groupFriends": "Friends' decks (public)",
     "groupPublic": "Public decks",
@@ -391,7 +394,7 @@
     "thinking": "Analyzing your deck with AI...",
     "regenerate": "Regenerate",
     "error": "Couldn't analyze right now. Try again.",
-    "disclaimer": "AI-generated review (Grok) from your deck's cards. Treat it as a suggestion."
+    "disclaimer": "AI-generated review from your deck's cards. Treat it as a suggestion."
   },
   "detail": {
     "backToSets": "Back to sets",

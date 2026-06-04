@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Trash2, Heart, Send, X, Lock, Bell, ExternalLink, MessageCircle } from 'lucide-react'
@@ -88,8 +88,9 @@ export default function TradesPage() {
   const canCreate = !!(user?.is_premium || user?.is_admin)
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [params] = useSearchParams()
   const [tab, setTab] = useState<'browse' | 'mine' | 'chats'>('browse')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(params.get('q') || '')
   const [showCreate, setShowCreate] = useState(false)
   const [interestFor, setInterestFor] = useState<any>(null)
   const [interestMsg, setInterestMsg] = useState('')

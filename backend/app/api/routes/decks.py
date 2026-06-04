@@ -166,7 +166,7 @@ async def deck_doctor_run(deck_id: int, lang: str = "en", refresh: bool = False,
         )
     except Exception as e:
         logger.error("Deck Doctor failed: %s", e)
-        raise HTTPException(status_code=502, detail="Erro ao consultar a IA")
+        raise HTTPException(status_code=502, detail=f"Erro na IA — {str(e)[:200]}")
     await cache_set(cache_key, text, ttl=60 * 60 * 24 * 14)  # 14 days
     return {"text": text, "cached": False}
 

@@ -50,6 +50,19 @@ export default function DeckCompare({ deckId }: { deckId: number }) {
     { key: 'public', label: t('compare.groupPublic') },
   ]
 
+  const totalOptions = opts
+    ? groups.reduce((n, g) => n + (opts[g.key] || []).filter((d: any) => d.id !== deckId).length, 0)
+    : -1
+
+  if (totalOptions === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-3xl mb-2">🤷</p>
+        <p className="text-sm text-vault-muted max-w-sm mx-auto">{t('compare.empty')}</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <div>

@@ -331,7 +331,9 @@
     "missingCards": "Cartas faltando",
     "costToComplete": "Custo para completar",
     "missingList": "Faltam na sua coleção",
-    "complete": "Você tem o deck inteiro!"
+    "complete": "Você tem o deck inteiro!",
+    "findInMarket": "Buscar no mercado",
+    "addWishlist": "Adicionar à wishlist"
   },
   "analysis": {
     "title": "Análise do deck",
@@ -367,6 +369,7 @@
     "pick": "Escolha um deck pra comparar",
     "choose": "— selecione —",
     "hint": "Selecione um deck (seu, de amigo ou público) pra ver a comparação.",
+    "empty": "Você não tem outro deck pra comparar, e nenhum amigo compartilhou um deck público com você ainda. Crie outro deck ou peça pra um amigo deixar o deck dele público.",
     "groupMine": "Meus decks",
     "groupFriends": "Decks de amigos (públicos)",
     "groupPublic": "Decks públicos",
@@ -391,7 +394,7 @@
     "thinking": "Analisando seu deck com IA...",
     "regenerate": "Gerar de novo",
     "error": "Não consegui analisar agora. Tente de novo.",
-    "disclaimer": "Análise gerada por IA (Grok) a partir das cartas do deck. Use como sugestão."
+    "disclaimer": "Análise gerada por IA a partir das cartas do deck. Use como sugestão."
   },
   "detail": {
     "backToSets": "Voltar aos sets",
