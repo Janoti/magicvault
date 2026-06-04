@@ -63,7 +63,10 @@ function ListingCard({ l, mine, onInterest, onInterests, onResolve, onReopen, on
               <Bell size={12} /> {t('trades.viewInterests', { count: l.interests || 0 })}
             </button>
             {resolved ? (
-              <button onClick={() => onReopen(l)} className="w-full text-[11px] text-vault-muted hover:text-vault-gold py-1">{t('trades.reopen')}</button>
+              <div className="flex gap-1">
+                <button onClick={() => onReopen(l)} className="flex-1 text-[11px] text-vault-muted hover:text-vault-gold py-1">{t('trades.reopen')}</button>
+                <button onClick={() => onDelete(l)} title={t('common.delete')} className="px-2 rounded border border-vault-border text-vault-muted hover:text-red-400"><Trash2 size={13} /></button>
+              </div>
             ) : (
               <div className="flex gap-1">
                 <button onClick={() => onResolve(l, 'sold')} className="flex-1 text-[11px] py-1 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10">{t('trades.markSold')}</button>
@@ -113,6 +116,11 @@ export default function TradesPage() {
     qc.invalidateQueries({ queryKey: ['listings-stats'] })
   }
   const delMut = useMutation({ mutationFn: (l: any) => listingsApi.remove(l.id), onSuccess: invalidateMine })
+  const confirmDelete = (l: any) => {
+    const n = l.interests || 0
+    const msg = n > 0 ? t('trades.confirmDeleteInterested', { count: n }) : t('trades.confirmDelete')
+    if (window.confirm(msg)) delMut.mutate(l)
+  }
   const resolveMut = useMutation({ mutationFn: (v: { l: any; outcome: string }) => listingsApi.resolve(v.l.id, v.outcome), onSuccess: invalidateMine })
   const reopenMut = useMutation({ mutationFn: (l: any) => listingsApi.setStatus(l.id, 'active'), onSuccess: invalidateMine })
   const interestMut = useMutation({
@@ -178,7 +186,7 @@ export default function TradesPage() {
                 onInterests={setInterestsFor}
                 onResolve={(x: any, outcome: string) => resolveMut.mutate({ l: x, outcome })}
                 onReopen={(x: any) => reopenMut.mutate(x)}
-                onDelete={(x: any) => delMut.mutate(x)}
+                onDelete={(x: any) => confirmDelete(x)}
               />
             ))}
           </div>

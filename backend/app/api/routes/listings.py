@@ -2,7 +2,7 @@ import json
 from html import escape
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, func, or_
+from sqlalchemy import select, desc, func, or_, delete
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -139,12 +139,39 @@ async def create_listing(data: ListingRequest, premium: User = Depends(get_premi
     return {"id": l.id}
 
 
-@router.delete("/{listing_id}", status_code=204)
+@router.delete("/{listing_id}")
 async def delete_listing(listing_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     l = (await db.execute(select(Listing).where(Listing.id == listing_id, Listing.user_id == current_user.id))).scalar_one_or_none()
     if not l:
         raise HTTPException(status_code=404, detail="Não encontrado")
+    interests = (await db.execute(select(Interest).where(Interest.listing_id == listing_id))).scalars().all()
+
+    # Let the interested buyers know the listing was cancelled (best-effort).
+    if interests:
+        try:
+            cardname = extract_card_summary(await get_card_by_id(l.scryfall_id)).get("name", "uma carta")
+        except Exception:
+            cardname = "uma carta"
+        buyer_ids = list({i.buyer_id for i in interests})
+        buyers = (await db.execute(select(User).where(User.id.in_(buyer_ids)))).scalars().all()
+        for b in buyers:
+            if not b.email:
+                continue
+            html = f"""
+            <div style="font-family:sans-serif;max-width:480px;margin:auto">
+              <h2 style="color:#b8860b">📖 VaultSpell</h2>
+              <p>A oferta de <b>{escape(cardname)}</b> em que você demonstrou interesse foi <b>cancelada/retirada</b> pelo vendedor.</p>
+              <p style="color:#666;font-size:13px">Veja outras ofertas em vaultspell.com/trades.</p>
+            </div>"""
+            await send_email(b.email, f"Oferta cancelada — {cardname}", html)
+
+    # Remove the conversations (chat messages + interests reference the listing).
+    interest_ids = [i.id for i in interests]
+    if interest_ids:
+        await db.execute(delete(Message).where(Message.interest_id.in_(interest_ids)))
+        await db.execute(delete(Interest).where(Interest.id.in_(interest_ids)))
     await db.delete(l)
+    return {"cancelled_notified": len(interests)}
 
 
 @router.patch("/{listing_id}/status")
