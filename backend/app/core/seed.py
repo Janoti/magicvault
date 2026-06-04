@@ -40,11 +40,13 @@ SEED_STORES = [
     },
 ]
 
+# created_at is set with CURRENT_TIMESTAMP because a raw INSERT bypasses the
+# ORM-side default=datetime.utcnow (the column is NOT NULL).
 _INSERT = text(
     "INSERT INTO stores (name, city, neighborhood, address, phone, phone2, email, "
-    "website, instagram, is_wpn, featured, notes) VALUES "
+    "website, instagram, is_wpn, featured, notes, created_at) VALUES "
     "(:name, :city, :neighborhood, :address, :phone, :phone2, :email, "
-    ":website, :instagram, :is_wpn, :featured, :notes)"
+    ":website, :instagram, :is_wpn, :featured, :notes, CURRENT_TIMESTAMP)"
 )
 
 _COLS = ["name", "city", "neighborhood", "address", "phone", "phone2",
