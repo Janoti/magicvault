@@ -268,6 +268,26 @@ async def send_message(request: Request, interest_id: int, data: InterestRequest
     m = Message(interest_id=interest_id, sender_id=current_user.id, body=body[:2000])
     db.add(m)
     await db.flush()
+
+    # Notify the other participant by email (best-effort).
+    other_id = interest.buyer_id if current_user.id == listing.user_id else listing.user_id
+    other = (await db.execute(select(User).where(User.id == other_id))).scalar_one_or_none()
+    if other and other.email:
+        try:
+            card = extract_card_summary(await get_card_by_id(listing.scryfall_id))
+            cardname = card.get("name", "carta")
+        except Exception:
+            cardname = "uma carta"
+        uname = escape(current_user.username)
+        html = f"""
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+          <h2 style="color:#b8860b">📖 VaultSpell</h2>
+          <p><b>{uname}</b> respondeu na conversa sobre <b>{escape(cardname)}</b>.</p>
+          <p style="background:#f5f5f5;padding:10px;border-radius:8px">{escape(body[:300])}</p>
+          <p style="color:#666;font-size:13px">Responda em vaultspell.com/trades (aba Conversas).</p>
+        </div>"""
+        await send_email(other.email, f"Nova mensagem — {cardname}", html)
+
     return {"id": m.id}
 
 

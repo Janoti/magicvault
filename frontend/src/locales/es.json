@@ -13,7 +13,10 @@
     "subtitle": "Gestor de Colección MTG",
     "total": "Total",
     "unique": "Únicas",
-    "totalValue": "Valor total"
+    "totalValue": "Valor total",
+    "groupCollection": "Colección",
+    "groupBuild": "Construir",
+    "groupSocial": "Comunidad"
   },
   "common": {
     "login": "Entrar",

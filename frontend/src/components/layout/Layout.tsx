@@ -14,18 +14,32 @@ import EmberBackground from '@/components/EmberBackground'
 import FeedbackModal from '@/components/FeedbackModal'
 import { MessageSquare } from 'lucide-react'
 
-const navItems = [
-  { to: '/collection', icon: Library, key: 'nav.collection' },
-  { to: '/search', icon: Search, key: 'nav.search' },
-  { to: '/scan', icon: ScanLine, key: 'nav.scan' },
-  { to: '/binders', icon: BookOpen, key: 'nav.binders' },
-  { to: '/decks', icon: Swords, key: 'nav.decks' },
-  { to: '/wishlist', icon: Star, key: 'nav.wishlist' },
-  { to: '/sets', icon: Package, key: 'nav.sets' },
-  { to: '/friends', icon: Users, key: 'nav.friends' },
-  { to: '/shared', icon: Share2, key: 'nav.shared' },
-  { to: '/trades', icon: ArrowLeftRight, key: 'trades.nav' },
-  { to: '/premium', icon: Crown, key: 'premium.nav' },
+const navGroups = [
+  {
+    label: 'nav.groupCollection',
+    items: [
+      { to: '/collection', icon: Library, key: 'nav.collection' },
+      { to: '/search', icon: Search, key: 'nav.search' },
+      { to: '/scan', icon: ScanLine, key: 'nav.scan' },
+      { to: '/sets', icon: Package, key: 'nav.sets' },
+    ],
+  },
+  {
+    label: 'nav.groupBuild',
+    items: [
+      { to: '/decks', icon: Swords, key: 'nav.decks' },
+      { to: '/binders', icon: BookOpen, key: 'nav.binders' },
+      { to: '/wishlist', icon: Star, key: 'nav.wishlist' },
+    ],
+  },
+  {
+    label: 'nav.groupSocial',
+    items: [
+      { to: '/friends', icon: Users, key: 'nav.friends' },
+      { to: '/shared', icon: Share2, key: 'nav.shared' },
+      { to: '/trades', icon: ArrowLeftRight, key: 'trades.nav' },
+    ],
+  },
 ]
 
 export default function Layout() {
@@ -127,35 +141,60 @@ export default function Layout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ to, icon: Icon, key }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
-                  isActive
-                    ? 'bg-vault-accent/20 text-vault-accent border border-vault-accent/30 font-medium'
-                    : 'text-vault-muted hover:text-vault-text hover:bg-vault-card'
-                }`
-              }
-            >
-              <Icon size={15} />
-              {t(key)}
-            </NavLink>
+        <nav className="flex-1 px-3 py-3 overflow-y-auto">
+          {navGroups.map((group) => (
+            <div key={group.label} className="mb-4">
+              <p className="px-3 mb-1.5 text-[10px] uppercase tracking-wider font-bold text-vault-muted/60">{t(group.label)}</p>
+              <div className="space-y-0.5">
+                {group.items.map(({ to, icon: Icon, key }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) =>
+                      `group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-vault-accent/25 to-transparent text-vault-accent font-medium'
+                          : 'text-vault-muted hover:text-vault-text hover:bg-vault-card/60'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {isActive && <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-vault-accent" />}
+                        <Icon size={16} className={isActive ? '' : 'group-hover:scale-110 transition-transform'} />
+                        {t(key)}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
+
+          {/* Premium — highlighted */}
+          <NavLink
+            to="/premium"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 border ${
+                isActive
+                  ? 'bg-vault-gold/20 text-vault-gold border-vault-gold/40'
+                  : 'bg-gradient-to-r from-vault-gold/10 to-transparent text-vault-gold/90 border-vault-gold/20 hover:border-vault-gold/40'
+              }`
+            }
+          >
+            <Crown size={16} /> {t('premium.nav')}
+          </NavLink>
+
           {user?.is_admin && (
             <NavLink
               to="/admin"
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
-                  isActive
-                    ? 'bg-vault-gold/20 text-vault-gold border border-vault-gold/30 font-medium'
-                    : 'text-vault-muted hover:text-vault-gold hover:bg-vault-card'
+                `mt-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                  isActive ? 'bg-vault-gold/15 text-vault-gold font-medium' : 'text-vault-muted hover:text-vault-gold hover:bg-vault-card/60'
                 }`
               }
             >
-              <ShieldCheck size={15} />
+              <ShieldCheck size={16} />
               {t('admin.nav')}
             </NavLink>
           )}

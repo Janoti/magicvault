@@ -13,7 +13,10 @@
     "subtitle": "MTG Collection Manager",
     "total": "Total",
     "unique": "Unique",
-    "totalValue": "Total value"
+    "totalValue": "Total value",
+    "groupCollection": "Collection",
+    "groupBuild": "Build",
+    "groupSocial": "Community"
   },
   "common": {
     "login": "Log in",
