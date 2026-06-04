@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cardsApi, collectionApi, wishlistApi } from '@/lib/api'
 import CardTile from '@/components/cards/CardTile'
 import AddCardModal from '@/components/collection/AddCardModal'
-import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Filter, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debounce } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
@@ -43,18 +43,22 @@ export default function SearchPage() {
     enabled: searchInput.length >= 2,
   })
 
+  const [toast, setToast] = useState<string | null>(null)
+  const flash = (msg: string) => { setToast(msg); window.clearTimeout((flash as any)._t); (flash as any)._t = window.setTimeout(() => setToast(null), 2500) }
+
   const addMutation = useMutation({
     mutationFn: (data: any) => collectionApi.add(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['collection'] })
       qc.invalidateQueries({ queryKey: ['collection-stats'] })
       setShowModal(false)
+      flash(t('search.addedCollection'))
     },
   })
 
   const wishlistMutation = useMutation({
     mutationFn: (card: any) => wishlistApi.add({ scryfall_id: card.id, quantity: 1 }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['wishlist'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['wishlist'] }); flash(t('search.addedWishlist')) },
   })
 
   const handleSearch = (e: React.FormEvent) => {
@@ -214,6 +218,18 @@ export default function SearchPage() {
           isLoading={addMutation.isPending}
         />
       )}
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 surface px-4 py-2.5 flex items-center gap-2 text-sm text-vault-text border-vault-gold/40 shadow-2xl"
+          >
+            <Star size={15} className="text-vault-gold fill-vault-gold" /> {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
