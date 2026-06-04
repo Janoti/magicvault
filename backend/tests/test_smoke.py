@@ -4,6 +4,11 @@ async def test_health(client):
     assert r.json()["status"] == "ok"
 
 
+async def test_request_id_header(client):
+    r = await client.get("/api/health")
+    assert r.headers.get("x-request-id")
+
+
 async def test_billing_price_public(client):
     r = await client.get("/api/billing/price")
     assert r.status_code == 200

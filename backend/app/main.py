@@ -1,4 +1,7 @@
 import os
+import time
+import uuid
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +13,11 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.ratelimit import limiter
+from app.core.logging import setup_logging, request_id_var
 from app.core.database import engine, Base
+
+setup_logging()
+logger = logging.getLogger("vaultspell.request")
 from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing
 
 # In production the frontend is built and copied next to the backend (see the
@@ -79,6 +86,31 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def request_logging(request: Request, call_next):
+    """Assign a request id, time the request, and log one structured line."""
+    rid = request.headers.get("x-request-id") or uuid.uuid4().hex[:12]
+    token = request_id_var.set(rid)
+    start = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.exception("request failed", extra={
+            "event": "request_error", "method": request.method, "path": request.url.path,
+        })
+        request_id_var.reset(token)
+        raise
+    duration_ms = round((time.perf_counter() - start) * 1000, 1)
+    if request.url.path != "/api/health":  # don't spam on health pings
+        logger.info("request", extra={
+            "event": "request", "method": request.method, "path": request.url.path,
+            "status": response.status_code, "duration_ms": duration_ms,
+        })
+    response.headers["X-Request-ID"] = rid
+    request_id_var.reset(token)
+    return response
 
 
 @app.middleware("http")
