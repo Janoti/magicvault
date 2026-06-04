@@ -32,6 +32,7 @@ class User(Base):
     is_beta: Mapped[bool] = mapped_column(Boolean, default=False)  # early-adopter free premium
     contact: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # phone/whatsapp/handle
     contact_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    collection_public: Mapped[bool] = mapped_column(Boolean, default=False)
     stripe_customer_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     # Profile fields (added via ALTER on startup for existing DBs)

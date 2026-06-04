@@ -101,6 +101,42 @@ export default function ProfilePage() {
               ))}
             </div>
           )}
+
+          {/* Public collection & decks the owner chose to show off */}
+          {(data.collection_public || data.public_decks?.length > 0) && (
+            <div className="surface p-5">
+              <h2 className="font-display text-lg font-bold text-vault-gold mb-1">{t('pubprofile.title', { name: data.display_name || data.username })}</h2>
+              <p className="text-xs text-vault-muted mb-4">{t('pubprofile.subtitle')}</p>
+              <div className="space-y-2">
+                {data.collection_public && (
+                  <Link to={`/c/${data.username}`}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-vault-border hover:border-vault-accent/40 transition-all">
+                    <span className="w-9 h-9 rounded-xl bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center">
+                      <Library size={16} className="text-vault-accent" />
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-vault-text">{t('pubprofile.collection')}</p>
+                      <p className="text-xs text-vault-muted">{t('common.cardsCount', { count: data.stats?.cards ?? 0 })}</p>
+                    </div>
+                    <ExternalLink size={14} className="text-vault-muted" />
+                  </Link>
+                )}
+                {data.public_decks?.map((d: any) => (
+                  <Link key={d.id} to={`/d/${d.id}`}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-vault-border hover:border-vault-accent/40 transition-all">
+                    <span className="w-9 h-9 rounded-xl bg-vault-gold/15 border border-vault-gold/30 flex items-center justify-center">
+                      <Swords size={16} className="text-vault-gold" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-vault-text truncate">{d.name}</p>
+                      <p className="text-xs text-vault-muted">{d.format} · {t('common.cardsCount', { count: d.card_count })}</p>
+                    </div>
+                    <ExternalLink size={14} className="text-vault-muted" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

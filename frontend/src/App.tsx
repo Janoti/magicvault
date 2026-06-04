@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/auth'
 import Layout from '@/components/layout/Layout'
 import LandingPage from '@/pages/LandingPage'
 import FeaturesPage from '@/pages/FeaturesPage'
+import PublicEntityPage from '@/pages/PublicEntityPage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
@@ -49,6 +50,8 @@ export default function App() {
       <Route path="/p/:token" element={<PublicViewPage />} />
       <Route path="/p/:username/:slug" element={<PublicViewPage />} />
       <Route path="/u/:username" element={<ProfilePage />} />
+      <Route path="/d/:id" element={<PublicEntityPage kind="deck" />} />
+      <Route path="/c/:username" element={<PublicEntityPage kind="collection" />} />
 
       {/* Authenticated app */}
       <Route

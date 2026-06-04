@@ -39,6 +39,7 @@
     "filters": "Filters:",
     "allConditions": "All conditions",
     "searchByName": "Search by name...",
+    "makePublic": "Make collection public (shows on your profile)",
     "allRarities": "All rarities",
     "allTypes": "All types",
     "rarityCommon": "Common",
@@ -120,6 +121,11 @@
     "tradeB1": "Sell or trade with a real photo",
     "tradeB2": "Chat with buyer/seller",
     "tradeB3": "Accept offers and trade lists"
+  },
+  "pubprofile": {
+    "title": "{{name}}'s showcase",
+    "subtitle": "Collection and decks this person chose to make public.",
+    "collection": "View the full collection"
   },
   "feat": {
     "title": "Everything VaultSpell does",

@@ -13,6 +13,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User, CollectionEntry
 from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk
+from app.services.sharing import build_resource_view
 
 router = APIRouter()
 
@@ -69,6 +70,15 @@ class UpdateCardRequest(BaseModel):
     condition: Optional[str] = None
     foil: Optional[bool] = None
     notes: Optional[str] = None
+
+
+@router.get("/public/{username}")
+async def public_collection(username: str, db: AsyncSession = Depends(get_db)):
+    """Read-only view of a user's collection, if they made it public (no auth)."""
+    user = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
+    if not user or not user.collection_public:
+        raise HTTPException(status_code=404, detail="Coleção não encontrada")
+    return await build_resource_view(db, user.id, "collection", None)
 
 
 @router.get("/stats")

@@ -13,6 +13,7 @@ from sqlalchemy import or_, and_
 from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship
 from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary, get_cards_bulk
 from app.services import deck_doctor
+from app.services.sharing import build_resource_view
 from app.core.cache import cache_get, cache_set
 
 logger = logging.getLogger(__name__)
@@ -392,6 +393,15 @@ async def compare_options(current_user: User = Depends(get_current_user), db: As
         "friends": await _serialize(friend_decks, owners),
         "public": await _serialize(public_decks, owners),
     }
+
+
+@router.get("/public/{deck_id}")
+async def public_deck(deck_id: int, db: AsyncSession = Depends(get_db)):
+    """Read-only view of a public deck (no auth)."""
+    deck = (await db.execute(select(Deck).where(Deck.id == deck_id))).scalar_one_or_none()
+    if not deck or not deck.is_public:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    return await build_resource_view(db, deck.user_id, "deck", deck_id)
 
 
 @router.get("/{deck_id}")

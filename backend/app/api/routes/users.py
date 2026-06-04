@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.core.database import get_db
-from app.models.user import User, CollectionEntry, Deck, Binder
+from app.models.user import User, CollectionEntry, Deck, DeckCard, Binder
 
 router = APIRouter()
 
@@ -29,6 +29,14 @@ async def public_profile(username: str, db: AsyncSession = Depends(get_db)):
         select(func.count(Binder.id)).where(Binder.user_id == user.id)
     )).scalar()
 
+    # Public decks the owner chose to share on their profile.
+    public_decks = []
+    for d in (await db.execute(
+        select(Deck).where(Deck.user_id == user.id, Deck.is_public == True).order_by(Deck.updated_at.desc())  # noqa: E712
+    )).scalars().all():
+        cnt = (await db.execute(select(func.sum(DeckCard.quantity)).where(DeckCard.deck_id == d.id))).scalar() or 0
+        public_decks.append({"id": d.id, "name": d.name, "format": d.format, "card_count": cnt})
+
     return {
         "username": user.username,
         "display_name": user.display_name,
@@ -38,4 +46,6 @@ async def public_profile(username: str, db: AsyncSession = Depends(get_db)):
         "contact": user.contact if user.contact_public else None,
         "member_since": user.created_at.isoformat() if user.created_at else None,
         "stats": {"cards": cards or 0, "decks": decks or 0, "binders": binders or 0},
+        "public_decks": public_decks,
+        "collection_public": bool(user.collection_public),
     }

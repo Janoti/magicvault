@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { collectionApi, cardsApi, bindersApi, decksApi } from '@/lib/api'
+import { collectionApi, cardsApi, bindersApi, decksApi, authApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen } from 'lucide-react'
+import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen, Globe, Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import EditCardModal from '@/components/collection/EditCardModal'
@@ -16,6 +16,8 @@ const CONDITIONS = ['', 'M', 'NM', 'LP', 'MP', 'HP', 'DMG']
 
 export default function CollectionPage() {
   const username = useAuthStore((s) => s.user?.display_name || s.user?.username)
+  const user = useAuthStore((s) => s.user)
+  const setUser = useAuthStore((s) => s.setUser)
   const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(24)
@@ -83,6 +85,11 @@ export default function CollectionPage() {
     onError: () => setNotice(t('col.binderError')),
   })
 
+  const publicMutation = useMutation({
+    mutationFn: (collection_public: boolean) => authApi.updateMe({ collection_public }),
+    onSuccess: (updated) => setUser(updated),
+  })
+
   const addToDeckMutation = useMutation({
     mutationFn: (vars: { deckId: number; scryfallId: string }) =>
       decksApi.addCard(vars.deckId, { scryfall_id: vars.scryfallId, quantity: 1 }),
@@ -142,6 +149,14 @@ export default function CollectionPage() {
           <p className="text-vault-muted text-sm mt-0.5">{t('col.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => publicMutation.mutate(!user?.collection_public)}
+            title={user?.collection_public ? t('detail.makePrivate') : t('col.makePublic')}
+            className={`btn-ghost flex items-center gap-2 ${user?.collection_public ? 'text-green-400' : ''}`}
+          >
+            {user?.collection_public ? <Globe size={16} /> : <Lock size={16} />}
+            {user?.collection_public ? t('detail.public') : t('detail.private')}
+          </button>
           <button onClick={() => setShowShare(true)} className="btn-ghost flex items-center gap-2">
             <Share2 size={16} /> {t('common.share')}
           </button>

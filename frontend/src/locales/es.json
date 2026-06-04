@@ -39,6 +39,7 @@
     "filters": "Filtros:",
     "allConditions": "Todas las condiciones",
     "searchByName": "Buscar por nombre...",
+    "makePublic": "Hacer pública la colección (aparece en tu perfil)",
     "allRarities": "Todas las rarezas",
     "allTypes": "Todos los tipos",
     "rarityCommon": "Común",
@@ -120,6 +121,11 @@
     "tradeB1": "Venta o intercambio con foto real",
     "tradeB2": "Chat con comprador/vendedor",
     "tradeB3": "Acepta propuestas y listas de cambio"
+  },
+  "pubprofile": {
+    "title": "Vitrina de {{name}}",
+    "subtitle": "Colección y mazos que esta persona hizo públicos.",
+    "collection": "Ver la colección completa"
   },
   "feat": {
     "title": "Todo lo que hace VaultSpell",
