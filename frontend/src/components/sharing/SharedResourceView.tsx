@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, QrCode } from 'lucide-react'
 import CardTile from '@/components/cards/CardTile'
 import { useTranslation } from 'react-i18next'
 
@@ -8,6 +8,8 @@ const PAGE_SIZE = 24
 export default function SharedResourceView({ data }: { data: any }) {
   const { t } = useTranslation()
   const [page, setPage] = useState(1)
+  const [showQr, setShowQr] = useState(false)
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
   const [preview, setPreview] = useState<{ src: string; x: number; y: number } | null>(null)
 
   const TYPE_LABEL: Record<string, string> = {
@@ -34,17 +36,31 @@ export default function SharedResourceView({ data }: { data: any }) {
 
   return (
     <div>
-      <div className="mb-6">
-        <span className="text-[10px] uppercase tracking-wider text-vault-muted bg-vault-card px-2 py-0.5 rounded-full">
-          {TYPE_LABEL[data.resource_type] || data.resource_type}
-          {data.format ? ` • ${data.format}` : ''}
-        </span>
-        <h1 className="font-display text-3xl font-bold text-vault-gold mt-2">{data.title}</h1>
-        <p className="text-vault-muted text-sm mt-0.5">
-          {t('shared.by', { name: data.owner })} • {t('common.cardsCount', { count: cards.length })}
-          {totalValue > 0 && <> • <span className="text-green-400 font-mono">${totalValue.toFixed(2)}</span></>}
-        </p>
-        {data.description && <p className="text-sm text-vault-muted mt-2 max-w-2xl">{data.description}</p>}
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <span className="text-[10px] uppercase tracking-wider text-vault-muted bg-vault-card px-2 py-0.5 rounded-full">
+            {TYPE_LABEL[data.resource_type] || data.resource_type}
+            {data.format ? ` • ${data.format}` : ''}
+          </span>
+          <h1 className="font-display text-3xl font-bold text-vault-gold mt-2">{data.title}</h1>
+          <p className="text-vault-muted text-sm mt-0.5">
+            {t('shared.by', { name: data.owner })} • {t('common.cardsCount', { count: cards.length })}
+            {totalValue > 0 && <> • <span className="text-green-400 font-mono">${totalValue.toFixed(2)}</span></>}
+          </p>
+          {data.description && <p className="text-sm text-vault-muted mt-2 max-w-2xl">{data.description}</p>}
+        </div>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <button onClick={() => setShowQr(v => !v)} className="btn-ghost !py-1.5 flex items-center gap-2 text-xs">
+            <QrCode size={15} /> QR
+          </button>
+          {showQr && pageUrl && (
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=8&data=${encodeURIComponent(pageUrl)}`}
+              alt="QR" width={120} height={120}
+              className="rounded-lg bg-white p-1 shadow-lg"
+            />
+          )}
+        </div>
       </div>
 
       {cards.length === 0 ? (

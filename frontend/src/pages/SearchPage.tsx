@@ -223,10 +223,10 @@ export default function SearchPage() {
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 surface px-4 py-2.5 flex items-center gap-2 text-sm text-vault-text border-vault-gold/40 shadow-2xl"
+            initial={{ opacity: 0, y: -30, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -30 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-vault-gold text-black px-6 py-3 rounded-xl shadow-2xl flex items-center gap-2 font-semibold text-sm"
           >
-            <Star size={15} className="text-vault-gold fill-vault-gold" /> {toast}
+            <Star size={17} className="fill-black" /> {toast}
           </motion.div>
         )}
       </AnimatePresence>

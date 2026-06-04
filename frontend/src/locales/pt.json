@@ -126,6 +126,14 @@
     "tradeB2": "Chat com comprador/vendedor",
     "tradeB3": "Aceita propostas e lista de troca"
   },
+  "wl": {
+    "external": "Mercado externo",
+    "inMarket": "No nosso mercado: {{count}} a partir de {{price}}",
+    "searchMarket": "Procurar no nosso mercado",
+    "bought": "Já comprei",
+    "toDeck": "Pro deck",
+    "movedToCollection": "Movida pra coleção!"
+  },
   "pubprofile": {
     "title": "Vitrine de {{name}}",
     "subtitle": "Coleção e decks que esta pessoa deixou públicos.",
@@ -240,6 +248,9 @@
     "wlEstValue": "Valor estimado",
     "wlEmpty": "Sua wishlist está vazia",
     "wlSearchAdd": "Buscar cartas para adicionar",
+    "wlSearchPh": "Buscar carta para adicionar...",
+    "wlAdd": "Adicionar",
+    "wlInList": "Na lista",
     "wlMax": "Máx",
     "bindersEmpty": "Nenhum binder ainda — crie o primeiro",
     "decksEmpty": "Nenhum deck ainda — crie o primeiro"

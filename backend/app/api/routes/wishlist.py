@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from pydantic import BaseModel
 from typing import Optional
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.user import User, WishlistEntry
-from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary
+from app.models.user import User, WishlistEntry, Listing
+from app.services.scryfall import get_sets, get_card_by_id, extract_card_summary, get_cards_bulk
 
 # Wishlist router
 router = APIRouter()
@@ -22,14 +22,29 @@ class AddWishlistRequest(BaseModel):
 
 @router.get("")
 async def list_wishlist(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(WishlistEntry).where(WishlistEntry.user_id == current_user.id))
+    entries = (await db.execute(select(WishlistEntry).where(WishlistEntry.user_id == current_user.id))).scalars().all()
+    ids = [e.scryfall_id for e in entries]
+    cards = await get_cards_bulk(ids) if ids else {}
+
+    # Our marketplace: cheapest active for-sale listing per card.
+    market: dict = {}
+    if ids:
+        rows = (await db.execute(
+            select(Listing.scryfall_id, func.count(Listing.id), func.min(Listing.price))
+            .where(Listing.scryfall_id.in_(ids), Listing.status == "active", Listing.price.is_not(None))
+            .group_by(Listing.scryfall_id)
+        )).all()
+        market = {sid: {"count": cnt, "min_price": float(mn) if mn is not None else None} for sid, cnt, mn in rows}
+
     items = []
-    for entry in result.scalars().all():
-        try:
-            card = extract_card_summary(await get_card_by_id(entry.scryfall_id))
-        except Exception:
-            card = {"id": entry.scryfall_id}
-        items.append({"id": entry.id, "quantity": entry.quantity, "max_price": entry.max_price, "notes": entry.notes, "card": card})
+    for entry in entries:
+        raw = cards.get(entry.scryfall_id)
+        card = extract_card_summary(raw) if raw else {"id": entry.scryfall_id}
+        items.append({
+            "id": entry.id, "quantity": entry.quantity, "max_price": entry.max_price,
+            "notes": entry.notes, "card": card,
+            "market": market.get(entry.scryfall_id, {"count": 0, "min_price": None}),
+        })
     return items
 
 

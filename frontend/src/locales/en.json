@@ -126,6 +126,14 @@
     "tradeB2": "Chat with buyer/seller",
     "tradeB3": "Accept offers and trade lists"
   },
+  "wl": {
+    "external": "External market",
+    "inMarket": "On our market: {{count}} from {{price}}",
+    "searchMarket": "Search our marketplace",
+    "bought": "I bought it",
+    "toDeck": "To deck",
+    "movedToCollection": "Moved to collection!"
+  },
   "pubprofile": {
     "title": "{{name}}'s showcase",
     "subtitle": "Collection and decks this person chose to make public.",
@@ -240,6 +248,9 @@
     "wlEstValue": "Estimated value",
     "wlEmpty": "Your wishlist is empty",
     "wlSearchAdd": "Search cards to add",
+    "wlSearchPh": "Search a card to add...",
+    "wlAdd": "Add",
+    "wlInList": "In list",
     "wlMax": "Max",
     "bindersEmpty": "No binders yet — create your first",
     "decksEmpty": "No decks yet — create your first"

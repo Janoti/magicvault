@@ -126,6 +126,14 @@
     "tradeB2": "Chat con comprador/vendedor",
     "tradeB3": "Acepta propuestas y listas de cambio"
   },
+  "wl": {
+    "external": "Mercado externo",
+    "inMarket": "En nuestro mercado: {{count}} desde {{price}}",
+    "searchMarket": "Buscar en nuestro mercado",
+    "bought": "Ya la compré",
+    "toDeck": "Al mazo",
+    "movedToCollection": "¡Movida a la colección!"
+  },
   "pubprofile": {
     "title": "Vitrina de {{name}}",
     "subtitle": "Colección y mazos que esta persona hizo públicos.",
@@ -240,6 +248,9 @@
     "wlEstValue": "Valor estimado",
     "wlEmpty": "Tu lista de deseos está vacía",
     "wlSearchAdd": "Buscar cartas para añadir",
+    "wlSearchPh": "Busca una carta para añadir...",
+    "wlAdd": "Añadir",
+    "wlInList": "En la lista",
     "wlMax": "Máx",
     "bindersEmpty": "Aún no hay carpetas — crea la primera",
     "decksEmpty": "Aún no hay mazos — crea el primero"
