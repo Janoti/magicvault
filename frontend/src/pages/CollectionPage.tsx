@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { collectionApi, cardsApi, bindersApi, decksApi, authApi } from '@/lib/api'
+import { collectionApi, bindersApi, decksApi, authApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen, Globe, Lock, List, LayoutGrid } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -31,10 +31,10 @@ export default function CollectionPage() {
   const [q, setQ] = useState('')          // debounced search actually sent
   const [rarity, setRarity] = useState('')
   const [cardType, setCardType] = useState('')
-  const [sortBy, setSortBy] = useState('added_at')
-  const [order, setOrder] = useState<'asc' | 'desc'>('desc')
-  const [view, setView] = useState<'list' | 'grid'>('list')
-  const [cardDetails, setCardDetails] = useState<Record<string, any>>({})
+  // Sort/view preferences persist across refreshes until the user changes them.
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem('col.sortBy') || 'added_at')
+  const [order, setOrder] = useState<'asc' | 'desc'>(() => (localStorage.getItem('col.order') as 'asc' | 'desc') || 'desc')
+  const [view, setView] = useState<'list' | 'grid'>(() => (localStorage.getItem('col.view') as 'list' | 'grid') || 'list')
   const [editEntry, setEditEntry] = useState<any>(null)
   const [binderEntry, setBinderEntry] = useState<any>(null)
   const [deckEntry, setDeckEntry] = useState<any>(null)
@@ -50,12 +50,16 @@ export default function CollectionPage() {
     return () => clearTimeout(id)
   }, [search])
 
+  useEffect(() => { localStorage.setItem('col.sortBy', sortBy) }, [sortBy])
+  useEffect(() => { localStorage.setItem('col.order', order) }, [order])
+  useEffect(() => { localStorage.setItem('col.view', view) }, [view])
+
   const { data, isLoading } = useQuery({
     queryKey: ['collection', { page, perPage, condition, foil, setCode, q, rarity, cardType, sortBy, order }],
     queryFn: () => collectionApi.list({
       page, per_page: perPage, condition: condition || undefined, foil,
       set_code: setCode || undefined, q: q || undefined, rarity: rarity || undefined,
-      card_type: cardType || undefined, sort_by: sortBy, order,
+      card_type: cardType || undefined, sort_by: sortBy, order, with_cards: true,
     }),
   })
 
@@ -138,14 +142,6 @@ export default function CollectionPage() {
     const file = e.target.files?.[0]
     if (file) importMutation.mutate(file)
     e.target.value = ''
-  }
-
-  const fetchCard = async (id: string) => {
-    if (cardDetails[id]) return
-    try {
-      const card = await cardsApi.getById(id)
-      setCardDetails(prev => ({ ...prev, [id]: card }))
-    } catch {}
   }
 
   return (
@@ -323,8 +319,7 @@ export default function CollectionPage() {
           {view === 'grid' ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {data?.items?.map((entry: any) => {
-                const card = cardDetails[entry.scryfall_id]
-                if (!card) fetchCard(entry.scryfall_id)
+                const card = entry.card
                 return (
                   <div key={entry.id} className="relative group">
                     <CardTile card={card || { id: entry.scryfall_id, name: '…' }} showActions={false} />
@@ -357,8 +352,7 @@ export default function CollectionPage() {
               </thead>
               <tbody>
                 {data?.items?.map((entry: any) => {
-                  const card = cardDetails[entry.scryfall_id]
-                  if (!card) fetchCard(entry.scryfall_id)
+                  const card = entry.card
 
                   return (
                     <motion.tr
@@ -501,7 +495,7 @@ export default function CollectionPage() {
               {t('col.totalCards', { count: data?.total ?? 0 })}
               {(() => {
                 const pageValue = (data?.items || []).reduce((sum: number, e: any) => {
-                  const c = cardDetails[e.scryfall_id]
+                  const c = e.card
                   const unit = (e.foil ? c?.price_usd_foil : c?.price_usd) || 0
                   return sum + unit * e.quantity
                 }, 0)
@@ -557,7 +551,7 @@ export default function CollectionPage() {
       {editEntry && (
         <EditCardModal
           entry={editEntry}
-          card={cardDetails[editEntry.scryfall_id]}
+          card={editEntry.card}
           onClose={() => setEditEntry(null)}
           onConfirm={(payload) => updateMutation.mutate({ id: editEntry.id, data: payload })}
           isLoading={updateMutation.isPending}
@@ -567,7 +561,7 @@ export default function CollectionPage() {
       {binderEntry && (
         <AddToBinderModal
           entry={binderEntry}
-          card={cardDetails[binderEntry.scryfall_id]}
+          card={binderEntry.card}
           onClose={() => setBinderEntry(null)}
           onConfirm={(binderId) => addToBinderMutation.mutate({ binderId, entryId: binderEntry.id })}
           isLoading={addToBinderMutation.isPending}
@@ -577,7 +571,7 @@ export default function CollectionPage() {
       {deckEntry && (
         <AddToDeckModal
           entry={deckEntry}
-          card={cardDetails[deckEntry.scryfall_id]}
+          card={deckEntry.card}
           onClose={() => setDeckEntry(null)}
           onConfirm={(deckId) => addToDeckMutation.mutate({ deckId, scryfallId: deckEntry.scryfall_id })}
           isLoading={addToDeckMutation.isPending}
