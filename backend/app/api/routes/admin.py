@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime
+from datetime import datetime, date
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,7 @@ from app.core.security import get_current_admin
 from app.models.user import (
     User, CollectionEntry, Binder, BinderCard, Deck, DeckCard, WishlistEntry,
     Friendship, Share, PasswordResetToken, Feedback, Listing, Interest, Message,
-    EmailCampaign,
+    EmailCampaign, Store, Event,
 )
 from app.services.email import send_email, render_campaign_html
 
@@ -262,3 +262,154 @@ async def send_campaign(cid: int, _: User = Depends(get_current_admin), db: Asyn
     c.status = "sent"
     c.sent_at = datetime.utcnow()
     return _campaign_out(c)
+
+
+# --- Stores directory ------------------------------------------------------
+
+class StoreIn(BaseModel):
+    name: str
+    city: str
+    neighborhood: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    phone2: Optional[str] = None
+    email: Optional[str] = None
+    website: Optional[str] = None
+    instagram: Optional[str] = None
+    logo: Optional[str] = None
+    is_wpn: bool = False
+    featured: bool = False
+    notes: Optional[str] = None
+
+
+_STORE_FIELDS = ["name", "city", "neighborhood", "address", "phone", "phone2", "email",
+                 "website", "instagram", "logo", "is_wpn", "featured", "notes"]
+
+
+def _store_out(s: Store) -> dict:
+    return {f: getattr(s, f) for f in _STORE_FIELDS} | {"id": s.id}
+
+
+@router.get("/stores")
+async def admin_list_stores(_: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    rows = (await db.execute(select(Store).order_by(desc(Store.featured), Store.city, Store.name))).scalars().all()
+    return [_store_out(s) for s in rows]
+
+
+@router.post("/stores", status_code=201)
+async def admin_create_store(data: StoreIn, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    if not data.name.strip() or not data.city.strip():
+        raise HTTPException(status_code=400, detail="Nome e cidade são obrigatórios")
+    s = Store(**data.model_dump())
+    db.add(s)
+    await db.flush()
+    return _store_out(s)
+
+
+@router.patch("/stores/{sid}")
+async def admin_update_store(sid: int, data: StoreIn, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    s = (await db.execute(select(Store).where(Store.id == sid))).scalar_one_or_none()
+    if not s:
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
+    for f, v in data.model_dump().items():
+        setattr(s, f, v)
+    return _store_out(s)
+
+
+@router.delete("/stores/{sid}", status_code=204)
+async def admin_delete_store(sid: int, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    s = (await db.execute(select(Store).where(Store.id == sid))).scalar_one_or_none()
+    if not s:
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
+    # Keep the store's events but detach them.
+    await db.execute(Event.__table__.update().where(Event.store_id == sid).values(store_id=None))
+    await db.execute(delete(Store).where(Store.id == sid))
+
+
+# --- Events ----------------------------------------------------------------
+
+class EventIn(BaseModel):
+    title: str
+    store_id: Optional[int] = None
+    city: str
+    address: Optional[str] = None
+    format: Optional[str] = None
+    kind: str = "tournament"
+    description: Optional[str] = None
+    entry_fee: Optional[str] = None
+    link: Optional[str] = None
+    recurrence: str = "none"          # none | weekly
+    weekday: Optional[int] = None     # 0=Mon .. 6=Sun
+    event_date: Optional[str] = None  # ISO date for one-off
+    time_label: Optional[str] = None
+
+
+def _event_out(e: Event, store_name: Optional[str] = None) -> dict:
+    return {
+        "id": e.id, "title": e.title, "store_id": e.store_id, "store_name": store_name,
+        "city": e.city, "address": e.address, "format": e.format, "kind": e.kind,
+        "description": e.description, "entry_fee": e.entry_fee, "link": e.link,
+        "recurrence": e.recurrence, "weekday": e.weekday,
+        "event_date": e.event_date.isoformat() if e.event_date else None,
+        "time_label": e.time_label,
+    }
+
+
+def _apply_event(e: Event, data: EventIn):
+    e.title, e.store_id, e.city = data.title.strip(), data.store_id, data.city.strip()
+    e.address, e.format = data.address, data.format
+    e.kind = data.kind or "tournament"
+    e.description, e.entry_fee, e.link = data.description, data.entry_fee, data.link
+    e.time_label = data.time_label
+    if data.recurrence == "weekly":
+        e.recurrence, e.weekday, e.event_date = "weekly", data.weekday, None
+    else:
+        e.recurrence, e.weekday = "none", None
+        e.event_date = date.fromisoformat(data.event_date) if data.event_date else None
+
+
+@router.get("/events")
+async def admin_list_events(_: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    rows = (await db.execute(select(Event).order_by(desc(Event.created_at)))).scalars().all()
+    names = {s.id: s.name for s in (await db.execute(
+        select(Store).where(Store.id.in_([e.store_id for e in rows if e.store_id] or [-1]))
+    )).scalars().all()}
+    return [_event_out(e, names.get(e.store_id)) for e in rows]
+
+
+@router.post("/events", status_code=201)
+async def admin_create_event(data: EventIn, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    if not data.title.strip() or not data.city.strip():
+        raise HTTPException(status_code=400, detail="Título e cidade são obrigatórios")
+    if data.recurrence == "weekly" and data.weekday is None:
+        raise HTTPException(status_code=400, detail="Escolha o dia da semana")
+    if data.recurrence != "weekly" and not data.event_date:
+        raise HTTPException(status_code=400, detail="Escolha a data do evento")
+    e = Event()
+    try:
+        _apply_event(e, data)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Data inválida")
+    db.add(e)
+    await db.flush()
+    return _event_out(e)
+
+
+@router.patch("/events/{eid}")
+async def admin_update_event(eid: int, data: EventIn, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    e = (await db.execute(select(Event).where(Event.id == eid))).scalar_one_or_none()
+    if not e:
+        raise HTTPException(status_code=404, detail="Evento não encontrado")
+    try:
+        _apply_event(e, data)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Data inválida")
+    return _event_out(e)
+
+
+@router.delete("/events/{eid}", status_code=204)
+async def admin_delete_event(eid: int, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    e = (await db.execute(select(Event).where(Event.id == eid))).scalar_one_or_none()
+    if not e:
+        raise HTTPException(status_code=404, detail="Evento não encontrado")
+    await db.execute(delete(Event).where(Event.id == eid))

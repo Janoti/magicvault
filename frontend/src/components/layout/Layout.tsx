@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
   Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2, ShieldCheck,
-  ChevronDown, Settings, ArrowLeftRight, Crown
+  ChevronDown, Settings, ArrowLeftRight, Crown, CalendarDays
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -38,6 +38,7 @@ const navGroups = [
       { to: '/friends', icon: Users, key: 'nav.friends' },
       { to: '/shared', icon: Share2, key: 'nav.shared' },
       { to: '/trades', icon: ArrowLeftRight, key: 'trades.nav' },
+      { to: '/eventos', icon: CalendarDays, key: 'nav.events' },
     ],
   },
 ]

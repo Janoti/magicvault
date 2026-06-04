@@ -2,10 +2,270 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X } from 'lucide-react'
+import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X, Store as StoreIcon, CalendarDays } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
+
+const EMPTY_STORE = {
+  id: null as number | null, name: '', city: '', neighborhood: '', address: '',
+  phone: '', phone2: '', email: '', website: '', instagram: '', logo: '',
+  is_wpn: false, featured: false, notes: '',
+}
+
+function StoresSection() {
+  const { t } = useTranslation()
+  const qc = useQueryClient()
+  const { data: stores = [] } = useQuery({ queryKey: ['admin-stores'], queryFn: adminApi.stores })
+  const [form, setForm] = useState<any>(EMPTY_STORE)
+  const [open, setOpen] = useState(false)
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin-stores'] })
+
+  const saveMut = useMutation({
+    mutationFn: () => form.id ? adminApi.updateStore(form.id, form) : adminApi.createStore(form),
+    onSuccess: () => { refresh(); setOpen(false) },
+    onError: (e: any) => alert(e?.response?.data?.detail || t('admin.stores.saveError')),
+  })
+  const delMut = useMutation({ mutationFn: (id: number) => adminApi.deleteStore(id), onSuccess: refresh })
+
+  const startNew = () => { setForm(EMPTY_STORE); setOpen(true) }
+  const startEdit = (s: any) => { setForm({ ...EMPTY_STORE, ...s }); setOpen(true) }
+  const field = (k: string, v: any) => setForm({ ...form, [k]: v })
+
+  const FIELDS: [string, string][] = [
+    ['name', t('admin.stores.name')], ['city', t('admin.stores.city')], ['neighborhood', t('admin.stores.neighborhood')],
+    ['address', t('admin.stores.address')], ['phone', t('admin.stores.phone')], ['phone2', t('admin.stores.phone2')],
+    ['email', t('admin.stores.email')], ['website', t('admin.stores.website')], ['instagram', t('admin.stores.instagram')],
+    ['logo', t('admin.stores.logo')],
+  ]
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text"><StoreIcon size={15} /> {t('admin.stores.title')} ({stores.length})</h2>
+        <button onClick={startNew} className="btn-primary text-xs flex items-center gap-1 px-3 py-1.5"><Plus size={13} /> {t('admin.stores.new')}</button>
+      </div>
+      {stores.length === 0 ? (
+        <p className="surface p-6 text-center text-vault-muted text-sm">{t('admin.stores.empty')}</p>
+      ) : (
+        <div className="space-y-2">
+          {stores.map((s: any) => (
+            <div key={s.id} className="surface p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-vault-text">{s.name}</span>
+                  {s.featured && <span className="text-[10px] text-vault-gold">★</span>}
+                  {s.is_wpn && <span className="text-[10px] text-vault-accent">WPN</span>}
+                </div>
+                <p className="text-xs text-vault-muted truncate">{[s.city, s.neighborhood].filter(Boolean).join(' · ')}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => startEdit(s)} className="text-vault-muted hover:text-vault-accent"><Pencil size={14} /></button>
+                <button onClick={() => { if (confirm(t('admin.stores.confirmDelete'))) delMut.mutate(s.id) }} className="text-vault-muted hover:text-red-400"><Trash2 size={14} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="relative z-10 surface p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-vault-gold">{form.id ? t('admin.stores.editTitle') : t('admin.stores.newTitle')}</h3>
+              <button onClick={() => setOpen(false)} className="text-vault-muted hover:text-vault-text"><X size={18} /></button>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {FIELDS.map(([k, label]) => (
+                <div key={k} className={k === 'name' || k === 'address' || k === 'logo' ? 'sm:col-span-2' : ''}>
+                  <label className="text-xs text-vault-muted">{label}</label>
+                  <input className="input-field w-full" value={form[k] || ''} onChange={(e) => field(k, e.target.value)} />
+                </div>
+              ))}
+              <div className="sm:col-span-2">
+                <label className="text-xs text-vault-muted">{t('admin.stores.notes')}</label>
+                <textarea className="input-field w-full h-20 resize-y" value={form.notes || ''} onChange={(e) => field('notes', e.target.value)} />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-vault-text cursor-pointer"><input type="checkbox" checked={!!form.featured} onChange={(e) => field('featured', e.target.checked)} /> {t('admin.stores.featured')}</label>
+              <label className="flex items-center gap-2 text-sm text-vault-text cursor-pointer"><input type="checkbox" checked={!!form.is_wpn} onChange={(e) => field('is_wpn', e.target.checked)} /> {t('admin.stores.wpn')}</label>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setOpen(false)} className="btn-ghost flex-1">{t('common.cancel')}</button>
+              <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending || !form.name.trim() || !form.city.trim()} className="btn-primary flex-1 disabled:opacity-50">{t('common.save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const EMPTY_EVENT = {
+  id: null as number | null, title: '', store_id: '' as any, city: '', address: '',
+  format: '', kind: 'tournament', description: '', entry_fee: '', link: '',
+  recurrence: 'none', weekday: 4 as number, event_date: '', time_label: '',
+}
+const KINDS = ['fnm', 'tournament', 'casual', 'prerelease', 'other']
+
+function EventsSection() {
+  const { t } = useTranslation()
+  const qc = useQueryClient()
+  const { data: events = [] } = useQuery({ queryKey: ['admin-events'], queryFn: adminApi.events })
+  const { data: stores = [] } = useQuery({ queryKey: ['admin-stores'], queryFn: adminApi.stores })
+  const [form, setForm] = useState<any>(EMPTY_EVENT)
+  const [open, setOpen] = useState(false)
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin-events'] })
+
+  const payload = () => ({
+    ...form,
+    store_id: form.store_id ? Number(form.store_id) : null,
+    weekday: form.recurrence === 'weekly' ? Number(form.weekday) : null,
+    event_date: form.recurrence === 'weekly' ? null : (form.event_date || null),
+  })
+  const saveMut = useMutation({
+    mutationFn: () => form.id ? adminApi.updateEvent(form.id, payload()) : adminApi.createEvent(payload()),
+    onSuccess: () => { refresh(); setOpen(false) },
+    onError: (e: any) => alert(e?.response?.data?.detail || t('admin.events.saveError')),
+  })
+  const delMut = useMutation({ mutationFn: (id: number) => adminApi.deleteEvent(id), onSuccess: refresh })
+
+  const startNew = () => { setForm(EMPTY_EVENT); setOpen(true) }
+  const startEdit = (ev: any) => { setForm({ ...EMPTY_EVENT, ...ev, store_id: ev.store_id ?? '', weekday: ev.weekday ?? 4, event_date: ev.event_date ?? '' }); setOpen(true) }
+  const field = (k: string, v: any) => setForm({ ...form, [k]: v })
+  const WEEKDAYS = [t('events.wd.mon'), t('events.wd.tue'), t('events.wd.wed'), t('events.wd.thu'), t('events.wd.fri'), t('events.wd.sat'), t('events.wd.sun')]
+
+  // When linking a store, default the city from it.
+  const onStore = (v: string) => {
+    const s = stores.find((x: any) => String(x.id) === v)
+    setForm({ ...form, store_id: v, city: form.city || (s?.city || '') })
+  }
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text"><CalendarDays size={15} /> {t('admin.events.title')} ({events.length})</h2>
+        <button onClick={startNew} className="btn-primary text-xs flex items-center gap-1 px-3 py-1.5"><Plus size={13} /> {t('admin.events.new')}</button>
+      </div>
+      {events.length === 0 ? (
+        <p className="surface p-6 text-center text-vault-muted text-sm">{t('admin.events.empty')}</p>
+      ) : (
+        <div className="space-y-2">
+          {events.map((ev: any) => (
+            <div key={ev.id} className="surface p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-vault-text">{ev.title}</span>
+                  {ev.format && <span className="text-[10px] text-vault-accent">{ev.format}</span>}
+                </div>
+                <p className="text-xs text-vault-muted truncate">
+                  {ev.recurrence === 'weekly' ? `${t('admin.events.weekly')}: ${WEEKDAYS[ev.weekday] ?? ''}` : ev.event_date}
+                  {ev.time_label ? ` · ${ev.time_label}` : ''}
+                  {ev.store_name ? ` · ${ev.store_name}` : ` · ${ev.city}`}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => startEdit(ev)} className="text-vault-muted hover:text-vault-accent"><Pencil size={14} /></button>
+                <button onClick={() => { if (confirm(t('admin.events.confirmDelete'))) delMut.mutate(ev.id) }} className="text-vault-muted hover:text-red-400"><Trash2 size={14} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="relative z-10 surface p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-vault-gold">{form.id ? t('admin.events.editTitle') : t('admin.events.newTitle')}</h3>
+              <button onClick={() => setOpen(false)} className="text-vault-muted hover:text-vault-text"><X size={18} /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.events.titleField')}</label>
+                <input className="input-field w-full" value={form.title} onChange={(e) => field('title', e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.events.store')}</label>
+                  <select className="input-field w-full" value={form.store_id} onChange={(e) => onStore(e.target.value)}>
+                    <option value="">— {t('admin.events.noStore')} —</option>
+                    {stores.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.events.city')}</label>
+                  <input className="input-field w-full" value={form.city} onChange={(e) => field('city', e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.events.address')}</label>
+                <input className="input-field w-full" value={form.address} onChange={(e) => field('address', e.target.value)} placeholder={t('admin.events.addressPh')} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.events.format')}</label>
+                  <input className="input-field w-full" value={form.format} onChange={(e) => field('format', e.target.value)} placeholder="Commander, Modern…" />
+                </div>
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.events.kind')}</label>
+                  <select className="input-field w-full" value={form.kind} onChange={(e) => field('kind', e.target.value)}>
+                    {KINDS.map((k) => <option key={k} value={k}>{t(`events.kind.${k}`)}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.events.recurrence')}</label>
+                  <select className="input-field w-full" value={form.recurrence} onChange={(e) => field('recurrence', e.target.value)}>
+                    <option value="none">{t('admin.events.oneOff')}</option>
+                    <option value="weekly">{t('admin.events.weekly')}</option>
+                  </select>
+                </div>
+                {form.recurrence === 'weekly' ? (
+                  <div>
+                    <label className="text-xs text-vault-muted">{t('admin.events.weekday')}</label>
+                    <select className="input-field w-full" value={form.weekday} onChange={(e) => field('weekday', Number(e.target.value))}>
+                      {WEEKDAYS.map((w, i) => <option key={i} value={i}>{w}</option>)}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-xs text-vault-muted">{t('admin.events.date')}</label>
+                    <input type="date" className="input-field w-full" value={form.event_date} onChange={(e) => field('event_date', e.target.value)} />
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.events.time')}</label>
+                  <input className="input-field w-full" value={form.time_label} onChange={(e) => field('time_label', e.target.value)} placeholder="19:00" />
+                </div>
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.events.fee')}</label>
+                  <input className="input-field w-full" value={form.entry_fee} onChange={(e) => field('entry_fee', e.target.value)} placeholder={t('admin.events.feePh')} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.events.link')}</label>
+                <input className="input-field w-full" value={form.link} onChange={(e) => field('link', e.target.value)} placeholder="https://…" />
+              </div>
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.events.description')}</label>
+                <textarea className="input-field w-full h-20 resize-y" value={form.description} onChange={(e) => field('description', e.target.value)} />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setOpen(false)} className="btn-ghost flex-1">{t('common.cancel')}</button>
+              <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending || !form.title.trim() || !form.city.trim()} className="btn-primary flex-1 disabled:opacity-50">{t('common.save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const EMPTY_CAMPAIGN = { id: null as number | null, subject: '', title: '', body: '', image_url: '', cta_text: '', cta_url: '' }
 
@@ -310,6 +570,8 @@ export default function AdminPage() {
       </div>
 
       <CampaignsSection />
+      <StoresSection />
+      <EventsSection />
 
       {/* Edit email modal */}
       {editEmailFor && (

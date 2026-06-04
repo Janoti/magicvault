@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from sqlalchemy import (
-    Integer, String, Float, Boolean, DateTime, ForeignKey,
+    Integer, String, Float, Boolean, DateTime, Date, ForeignKey,
     Text, Enum as SAEnum, UniqueConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -251,6 +251,49 @@ class EmailCampaign(Base):
     sent_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+
+class Store(Base):
+    """A local game store in the public directory (admin-curated)."""
+    __tablename__ = "stores"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(160))
+    city: Mapped[str] = mapped_column(String(100), index=True)
+    neighborhood: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    phone2: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    email: Mapped[Optional[str]] = mapped_column(String(160), nullable=True)
+    website: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    instagram: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    logo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)        # URL or base64
+    is_wpn: Mapped[bool] = mapped_column(Boolean, default=False)            # Wizards Play Network
+    featured: Mapped[bool] = mapped_column(Boolean, default=False)          # promoted partner
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Event(Base):
+    """An MTG event/tournament, optionally hosted by a Store. One-off (event_date)
+    or weekly-recurring (weekday); recurring events are expanded for display."""
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(255))
+    store_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("stores.id"), nullable=True, index=True)
+    city: Mapped[str] = mapped_column(String(100), index=True)
+    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    format: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)   # Commander, Modern, Pauper...
+    kind: Mapped[str] = mapped_column(String(20), default="tournament")        # fnm | tournament | casual | prerelease | other
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    entry_fee: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    link: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    recurrence: Mapped[str] = mapped_column(String(10), default="none")        # none | weekly
+    weekday: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)     # 0=Mon .. 6=Sun (weekly)
+    event_date: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)    # one-off date
+    time_label: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)  # "19:00"
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class Share(Base):

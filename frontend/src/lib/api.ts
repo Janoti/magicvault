@@ -101,6 +101,22 @@ export const adminApi = {
   deleteCampaign: (id: number) => api.delete(`/api/admin/campaigns/${id}`).then(r => r.data),
   testCampaign: (id: number) => api.post(`/api/admin/campaigns/${id}/test`).then(r => r.data),
   sendCampaign: (id: number) => api.post(`/api/admin/campaigns/${id}/send`).then(r => r.data),
+  // Stores + events management
+  stores: () => api.get('/api/admin/stores').then(r => r.data),
+  createStore: (data: object) => api.post('/api/admin/stores', data).then(r => r.data),
+  updateStore: (id: number, data: object) => api.patch(`/api/admin/stores/${id}`, data).then(r => r.data),
+  deleteStore: (id: number) => api.delete(`/api/admin/stores/${id}`).then(r => r.data),
+  events: () => api.get('/api/admin/events').then(r => r.data),
+  createEvent: (data: object) => api.post('/api/admin/events', data).then(r => r.data),
+  updateEvent: (id: number, data: object) => api.patch(`/api/admin/events/${id}`, data).then(r => r.data),
+  deleteEvent: (id: number) => api.delete(`/api/admin/events/${id}`).then(r => r.data),
+}
+
+// Public events calendar + store directory
+export const eventsApi = {
+  list: (params?: object) => api.get('/api/events', { params }).then(r => r.data),
+  filters: () => api.get('/api/events/filters').then(r => r.data),
+  stores: (city?: string) => api.get('/api/stores', { params: city ? { city } : undefined }).then(r => r.data),
 }
 
 // Cards

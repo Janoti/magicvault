@@ -15,10 +15,11 @@ from app.core.config import settings
 from app.core.ratelimit import limiter
 from app.core.logging import setup_logging, request_id_var
 from app.core.database import engine, Base
+from app.core.seed import seed_stores
 
 setup_logging()
 logger = logging.getLogger("vaultspell.request")
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing, events
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
@@ -68,6 +69,7 @@ async def lifespan(app: FastAPI):
                 text("UPDATE users SET is_admin = TRUE WHERE lower(email) = :e"),
                 {"e": settings.admin_email.strip().lower()},
             )
+        await seed_stores(conn)
     yield
 
 
@@ -144,6 +146,7 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
 app.include_router(listings.router, prefix="/api/listings", tags=["listings"])
 app.include_router(billing.router, prefix="/api/billing", tags=["billing"])
+app.include_router(events.router, prefix="/api", tags=["events"])
 
 
 @app.get("/api/health")

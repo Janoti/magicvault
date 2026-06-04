@@ -9,6 +9,8 @@ import RegisterPage from '@/pages/RegisterPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import UnsubscribePage from '@/pages/UnsubscribePage'
+import EventsPage from '@/pages/EventsPage'
+import StoresPage from '@/pages/StoresPage'
 import CollectionPage from '@/pages/CollectionPage'
 import SearchPage from '@/pages/SearchPage'
 import CardScanPage from '@/pages/CardScanPage'
@@ -44,6 +46,10 @@ export default function App() {
       {/* Public */}
       <Route path="/" element={<RootRoute />} />
       <Route path="/features" element={<FeaturesPage />} />
+      <Route path="/eventos" element={<EventsPage />} />
+      <Route path="/events" element={<EventsPage />} />
+      <Route path="/lojas" element={<StoresPage />} />
+      <Route path="/stores" element={<StoresPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
