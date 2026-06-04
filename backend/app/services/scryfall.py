@@ -161,6 +161,7 @@ def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
         "image_small": image_uris.get("small", ""),
         "image_normal": image_uris.get("normal", ""),
         "image_large": image_uris.get("large", ""),
+        "art_crop": image_uris.get("art_crop", ""),
         "price_usd": float(prices.get("usd") or 0),
         "price_usd_foil": float(prices.get("usd_foil") or 0),
         "price_eur": float(prices.get("eur") or 0),

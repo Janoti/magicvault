@@ -1,9 +1,10 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
-import { billingApi } from '@/lib/api'
+import { billingApi, cardsApi } from '@/lib/api'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
   ArrowRight, Check, Github, ArrowLeftRight, Crown, Layers, SearchCode, Users,
@@ -26,9 +27,34 @@ const fadeUp = {
   viewport: { once: true },
 }
 
+// Iconic art for the rotating hero background (fetched from Scryfall).
+const ART_CARDS = [
+  'Nicol Bolas, the Ravager', 'Ugin, the Spirit Dragon', 'Lathliss, Dragon Queen',
+  'Niv-Mizzet, Parun', 'Atraxa, Praetors\' Voice', 'Shivan Dragon',
+]
+
 export default function LandingPage() {
   const { t } = useTranslation()
   const { data: beta } = useQuery({ queryKey: ['beta-status'], queryFn: billingApi.beta })
+
+  // Rotating translucent card-art background.
+  const [artIdx, setArtIdx] = useState(0)
+  const { data: arts } = useQuery({
+    queryKey: ['landing-art'],
+    queryFn: async () => {
+      const res = await Promise.all(
+        ART_CARDS.map((n) => cardsApi.search(`!"${n}"`).then((d: any) => d.cards?.[0]?.art_crop).catch(() => null)),
+      )
+      return res.filter(Boolean) as string[]
+    },
+    staleTime: Infinity,
+  })
+  useEffect(() => {
+    if (!arts?.length) return
+    const id = setInterval(() => setArtIdx((i) => (i + 1) % arts.length), 7000)
+    return () => clearInterval(id)
+  }, [arts])
+
   return (
     <div className="min-h-screen bg-vault-bg text-vault-text">
       {/* Nav */}
@@ -46,6 +72,21 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
+        {/* Rotating translucent card art */}
+        {arts && arts.length > 0 && (
+          <AnimatePresence>
+            <motion.div
+              key={artIdx}
+              className="absolute inset-0 bg-cover bg-center pointer-events-none"
+              style={{ backgroundImage: `url(${arts[artIdx]})` }}
+              initial={{ opacity: 0, scale: 1.08 }}
+              animate={{ opacity: 0.16, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ opacity: { duration: 2.5 }, scale: { duration: 8, ease: 'linear' } }}
+            />
+          </AnimatePresence>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-vault-bg/50 via-vault-bg/75 to-vault-bg pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-b from-vault-accent/10 via-transparent to-transparent pointer-events-none" />
         <div className="max-w-6xl mx-auto px-6 pt-24 pb-16 text-center relative">
           <motion.h1 {...fadeUp} transition={{ delay: 0.05 }}
