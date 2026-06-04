@@ -329,7 +329,39 @@
     "resolved": "resuelto",
     "resolve": "Resolver",
     "reopen": "Reabrir",
-    "noFeedback": "Sin feedback todavía."
+    "noFeedback": "Sin feedback todavía.",
+    "campaigns": {
+      "title": "Campañas de email",
+      "audience": "{{count}} destinatarios",
+      "new": "Nueva campaña",
+      "empty": "Aún no hay campañas.",
+      "newTitle": "Nueva campaña",
+      "editTitle": "Editar campaña",
+      "subject": "Asunto",
+      "heading": "Título (encabezado del email)",
+      "body": "Mensaje",
+      "imageUrl": "URL de la imagen (opcional)",
+      "ctaText": "Texto del botón",
+      "ctaUrl": "Enlace del botón",
+      "test": "Probar",
+      "send": "Enviar",
+      "confirmSend": "¿Enviar esta campaña a {{count}} usuarios? No se puede deshacer.",
+      "confirmDelete": "¿Eliminar esta campaña?",
+      "testSent": "Email de prueba enviado a {{email}}.",
+      "sentResult": "Enviada: {{sent}} de {{total}}.",
+      "sentInfo": "Enviada a {{sent}}/{{total}} el {{date}}",
+      "saveError": "Error al guardar la campaña",
+      "status": { "draft": "borrador", "sending": "enviando", "sent": "enviada" }
+    }
+  },
+  "unsubscribe": {
+    "invalid": "Enlace inválido o expirado.",
+    "doneTitle": "Suscripción cancelada",
+    "doneBody": "{{email}} ya no recibirá nuestros emails de novedades.",
+    "resubscribe": "Volver a suscribirse",
+    "resubTitle": "Suscripción reactivada",
+    "resubBody": "{{email}} volverá a recibir nuestros emails.",
+    "backHome": "Volver al inicio"
   },
   "account": {
     "nav": "Cuenta",

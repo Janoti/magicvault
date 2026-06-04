@@ -46,6 +46,8 @@ export const authApi = {
   forgotPassword: (identifier: string) => api.post('/api/auth/forgot-password', { identifier }).then(r => r.data),
   resetPassword: (token: string, new_password: string) =>
     api.post('/api/auth/reset-password', { token, new_password }).then(r => r.data),
+  unsubscribe: (token: string) => api.post('/api/auth/unsubscribe', { token }).then(r => r.data),
+  resubscribe: (token: string) => api.post('/api/auth/resubscribe', { token }).then(r => r.data),
 }
 
 // Public user profiles
@@ -92,6 +94,12 @@ export const adminApi = {
   deleteUser: (id: number) => api.delete(`/api/admin/users/${id}`).then(r => r.data),
   feedback: () => api.get('/api/admin/feedback').then(r => r.data),
   resolveFeedback: (id: number, status: string) => api.patch(`/api/admin/feedback/${id}`, { status }).then(r => r.data),
+  campaigns: () => api.get('/api/admin/campaigns').then(r => r.data),
+  createCampaign: (data: object) => api.post('/api/admin/campaigns', data).then(r => r.data),
+  updateCampaign: (id: number, data: object) => api.patch(`/api/admin/campaigns/${id}`, data).then(r => r.data),
+  deleteCampaign: (id: number) => api.delete(`/api/admin/campaigns/${id}`).then(r => r.data),
+  testCampaign: (id: number) => api.post(`/api/admin/campaigns/${id}/test`).then(r => r.data),
+  sendCampaign: (id: number) => api.post(`/api/admin/campaigns/${id}/send`).then(r => r.data),
 }
 
 // Cards

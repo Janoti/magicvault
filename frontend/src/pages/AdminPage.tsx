@@ -2,10 +2,154 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2 } from 'lucide-react'
+import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
+
+const EMPTY_CAMPAIGN = { id: null as number | null, subject: '', title: '', body: '', image_url: '', cta_text: '', cta_url: '' }
+
+function CampaignsSection() {
+  const { t } = useTranslation()
+  const qc = useQueryClient()
+  const { data } = useQuery({ queryKey: ['admin-campaigns'], queryFn: adminApi.campaigns })
+  const campaigns = data?.campaigns ?? []
+  const audience = data?.audience ?? 0
+
+  const [form, setForm] = useState(EMPTY_CAMPAIGN)
+  const [open, setOpen] = useState(false)
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin-campaigns'] })
+
+  const saveMut = useMutation({
+    mutationFn: () => form.id
+      ? adminApi.updateCampaign(form.id, form)
+      : adminApi.createCampaign(form),
+    onSuccess: () => { refresh(); setOpen(false); setForm(EMPTY_CAMPAIGN) },
+    onError: (e: any) => alert(e?.response?.data?.detail || t('admin.campaigns.saveError')),
+  })
+  const delMut = useMutation({
+    mutationFn: (id: number) => adminApi.deleteCampaign(id),
+    onSuccess: refresh,
+  })
+  const testMut = useMutation({
+    mutationFn: (id: number) => adminApi.testCampaign(id),
+    onSuccess: (r: any) => alert(t('admin.campaigns.testSent', { email: r?.to || '' })),
+    onError: (e: any) => alert(e?.response?.data?.detail || t('admin.campaigns.saveError')),
+  })
+  const sendMut = useMutation({
+    mutationFn: (id: number) => adminApi.sendCampaign(id),
+    onSuccess: (r: any) => { refresh(); alert(t('admin.campaigns.sentResult', { sent: r?.sent_count ?? 0, total: r?.total_recipients ?? 0 })) },
+    onError: (e: any) => alert(e?.response?.data?.detail || t('admin.campaigns.saveError')),
+  })
+
+  const startNew = () => { setForm(EMPTY_CAMPAIGN); setOpen(true) }
+  const startEdit = (c: any) => { setForm({ id: c.id, subject: c.subject, title: c.title || '', body: c.body || '', image_url: c.image_url || '', cta_text: c.cta_text || '', cta_url: c.cta_url || '' }); setOpen(true) }
+
+  const badge = (status: string) => {
+    const map: Record<string, string> = {
+      draft: 'border-vault-border text-vault-muted',
+      sending: 'border-amber-500/40 text-amber-400',
+      sent: 'border-green-500/40 text-green-400',
+    }
+    return <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${map[status] || ''}`}>{t(`admin.campaigns.status.${status}`)}</span>
+  }
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text">
+          <Mail size={15} /> {t('admin.campaigns.title')}
+          <span className="text-vault-muted font-normal">· {t('admin.campaigns.audience', { count: audience })}</span>
+        </h2>
+        <button onClick={startNew} className="btn-primary text-xs flex items-center gap-1 px-3 py-1.5">
+          <Plus size={13} /> {t('admin.campaigns.new')}
+        </button>
+      </div>
+
+      {campaigns.length === 0 ? (
+        <p className="surface p-6 text-center text-vault-muted text-sm">{t('admin.campaigns.empty')}</p>
+      ) : (
+        <div className="space-y-2">
+          {campaigns.map((c: any) => (
+            <div key={c.id} className="surface p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    {badge(c.status)}
+                    <span className="font-medium text-vault-text truncate">{c.subject}</span>
+                  </div>
+                  <p className="text-xs text-vault-muted">
+                    {c.status === 'sent'
+                      ? t('admin.campaigns.sentInfo', { sent: c.sent_count, total: c.total_recipients, date: c.sent_at ? new Date(c.sent_at).toLocaleString() : '' })
+                      : (c.title || '—')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {c.status === 'draft' && (
+                    <>
+                      <button onClick={() => startEdit(c)} title={t('common.edit')} className="text-vault-muted hover:text-vault-accent"><Pencil size={14} /></button>
+                      <button onClick={() => testMut.mutate(c.id)} disabled={testMut.isPending} className="text-xs px-2 py-1 rounded border border-vault-border text-vault-muted hover:text-vault-text">{t('admin.campaigns.test')}</button>
+                      <button
+                        onClick={() => { if (confirm(t('admin.campaigns.confirmSend', { count: audience }))) sendMut.mutate(c.id) }}
+                        disabled={sendMut.isPending}
+                        className="btn-primary text-xs flex items-center gap-1 px-3 py-1"
+                      ><Send size={12} /> {t('admin.campaigns.send')}</button>
+                      <button onClick={() => { if (confirm(t('admin.campaigns.confirmDelete'))) delMut.mutate(c.id) }} title={t('common.delete')} className="text-vault-muted hover:text-red-400"><Trash2 size={14} /></button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="relative z-10 surface p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-vault-gold">{form.id ? t('admin.campaigns.editTitle') : t('admin.campaigns.newTitle')}</h3>
+              <button onClick={() => setOpen(false)} className="text-vault-muted hover:text-vault-text"><X size={18} /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.campaigns.subject')}</label>
+                <input className="input-field w-full" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} maxLength={255} />
+              </div>
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.campaigns.heading')}</label>
+                <input className="input-field w-full" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} maxLength={255} />
+              </div>
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.campaigns.body')}</label>
+                <textarea className="input-field w-full h-32 resize-y" value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.campaigns.imageUrl')}</label>
+                <input className="input-field w-full" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.campaigns.ctaText')}</label>
+                  <input className="input-field w-full" value={form.cta_text} onChange={(e) => setForm({ ...form, cta_text: e.target.value })} maxLength={80} />
+                </div>
+                <div>
+                  <label className="text-xs text-vault-muted">{t('admin.campaigns.ctaUrl')}</label>
+                  <input className="input-field w-full" value={form.cta_url} onChange={(e) => setForm({ ...form, cta_url: e.target.value })} placeholder="https://…" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setOpen(false)} className="btn-ghost flex-1">{t('common.cancel')}</button>
+              <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending || !form.subject.trim()} className="btn-primary flex-1 disabled:opacity-50">{t('common.save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function Toggle({ on, onClick, disabled }: { on: boolean; onClick: () => void; disabled?: boolean }) {
   return (
@@ -164,6 +308,8 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      <CampaignsSection />
 
       {/* Edit email modal */}
       {editEmailFor && (

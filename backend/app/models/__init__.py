@@ -40,6 +40,8 @@ class User(Base):
     avatar: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # emoji or small base64 image
     bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     links: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array of {label, url}
+    email_opt_out: Mapped[bool] = mapped_column(Boolean, default=False)  # opted out of campaign emails
+    unsubscribe_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)
 
     collection_entries: Mapped[List["CollectionEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     binders: Mapped[List["Binder"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -228,6 +230,24 @@ class PasswordResetToken(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime)
     used: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class EmailCampaign(Base):
+    """An email campaign (newsletter / announcement) sent to opted-in users."""
+    __tablename__ = "email_campaigns"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    subject: Mapped[str] = mapped_column(String(255))
+    title: Mapped[str] = mapped_column(String(255), default="")          # big heading in the email
+    body: Mapped[str] = mapped_column(Text, default="")                  # main text (supports simple line breaks)
+    image_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # optional hero image URL
+    cta_text: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    cta_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(12), default="draft")     # draft | sending | sent
+    total_recipients: Mapped[int] = mapped_column(Integer, default=0)
+    sent_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
 
 class Share(Base):

@@ -169,6 +169,43 @@ async def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), d
     return Token(access_token=token, token_type="bearer", user=to_user_out(user))
 
 
+class UnsubscribeRequest(BaseModel):
+    token: str
+
+
+def _mask_email(email: str) -> str:
+    name, _, domain = email.partition("@")
+    head = name[0] if name else ""
+    return f"{head}***@{domain}" if domain else "***"
+
+
+async def _user_by_unsub_token(token: str, db: AsyncSession) -> User:
+    user = (await db.execute(
+        select(User).where(User.unsubscribe_token == token)
+    )).scalar_one_or_none()
+    if not token or not user:
+        raise HTTPException(status_code=404, detail="Link inválido ou expirado")
+    return user
+
+
+@router.post("/unsubscribe")
+@limiter.limit("20/minute")
+async def unsubscribe(request: Request, data: UnsubscribeRequest, db: AsyncSession = Depends(get_db)):
+    """Public: opt a user out of campaign emails via their unsubscribe token."""
+    user = await _user_by_unsub_token(data.token, db)
+    user.email_opt_out = True
+    return {"email": _mask_email(user.email), "opted_out": True}
+
+
+@router.post("/resubscribe")
+@limiter.limit("20/minute")
+async def resubscribe(request: Request, data: UnsubscribeRequest, db: AsyncSession = Depends(get_db)):
+    """Public: undo an unsubscribe (re-opt-in) via the same token."""
+    user = await _user_by_unsub_token(data.token, db)
+    user.email_opt_out = False
+    return {"email": _mask_email(user.email), "opted_out": False}
+
+
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)):
     return to_user_out(current_user)

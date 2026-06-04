@@ -1,6 +1,8 @@
 """Email sending via Resend (https://resend.com). Falls back to logging the
 message when RESEND_API_KEY is not configured, so the flow works in dev."""
 import logging
+from html import escape
+
 import httpx
 
 from app.core.config import settings
@@ -43,3 +45,61 @@ async def send_password_reset(to: str, reset_url: str) -> bool:
     </div>
     """
     return await send_email(to, "Redefinir sua senha — VaultSpell", html)
+
+
+def render_campaign_html(
+    *,
+    title: str,
+    body: str,
+    image_url: str | None = None,
+    cta_text: str | None = None,
+    cta_url: str | None = None,
+    unsubscribe_url: str | None = None,
+) -> str:
+    """Render a branded campaign email. `body` keeps line breaks; everything is
+    escaped so admin-entered text can't inject markup."""
+    paragraphs = "".join(
+        f"<p style='margin:0 0 14px;line-height:1.6'>{escape(line)}</p>"
+        for line in body.split("\n") if line.strip()
+    ) or "<p></p>"
+
+    hero = (
+        f"<img src='{escape(image_url)}' alt='' "
+        f"style='width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-bottom:20px'>"
+        if image_url else ""
+    )
+    heading = (
+        f"<h1 style='font-size:22px;color:#1a1f35;margin:0 0 16px'>{escape(title)}</h1>"
+        if title else ""
+    )
+    cta = (
+        f"<p style='margin:24px 0'>"
+        f"<a href='{escape(cta_url)}' "
+        f"style='display:inline-block;background:#6c5ce7;color:#fff;padding:13px 24px;"
+        f"border-radius:10px;text-decoration:none;font-weight:600'>{escape(cta_text)}</a></p>"
+        if cta_text and cta_url else ""
+    )
+    footer_unsub = (
+        f"<a href='{escape(unsubscribe_url)}' style='color:#8892b0'>Cancelar inscrição</a> · "
+        if unsubscribe_url else ""
+    )
+
+    return f"""
+    <div style="background:#f4f5fb;padding:24px 0;font-family:system-ui,-apple-system,sans-serif">
+      <div style="max-width:560px;margin:auto;background:#fff;border-radius:16px;overflow:hidden;
+                  box-shadow:0 4px 24px rgba(26,31,53,.08)">
+        <div style="background:linear-gradient(135deg,#6c5ce7,#a55eea);padding:18px 28px">
+          <span style="color:#fff;font-size:18px;font-weight:700">📖 VaultSpell</span>
+        </div>
+        <div style="padding:28px;color:#1a1f35;font-size:15px">
+          {hero}
+          {heading}
+          {paragraphs}
+          {cta}
+        </div>
+        <div style="padding:16px 28px;border-top:1px solid #eceef7;color:#8892b0;font-size:12px">
+          {footer_unsub}VaultSpell — seu cofre de cartas Magic.
+        </div>
+      </div>
+    </div>
+    """

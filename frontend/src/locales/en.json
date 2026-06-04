@@ -329,7 +329,39 @@
     "resolved": "resolved",
     "resolve": "Resolve",
     "reopen": "Reopen",
-    "noFeedback": "No feedback yet."
+    "noFeedback": "No feedback yet.",
+    "campaigns": {
+      "title": "Email campaigns",
+      "audience": "{{count}} recipients",
+      "new": "New campaign",
+      "empty": "No campaigns yet.",
+      "newTitle": "New campaign",
+      "editTitle": "Edit campaign",
+      "subject": "Subject",
+      "heading": "Title (email heading)",
+      "body": "Message",
+      "imageUrl": "Image URL (optional)",
+      "ctaText": "Button text",
+      "ctaUrl": "Button link",
+      "test": "Test",
+      "send": "Send",
+      "confirmSend": "Send this campaign to {{count}} users? This can't be undone.",
+      "confirmDelete": "Delete this campaign?",
+      "testSent": "Test email sent to {{email}}.",
+      "sentResult": "Sent: {{sent}} of {{total}}.",
+      "sentInfo": "Sent to {{sent}}/{{total}} on {{date}}",
+      "saveError": "Error saving campaign",
+      "status": { "draft": "draft", "sending": "sending", "sent": "sent" }
+    }
+  },
+  "unsubscribe": {
+    "invalid": "Invalid or expired link.",
+    "doneTitle": "Unsubscribed",
+    "doneBody": "{{email}} will no longer receive our newsletter emails.",
+    "resubscribe": "Resubscribe",
+    "resubTitle": "Resubscribed",
+    "resubBody": "{{email}} will receive our emails again.",
+    "backHome": "Back to home"
   },
   "account": {
     "nav": "Account",
