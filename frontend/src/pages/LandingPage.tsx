@@ -64,6 +64,8 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <LanguageSwitcher compact direction="down" />
             <Link to="/features" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('landing.featuresNav')}</Link>
+            <Link to="/eventos" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('nav.events')}</Link>
+            <Link to="/lojas" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('events.storesNav')}</Link>
             <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text transition-colors">{t('common.login')}</Link>
             <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
           </div>
@@ -195,7 +197,11 @@ export default function LandingPage() {
       <footer className="border-t border-vault-border/60">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-vault-muted">
           <span className="font-display text-vault-gold">📖 VaultSpell</span>
-          <span>{t('landing.footerDisclaimer')}</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <Link to="/features" className="hover:text-vault-text transition-colors">{t('landing.featuresNav')}</Link>
+            <Link to="/eventos" className="hover:text-vault-text transition-colors">{t('nav.events')}</Link>
+            <Link to="/lojas" className="hover:text-vault-text transition-colors">{t('events.storesNav')}</Link>
+          </div>
           <a href="https://github.com/Janoti/magicvault" target="_blank" rel="noreferrer"
             className="flex items-center gap-2 hover:text-vault-text transition-colors">
             <Github size={15} /> {t('landing.openSource')}
