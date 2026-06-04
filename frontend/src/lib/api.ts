@@ -119,6 +119,13 @@ export const eventsApi = {
   stores: (city?: string) => api.get('/api/stores', { params: city ? { city } : undefined }).then(r => r.data),
 }
 
+// Community decks (proxied from Archidekt)
+export const communityApi = {
+  formats: () => api.get('/api/community/formats').then(r => r.data),
+  decks: (params?: object) => api.get('/api/community/decks', { params }).then(r => r.data),
+  deck: (id: number) => api.get(`/api/community/decks/${id}`).then(r => r.data),
+}
+
 // Cards
 export const cardsApi = {
   search: (q: string, page = 1) => api.get('/api/cards/search', { params: { q, page } }).then(r => r.data),

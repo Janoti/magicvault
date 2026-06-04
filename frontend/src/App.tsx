@@ -11,6 +11,7 @@ import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import UnsubscribePage from '@/pages/UnsubscribePage'
 import EventsPage from '@/pages/EventsPage'
 import StoresPage from '@/pages/StoresPage'
+import CommunityDecksPage from '@/pages/CommunityDecksPage'
 import CollectionPage from '@/pages/CollectionPage'
 import SearchPage from '@/pages/SearchPage'
 import CardScanPage from '@/pages/CardScanPage'
@@ -50,6 +51,8 @@ export default function App() {
       <Route path="/events" element={<EventsPage />} />
       <Route path="/lojas" element={<StoresPage />} />
       <Route path="/stores" element={<StoresPage />} />
+      <Route path="/decks-comunidade" element={<CommunityDecksPage />} />
+      <Route path="/community-decks" element={<CommunityDecksPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />

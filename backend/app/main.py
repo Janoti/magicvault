@@ -19,7 +19,7 @@ from app.core.seed import seed_stores
 
 setup_logging()
 logger = logging.getLogger("vaultspell.request")
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing, events
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing, events, community
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
@@ -147,6 +147,7 @@ app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
 app.include_router(listings.router, prefix="/api/listings", tags=["listings"])
 app.include_router(billing.router, prefix="/api/billing", tags=["billing"])
 app.include_router(events.router, prefix="/api", tags=["events"])
+app.include_router(community.router, prefix="/api/community", tags=["community"])
 
 
 @app.get("/api/health")

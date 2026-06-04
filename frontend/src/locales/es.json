@@ -10,6 +10,7 @@
     "friends": "Amigos",
     "shared": "Compartidos",
     "events": "Eventos",
+    "communityDecks": "Decks de la comunidad",
     "logout": "Salir",
     "subtitle": "Gestor de Colección MTG",
     "total": "Total",
@@ -433,6 +434,19 @@
     "ctaTitle": "¿Tienes una tienda y quieres aparecer aquí?",
     "ctaBody": "Promociona tus eventos y tu tienda a la comunidad de jugadores.",
     "seeEvents": "Ver el calendario de eventos"
+  },
+  "community": {
+    "badge": "Metagame",
+    "title": "Decks de la comunidad",
+    "subtitle": "Explora decks populares por formato y mira la lista completa.",
+    "popular": "Populares",
+    "recent": "Recientes",
+    "loadMore": "Cargar más",
+    "empty": "No se encontraron decks.",
+    "cards": "cartas",
+    "deckEmpty": "No se pudo cargar este deck.",
+    "viewOnArchidekt": "Ver en Archidekt",
+    "poweredBy": "Decks vía Archidekt"
   },
   "unsubscribe": {
     "invalid": "Enlace inválido o expirado.",
