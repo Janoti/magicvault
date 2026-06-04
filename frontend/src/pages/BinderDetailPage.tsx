@@ -181,13 +181,17 @@ export default function BinderDetailPage() {
                         disabled={addCardMutation.isPending}
                         className="w-full flex items-center gap-3 p-3 rounded-xl border border-vault-border hover:border-vault-accent/50 hover:bg-vault-card text-left transition-all"
                       >
-                        <div className="w-8 h-11 bg-vault-card rounded flex-shrink-0" />
+                        {entry.card?.image_small ? (
+                          <img src={entry.card.image_small} alt={entry.card.name} className="w-8 rounded shadow flex-shrink-0" />
+                        ) : (
+                          <div className="w-8 h-11 bg-vault-card rounded flex-shrink-0" />
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-vault-text truncate">
-                            {entry.scryfall_id.slice(0, 8)}...
+                            {entry.card?.name || entry.scryfall_id.slice(0, 8) + '...'}
                           </p>
                           <p className="text-xs text-vault-muted">
-                            ×{entry.quantity} • {entry.condition}{entry.foil ? ' ⚡' : ''}
+                            {entry.card?.set?.toUpperCase()} • ×{entry.quantity} • {entry.condition}{entry.foil ? ' ⚡' : ''}
                           </p>
                         </div>
                         <Plus size={16} className="text-vault-accent flex-shrink-0" />
