@@ -1,6 +1,8 @@
 import json
+import logging
 import re
 import secrets
+from html import escape
 from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Depends, status, Request
@@ -14,9 +16,10 @@ from app.core.ratelimit import limiter
 from app.core.database import get_db
 from app.core.security import verify_password, hash_password, create_access_token, get_current_user
 from app.models.user import User, PasswordResetToken
-from app.services.email import send_password_reset
+from app.services.email import send_password_reset, send_email
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_.-]{3,30}$")
 MIN_PASSWORD_LEN = 6
@@ -122,6 +125,24 @@ async def register(request: Request, data: UserRegister, db: AsyncSession = Depe
     )
     db.add(user)
     await db.flush()
+
+    # Best-effort: notify the admin that a new account was created. Never block signup.
+    if settings.admin_email:
+        try:
+            pos = total_users + 1
+            badge = " 🎁 (vaga beta — Premium grátis)" if beta else ""
+            html = (
+                f"<div style='font-family:system-ui,sans-serif;font-size:15px;color:#1a1f35'>"
+                f"<h2 style='color:#6c5ce7'>Novo cadastro no VaultSpell 🎉</h2>"
+                f"<p><b>Usuário:</b> {escape(user.username)}<br>"
+                f"<b>Email:</b> {escape(user.email)}<br>"
+                f"<b>Conta nº:</b> {pos}{badge}</p>"
+                f"<p style='color:#8892b0;font-size:13px'>Total de contas agora: {pos}.</p>"
+                f"</div>"
+            )
+            await send_email(settings.admin_email, f"Novo cadastro: {user.username} (#{pos})", html)
+        except Exception:
+            logger.warning("Failed to send new-signup admin notification", exc_info=True)
 
     token = create_access_token({"sub": str(user.id)})
     return Token(access_token=token, token_type="bearer", user=to_user_out(user))
