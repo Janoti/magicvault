@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { cardsApi, listingsApi, collectionApi, bindersApi, decksApi } from '@/lib/api'
+import { useUsdBrl } from '@/components/cards/CardPrice'
 
 const CONDITIONS = ['M', 'NM', 'LP', 'MP', 'HP', 'DMG']
 type Source = 'collection' | 'binder' | 'deck' | 'search'
@@ -26,6 +27,7 @@ function resizePhoto(file: File): Promise<string> {
 
 export default function CreateListingModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { t } = useTranslation()
+  const rate = useUsdBrl()
   const [source, setSource] = useState<Source>('collection')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
@@ -91,6 +93,11 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
   const removeWanted = (id: string) => setWantedCards(wantedCards.filter(w => w.id !== id))
 
   const canSubmit = !!card && ((forSale && !!price) || (forTrade && (wantedCards.length > 0 || wanted.trim())))
+
+  // Reference market price for the selected card (foil-aware), in USD and ~BRL.
+  const marketUsd = (foil ? card?.price_usd_foil : card?.price_usd) || 0
+  const marketBrl = rate ? marketUsd * rate : 0
+  const marketBrlLabel = marketBrl > 0 ? `R$${marketBrl.toFixed(2).replace('.', ',')}` : ''
 
   const submit = async () => {
     if (!canSubmit) return
@@ -184,6 +191,13 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
                 <div className="flex-1">
                   <p className="font-medium text-vault-text">{card.name}</p>
                   <p className="text-xs text-vault-muted">{card.set_name}</p>
+                  {marketUsd > 0 && (
+                    <p className="text-xs text-vault-muted mt-0.5">
+                      {t('trades.marketPrice')}:{' '}
+                      <span className="font-mono font-bold text-green-400">${marketUsd.toFixed(2)}</span>
+                      {marketBrlLabel && <span className="font-mono text-vault-muted/80"> ≈ {marketBrlLabel}</span>}
+                    </p>
+                  )}
                 </div>
                 <button onClick={() => setCard(null)} className="text-xs text-vault-accent">↺</button>
               </div>
@@ -218,6 +232,18 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
               {forSale && (
                 <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 space-y-2">
                   <label className="text-xs text-vault-muted block">{t('trades.priceLabel')} (R$)</label>
+                  {marketBrl > 0 && (
+                    <div className="flex items-center justify-between text-xs gap-2">
+                      <span className="text-vault-muted">
+                        {t('trades.marketRef')}:{' '}
+                        <span className="font-mono font-bold text-green-400">{marketBrlLabel}</span>
+                        <span className="font-mono text-vault-muted/70"> (${marketUsd.toFixed(2)})</span>
+                      </span>
+                      <button type="button" onClick={() => setPrice(marketBrl.toFixed(2))} className="text-vault-accent hover:underline shrink-0">
+                        {t('trades.useMarket')}
+                      </button>
+                    </div>
+                  )}
                   <input type="number" step="0.01" min="0" className="input-field" placeholder="0,00" value={price} onChange={e => setPrice(e.target.value)} />
                   <label className="flex items-center gap-2 text-sm text-vault-text cursor-pointer">
                     <input type="checkbox" checked={acceptsOffers} onChange={e => setAcceptsOffers(e.target.checked)} />
