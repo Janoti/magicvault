@@ -456,6 +456,19 @@
     "copyLogin": "Log in to copy",
     "copyError": "Error copying the deck"
   },
+  "cardInfo": {
+    "inCollection": "In collection",
+    "copies": "{{count}} copies",
+    "inMarket": "{{count}} for sale · from {{price}}",
+    "notInMarket": "Not for sale in our market",
+    "viewScryfall": "View on Scryfall",
+    "legality": "Legality",
+    "set": "Set",
+    "year": "Year",
+    "rarity": "Rarity",
+    "artist": "Artist",
+    "loyalty": "Loyalty"
+  },
   "unsubscribe": {
     "invalid": "Invalid or expired link.",
     "doneTitle": "Unsubscribed",

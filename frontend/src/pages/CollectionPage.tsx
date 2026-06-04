@@ -6,6 +6,7 @@ import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Sw
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import CardTile from '@/components/cards/CardTile'
+import CardInfoModal from '@/components/cards/CardInfoModal'
 import RoleTag from '@/components/cards/RoleTag'
 import { cardRole } from '@/lib/cardRole'
 import EditCardModal from '@/components/collection/EditCardModal'
@@ -36,6 +37,7 @@ export default function CollectionPage() {
   const [order, setOrder] = useState<'asc' | 'desc'>(() => (localStorage.getItem('col.order') as 'asc' | 'desc') || 'desc')
   const [view, setView] = useState<'list' | 'grid'>(() => (localStorage.getItem('col.view') as 'list' | 'grid') || 'list')
   const [editEntry, setEditEntry] = useState<any>(null)
+  const [infoCard, setInfoCard] = useState<any>(null)
   const [binderEntry, setBinderEntry] = useState<any>(null)
   const [deckEntry, setDeckEntry] = useState<any>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -322,7 +324,7 @@ export default function CollectionPage() {
                 const card = entry.card
                 return (
                   <div key={entry.id} className="relative group">
-                    <CardTile card={card || { id: entry.scryfall_id, name: '…' }} showActions={false} />
+                    <CardTile card={card || { id: entry.scryfall_id, name: '…' }} showActions={false} onClick={() => card && setInfoCard(card)} />
                     <div className="absolute top-1 left-1 flex gap-1">
                       <span className="text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{entry.quantity}</span>
                       <span className="text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">{entry.condition}{entry.foil ? ' ⚡' : ''}</span>
@@ -372,7 +374,7 @@ export default function CollectionPage() {
                           onMouseLeave={() => setPreview(null)}
                         >
                           {card?.image_small ? (
-                            <img src={card.image_small} alt={card.name} className="w-8 rounded shadow cursor-zoom-in" />
+                            <img src={card.image_small} alt={card.name} onClick={() => setInfoCard(card)} className="w-8 rounded shadow cursor-pointer" />
                           ) : (
                             <div className="w-8 h-11 bg-vault-card rounded" />
                           )}
@@ -547,6 +549,8 @@ export default function CollectionPage() {
           onClose={() => setShowShare(false)}
         />
       )}
+
+      {infoCard && <CardInfoModal card={infoCard} onClose={() => setInfoCard(null)} />}
 
       {editEntry && (
         <EditCardModal

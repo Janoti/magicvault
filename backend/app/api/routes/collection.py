@@ -11,7 +11,7 @@ import io
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.user import User, CollectionEntry, Binder, BinderCard
+from app.models.user import User, CollectionEntry, Binder, BinderCard, Listing
 from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk
 from app.services.sharing import build_resource_view
 
@@ -115,6 +115,29 @@ async def stats(
         "total_cards": row.total_cards or 0,
         "total_value": round(total_value, 2),
     }
+
+
+@router.get("/card-context/{scryfall_id}")
+async def card_context(
+    scryfall_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """For the card info modal: how many copies the user owns of this printing,
+    and whether it's for sale in our marketplace."""
+    owned = (await db.execute(
+        select(func.coalesce(func.sum(CollectionEntry.quantity), 0))
+        .where(CollectionEntry.user_id == current_user.id, CollectionEntry.scryfall_id == scryfall_id)
+    )).scalar() or 0
+
+    row = (await db.execute(
+        select(func.count(Listing.id), func.min(Listing.price))
+        .where(Listing.scryfall_id == scryfall_id, Listing.status == "active", Listing.price.is_not(None))
+    )).first()
+    count = row[0] or 0
+    min_price = float(row[1]) if row and row[1] is not None else None
+
+    return {"owned": int(owned), "market": {"count": count, "min_price": min_price}}
 
 
 @router.get("")

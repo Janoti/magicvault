@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth'
 import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
+import CardInfoModal from '@/components/cards/CardInfoModal'
 import CardPrice from '@/components/cards/CardPrice'
 import DeckAnalysis from '@/components/decks/DeckAnalysis'
 import DeckCompare from '@/components/decks/DeckCompare'
@@ -92,6 +93,7 @@ export default function DeckDetailPage() {
   const [showPlaytest, setShowPlaytest] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showDoctor, setShowDoctor] = useState(false)
+  const [infoCard, setInfoCard] = useState<any>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const { t, i18n } = useTranslation()
   const qc = useQueryClient()
@@ -327,6 +329,8 @@ export default function DeckDetailPage() {
       )}
 
       {showPlaytest && <PlaytestModal mainboard={mainboard} onClose={() => setShowPlaytest(false)} />}
+
+      {infoCard && <CardInfoModal card={infoCard} onClose={() => setInfoCard(null)} />}
 
       {/* Export decklist */}
       <AnimatePresence>
@@ -566,7 +570,7 @@ export default function DeckDetailPage() {
                 <Crown size={14} /> {t('detail.commander')} ({commanders.length})
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {commanders.map((c: any) => <CardTile key={c.id} card={c.card} showActions={false} />)}
+                {commanders.map((c: any) => <CardTile key={c.id} card={c.card} showActions={false} onClick={() => c.card && setInfoCard(c.card)} />)}
               </div>
             </section>
           )}
@@ -598,7 +602,7 @@ export default function DeckDetailPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {mainboard.map((entry: any) => (
                     <div key={entry.id} className="relative">
-                      <CardTile card={entry.card} showActions={false} />
+                      <CardTile card={entry.card} showActions={false} onClick={() => entry.card && setInfoCard(entry.card)} />
                       <span className="absolute top-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{entry.quantity}</span>
                     </div>
                   ))}

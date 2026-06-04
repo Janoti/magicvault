@@ -22,6 +22,7 @@ interface CardTileProps {
   }
   onAdd?: (card: any) => void
   onWishlist?: (card: any) => void
+  onClick?: (card: any) => void
   showActions?: boolean
   compact?: boolean
 }
@@ -38,7 +39,7 @@ const colorMap: Record<string, string> = {
   W: '☀️', U: '💧', B: '💀', R: '🔥', G: '🌲',
 }
 
-export default function CardTile({ card, onAdd, onWishlist, showActions = true, compact = false }: CardTileProps) {
+export default function CardTile({ card, onAdd, onWishlist, onClick, showActions = true, compact = false }: CardTileProps) {
   const [hovered, setHovered] = useState(false)
   const [imgError, setImgError] = useState(false)
 
@@ -51,6 +52,7 @@ export default function CardTile({ card, onAdd, onWishlist, showActions = true, 
       transition={{ duration: 0.2 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => onClick?.(card)}
     >
       {/* Card image */}
       <div className="aspect-[63/88] bg-vault-surface relative overflow-hidden">

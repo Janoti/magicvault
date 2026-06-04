@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cardsApi, collectionApi, wishlistApi } from '@/lib/api'
 import CardTile from '@/components/cards/CardTile'
 import AddCardModal from '@/components/collection/AddCardModal'
+import CardInfoModal from '@/components/cards/CardInfoModal'
 import { Search, Filter, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debounce } from '@/lib/utils'
@@ -24,6 +25,7 @@ export default function SearchPage() {
   const [searchInput, setSearchInput] = useState('')
   const [page, setPage] = useState(1)
   const [selectedCard, setSelectedCard] = useState<any>(null)
+  const [infoCard, setInfoCard] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
   const qc = useQueryClient()
 
@@ -182,6 +184,7 @@ export default function SearchPage() {
                     card={card}
                     onAdd={handleAdd}
                     onWishlist={(c) => wishlistMutation.mutate(c)}
+                    onClick={(c) => setInfoCard(c)}
                   />
                 </motion.div>
               ))}
@@ -209,6 +212,15 @@ export default function SearchPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Card encyclopedia (read-only) */}
+      {infoCard && (
+        <CardInfoModal
+          card={infoCard}
+          onClose={() => setInfoCard(null)}
+          onAddToCollection={(c) => { setInfoCard(null); handleAdd(c) }}
+        />
       )}
 
       {/* Add card modal */}
