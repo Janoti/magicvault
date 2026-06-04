@@ -1,12 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { Eye, X, ExternalLink, Layers, Flame, Clock } from 'lucide-react'
-import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { useSeo } from '@/components/Seo'
+import PublicPage from '@/components/PublicPage'
 import { communityApi } from '@/lib/api'
-import { useAuthStore } from '@/store/auth'
 
 const COLOR_HEX: Record<string, string> = { W: '#f4e6b8', U: '#3b82c4', B: '#5b5563', R: '#d6584f', G: '#4ca766' }
 
@@ -16,29 +14,6 @@ function ColorPips({ colors }: { colors: string[] }) {
     <span className="inline-flex gap-0.5">
       {colors.map((c) => <span key={c} className="w-3 h-3 rounded-full border border-black/30" style={{ background: COLOR_HEX[c] }} />)}
     </span>
-  )
-}
-
-function TopBar() {
-  const { t } = useTranslation()
-  const user = useAuthStore((s) => s.user)
-  return (
-    <header className="border-b border-vault-border/60 backdrop-blur sticky top-0 z-20 bg-vault-bg/80">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="font-display text-xl font-bold text-vault-gold tracking-wider">📖 VaultSpell</Link>
-        <div className="flex items-center gap-3">
-          <LanguageSwitcher compact direction="down" />
-          {user ? (
-            <Link to="/collection" className="btn-primary text-sm">{t('events.openApp')}</Link>
-          ) : (
-            <>
-              <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text">{t('common.login')}</Link>
-              <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
   )
 }
 
@@ -133,9 +108,7 @@ export default function CommunityDecksPage() {
   const decks = (data?.pages || []).flatMap((p: any) => p.decks || [])
 
   return (
-    <div className="min-h-screen bg-vault-bg text-vault-text">
-      <TopBar />
-
+    <PublicPage>
       <section className="max-w-5xl mx-auto px-6 pt-12 pb-4 text-center">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-vault-gold bg-vault-gold/10 border border-vault-gold/30 rounded-full px-3 py-1 mb-4">
           <Layers size={13} /> {t('community.badge')}
@@ -191,6 +164,6 @@ export default function CommunityDecksPage() {
       </section>
 
       {selected && <DeckDetailModal id={selected} onClose={() => setSelected(null)} />}
-    </div>
+    </PublicPage>
   )
 }

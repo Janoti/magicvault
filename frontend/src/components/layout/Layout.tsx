@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
@@ -44,7 +44,7 @@ const navGroups = [
   },
 ]
 
-export default function Layout() {
+export default function Layout({ children }: { children?: ReactNode }) {
   const { user, logout } = useAuthStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -224,7 +224,7 @@ export default function Layout() {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto bg-transparent relative z-10">
-        <Outlet />
+        {children ?? <Outlet />}
       </main>
 
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}

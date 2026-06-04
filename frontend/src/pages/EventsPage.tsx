@@ -7,41 +7,15 @@ import {
   CalendarDays, List, MapPin, Clock, Store as StoreIcon, ExternalLink,
   ChevronLeft, ChevronRight, Ticket, Sparkles,
 } from 'lucide-react'
-import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { useSeo, JsonLd } from '@/components/Seo'
+import PublicPage from '@/components/PublicPage'
 import { eventsApi } from '@/lib/api'
-import { useAuthStore } from '@/store/auth'
 
 const KIND_EMOJI: Record<string, string> = { fnm: '🍕', tournament: '🏆', casual: '🎲', prerelease: '✨', other: '📅' }
 
 function iso(d: Date) { return d.toISOString().slice(0, 10) }
 function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1) }
 function endOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth() + 1, 0) }
-
-// Public, auth-aware top bar (mirrors FeaturesPage).
-function TopBar() {
-  const { t } = useTranslation()
-  const user = useAuthStore((s) => s.user)
-  return (
-    <header className="border-b border-vault-border/60 backdrop-blur sticky top-0 z-20 bg-vault-bg/80">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="font-display text-xl font-bold text-vault-gold tracking-wider">📖 VaultSpell</Link>
-        <div className="flex items-center gap-3">
-          <Link to="/lojas" className="text-sm text-vault-muted hover:text-vault-text">{t('events.storesNav')}</Link>
-          <LanguageSwitcher compact direction="down" />
-          {user ? (
-            <Link to="/collection" className="btn-primary text-sm">{t('events.openApp')}</Link>
-          ) : (
-            <>
-              <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text">{t('common.login')}</Link>
-              <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  )
-}
 
 function EventCard({ e }: { e: any }) {
   const { t } = useTranslation()
@@ -143,9 +117,8 @@ export default function EventsPage() {
   const todayIso = iso(new Date())
 
   return (
-    <div className="min-h-screen bg-vault-bg text-vault-text">
+    <PublicPage nav={[{ to: '/lojas', label: t('events.storesNav') }]}>
       {eventLd.length > 0 && <JsonLd data={eventLd} />}
-      <TopBar />
 
       <section className="max-w-5xl mx-auto px-6 pt-12 pb-4 text-center">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-vault-gold bg-vault-gold/10 border border-vault-gold/30 rounded-full px-3 py-1 mb-4">
@@ -239,6 +212,6 @@ export default function EventsPage() {
           </Link>
         </div>
       </section>
-    </div>
+    </PublicPage>
   )
 }
