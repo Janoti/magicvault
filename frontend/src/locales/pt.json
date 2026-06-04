@@ -95,7 +95,7 @@
     "badge": "100% grátis para usar",
     "heroTitle1": "Gerencie sua coleção de",
     "heroTitle2": "Magic: The Gathering",
-    "heroSubtitle": "Catalogue suas cartas, monte decks e binders, acompanhe preços reais, troque com a comunidade e compartilhe com amigos — tudo em um só lugar.",
+    "heroSubtitle": "Catalogue suas cartas, descubra quanto valem em R$, monte decks que se constroem sozinhos e troque com a comunidade — tudo num só lugar. De graça.",
     "ctaStart": "Começar agora",
     "ctaHaveAccount": "Já tenho conta",
     "noCard": "Sem cartão de crédito • Dados via Scryfall",
@@ -160,12 +160,16 @@
     "collection": "Ver a coleção completa"
   },
   "feat": {
-    "title": "Tudo que o VaultSpell faz",
-    "subtitle": "Do catálogo ao mercado: a central completa da sua coleção de Magic.",
+    "badge": "Tudo num só lugar",
+    "title": "A central da sua coleção de Magic",
+    "subtitle": "O único lugar que junta coleção, decks e mercado de verdade — não como acessório, mas como o coração do app. Grátis pra usar.",
     "cta": "Criar conta grátis",
+    "ctaTitle": "Pronto pra organizar sua coleção?",
+    "ctaSub": "Crie sua conta em segundos e comece a catalogar, montar decks e trocar.",
     "cats": {
       "collection": {
         "title": "Coleção & cartas",
+        "intro": "Catalogue cada carta uma vez e veja tudo o que importa: quanto vale (em real), em quais decks e binders ela está, e onde encontrá-la fisicamente. Sua coleção deixa de ser uma lista e vira um inventário vivo.",
         "items": [
           "Catalogue por busca, com quantidade, condição e foil",
           "Valor total em dólar e real (cotação do dia)",
@@ -177,7 +181,8 @@
         ]
       },
       "decks": {
-        "title": "Decks",
+        "title": "Decks que se constroem sozinhos",
+        "intro": "Importe colando uma lista, e o VaultSpell faz o resto: analisa a curva, classifica cada carta por função, mostra quanto você já tem na coleção, sugere cartas que combinam e até dá uma nota por IA. Tudo conectado ao que é seu.",
         "items": [
           "Decks de qualquer formato (Commander, Standard, Modern...)",
           "Importe colando a lista (Moxfield/Arena) e exporte de volta",
@@ -190,7 +195,8 @@
         ]
       },
       "search": {
-        "title": "Busca poderosa",
+        "title": "Acha qualquer carta",
+        "intro": "Sabe o nome? Autocomplete. Só lembra do que ela faz? Busque pelo efeito ou habilidade — \"compra uma carta\", \"voar\" — e ache as 300+ cartas que fazem aquilo. Tudo via Scryfall, sempre atualizado.",
         "items": [
           "Busca por nome com autocomplete",
           "Busca por efeito ou habilidade (texto do card)",
@@ -199,7 +205,8 @@
         ]
       },
       "trades": {
-        "title": "Trocas & Vendas (Premium)",
+        "title": "Compre, venda e troque",
+        "intro": "Um mercado de cartas físicas dentro do app: anuncie com foto real, defina preço ou as cartas que aceita em troca, e negocie pelo chat. As cartas da sua wishlist já avisam quando aparecem à venda aqui.",
         "items": [
           "Anuncie cartas físicas com foto real",
           "Venda (aceita proposta) ou troca (lista de cartas que aceita)",
@@ -208,16 +215,18 @@
         ]
       },
       "social": {
-        "title": "Social & compartilhar",
+        "title": "Mostre e compartilhe",
+        "intro": "Monte um perfil público com seus melhores decks e sua coleção, e mande o link (bonito) pra qualquer um — sem precisar de conta pra ver. Ou compartilhe direto com amigos. Tem até QR pra mostrar na mesa.",
         "items": [
           "Amigos por username ou email",
           "Compartilhe coleção, deck ou binder com amigos ou link público",
-          "Links públicos bonitos (vaultspell.com/p/voce/deck)",
+          "Links públicos bonitos (vaultspell.com/p/voce/deck) + QR",
           "Perfil público com bio, links e contato (WhatsApp)"
         ]
       },
       "platform": {
-        "title": "Conta & plataforma",
+        "title": "Feito pra durar",
+        "intro": "Em três idiomas, com domínio próprio, pagamentos seguros via Stripe e novas funções toda semana. É um projeto vivo — e os primeiros 100 membros ganham Premium de graça pra sempre.",
         "items": [
           "Em 3 idiomas: português, inglês e espanhol",
           "Recuperação de senha por email ou username",

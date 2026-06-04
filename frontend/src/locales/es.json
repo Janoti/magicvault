@@ -95,7 +95,7 @@
     "badge": "100% gratis",
     "heroTitle1": "Gestiona tu colección de",
     "heroTitle2": "Magic: The Gathering",
-    "heroSubtitle": "Cataloga tus cartas, arma mazos y carpetas, sigue precios reales, intercambia con la comunidad y comparte con amigos — todo en un solo lugar.",
+    "heroSubtitle": "Cataloga tus cartas, descubre cuánto valen, arma mazos que se arman solos e intercambia con la comunidad — todo en un solo lugar. Gratis.",
     "ctaStart": "Empezar ahora",
     "ctaHaveAccount": "Ya tengo cuenta",
     "noCard": "Sin tarjeta de crédito • Datos vía Scryfall",
@@ -160,12 +160,16 @@
     "collection": "Ver la colección completa"
   },
   "feat": {
-    "title": "Todo lo que hace VaultSpell",
-    "subtitle": "Del catálogo al mercado: el centro completo de tu colección de Magic.",
+    "badge": "Todo en un solo lugar",
+    "title": "El centro de tu colección de Magic",
+    "subtitle": "El único lugar que une de verdad tu colección, tus mazos y un mercado — no como accesorio, sino como el corazón de la app. Gratis para usar.",
     "cta": "Crear cuenta gratis",
+    "ctaTitle": "¿Listo para organizar tu colección?",
+    "ctaSub": "Crea tu cuenta en segundos y empieza a catalogar, armar mazos e intercambiar.",
     "cats": {
       "collection": {
         "title": "Colección y cartas",
+        "intro": "Cataloga cada carta una vez y ve todo lo que importa: cuánto vale (en tu moneda), en qué mazos y carpetas está, y dónde encontrarla físicamente. Tu colección deja de ser una lista y se vuelve un inventario vivo.",
         "items": [
           "Cataloga por búsqueda, con cantidad, condición y foil",
           "Valor total en dólar y real (cotización del día)",
@@ -177,7 +181,8 @@
         ]
       },
       "decks": {
-        "title": "Mazos",
+        "title": "Mazos que se arman solos",
+        "intro": "Pega una lista y VaultSpell hace el resto: analiza la curva, etiqueta cada carta por rol, muestra cuánto ya tienes, sugiere cartas que combinan e incluso le pone nota con IA. Todo conectado a lo que es tuyo.",
         "items": [
           "Mazos de cualquier formato (Commander, Standard, Modern...)",
           "Importa pegando una lista (Moxfield/Arena) y expórtala",
@@ -190,7 +195,8 @@
         ]
       },
       "search": {
-        "title": "Búsqueda potente",
+        "title": "Encuentra cualquier carta",
+        "intro": "¿Sabes el nombre? Autocompletado. ¿Solo recuerdas lo que hace? Busca por efecto o habilidad — \"roba una carta\", \"volar\" — y encuentra las 300+ cartas que lo hacen. Todo vía Scryfall, siempre actualizado.",
         "items": [
           "Búsqueda por nombre con autocompletado",
           "Búsqueda por efecto o habilidad (texto de la carta)",
@@ -199,7 +205,8 @@
         ]
       },
       "trades": {
-        "title": "Intercambios y ventas (Premium)",
+        "title": "Compra, vende e intercambia",
+        "intro": "Un mercado de cartas físicas dentro de la app: publica con foto real, define el precio o las cartas que aceptas a cambio, y negocia por chat. Tu wishlist te avisa cuando una carta aparece a la venta aquí.",
         "items": [
           "Publica cartas físicas con foto real",
           "Vende (acepta propuestas) o intercambia (cartas que aceptas)",
@@ -208,7 +215,8 @@
         ]
       },
       "social": {
-        "title": "Social y compartir",
+        "title": "Muestra y comparte",
+        "intro": "Arma un perfil público con tus mejores mazos y tu colección, y envía el enlace (bonito) a cualquiera — sin necesidad de cuenta para verlo. O comparte directo con amigos. Hasta hay un QR para mostrar en la mesa.",
         "items": [
           "Amigos por usuario o email",
           "Comparte colección, mazo o carpeta con amigos o enlace público",
@@ -217,7 +225,8 @@
         ]
       },
       "platform": {
-        "title": "Cuenta y plataforma",
+        "title": "Hecho para durar",
+        "intro": "En tres idiomas, con dominio propio, pagos seguros vía Stripe y funciones nuevas cada semana. Es un proyecto vivo — y los primeros 100 miembros tienen Premium gratis para siempre.",
         "items": [
           "En 3 idiomas: español, inglés y portugués",
           "Recuperación de contraseña por email o usuario",

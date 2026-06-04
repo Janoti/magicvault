@@ -95,7 +95,7 @@
     "badge": "100% free to use",
     "heroTitle1": "Manage your",
     "heroTitle2": "Magic: The Gathering collection",
-    "heroSubtitle": "Catalog your cards, build decks and binders, track real prices, trade with the community and share with friends — all in one place.",
+    "heroSubtitle": "Catalog your cards, see what they're worth, build decks that build themselves, and trade with the community — all in one place. Free.",
     "ctaStart": "Get started",
     "ctaHaveAccount": "I have an account",
     "noCard": "No credit card • Data via Scryfall",
@@ -160,12 +160,16 @@
     "collection": "View the full collection"
   },
   "feat": {
-    "title": "Everything VaultSpell does",
-    "subtitle": "From catalog to marketplace: the complete home base for your Magic collection.",
+    "badge": "Everything in one place",
+    "title": "The home base for your Magic collection",
+    "subtitle": "The only place that truly ties together your collection, decks and a marketplace — not as an add-on, but as the heart of the app. Free to use.",
     "cta": "Create a free account",
+    "ctaTitle": "Ready to organize your collection?",
+    "ctaSub": "Create your account in seconds and start cataloging, building decks and trading.",
     "cats": {
       "collection": {
         "title": "Collection & cards",
+        "intro": "Catalog each card once and see everything that matters: what it's worth (in your currency), which decks and binders it's in, and where to find it physically. Your collection stops being a list and becomes a living inventory.",
         "items": [
           "Catalog by search, with quantity, condition and foil",
           "Total value in USD and BRL (daily rate)",
@@ -177,7 +181,8 @@
         ]
       },
       "decks": {
-        "title": "Decks",
+        "title": "Decks that build themselves",
+        "intro": "Paste a list and VaultSpell does the rest: it analyzes the curve, tags each card by role, shows how much you already own, suggests cards that pair well, and even rates it with AI. All wired to what's yours.",
         "items": [
           "Decks for any format (Commander, Standard, Modern...)",
           "Import by pasting a list (Moxfield/Arena) and export back",
@@ -190,7 +195,8 @@
         ]
       },
       "search": {
-        "title": "Powerful search",
+        "title": "Find any card",
+        "intro": "Know the name? Autocomplete. Only remember what it does? Search by effect or ability — \"draw a card\", \"flying\" — and find the 300+ cards that do it. All via Scryfall, always up to date.",
         "items": [
           "Search by name with autocomplete",
           "Search by effect or ability (card text)",
@@ -199,7 +205,8 @@
         ]
       },
       "trades": {
-        "title": "Trades & sales (Premium)",
+        "title": "Buy, sell and trade",
+        "intro": "A marketplace for physical cards inside the app: list with a real photo, set a price or the cards you accept in trade, and negotiate via chat. Your wishlist even tells you when a card shows up for sale here.",
         "items": [
           "List physical cards with a real photo",
           "Sell (accept offers) or trade (cards you accept)",
@@ -208,7 +215,8 @@
         ]
       },
       "social": {
-        "title": "Social & sharing",
+        "title": "Show off and share",
+        "intro": "Build a public profile with your best decks and your collection, and send the (pretty) link to anyone — no account needed to view. Or share directly with friends. There's even a QR to show at the table.",
         "items": [
           "Friends by username or email",
           "Share collection, deck or binder with friends or a public link",
@@ -217,7 +225,8 @@
         ]
       },
       "platform": {
-        "title": "Account & platform",
+        "title": "Built to last",
+        "intro": "In three languages, with its own domain, secure Stripe payments and new features every week. It's a living project — and the first 100 members get Premium free, forever.",
         "items": [
           "In 3 languages: English, Portuguese and Spanish",
           "Password recovery by email or username",
