@@ -133,7 +133,11 @@
     "searchMarket": "Procurar no nosso mercado",
     "bought": "Já comprei",
     "toDeck": "Pro deck",
-    "movedToCollection": "Movida pra coleção!"
+    "movedToCollection": "Movida pra coleção!",
+    "sinceAdded": "Variação desde que você adicionou",
+    "alertWhen": "Avisar quando ≤",
+    "targetHit": "Preço-alvo atingido! (≤ {{price}})",
+    "targetSaved": "Alerta de preço salvo!"
   },
   "pubprofile": {
     "title": "Vitrine de {{name}}",

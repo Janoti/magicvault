@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { wishlistApi, cardsApi, collectionApi, decksApi } from '@/lib/api'
-import { Trash2, Star, Search, Plus, X, ShoppingCart, Swords, Check, Lock } from 'lucide-react'
+import { Trash2, Star, Search, Plus, X, ShoppingCart, Swords, Check, Lock, Bell, TrendingUp, TrendingDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -60,6 +60,11 @@ export default function WishlistPage() {
   const addToDeckMutation = useMutation({
     mutationFn: (vars: { deckId: number; scryfallId: string }) => decksApi.addCard(vars.deckId, { scryfall_id: vars.scryfallId, quantity: 1 }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['decks'] }); setDeckFor(null); flash(t('col.addedToDeck')) },
+  })
+
+  const targetMutation = useMutation({
+    mutationFn: (vars: { id: number; max_price?: number; clear_target?: boolean }) => wishlistApi.update(vars.id, vars),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['wishlist'] }); flash(t('wl.targetSaved')) },
   })
 
   // Dynamic search: results update as you type (debounced).
@@ -146,9 +151,16 @@ export default function WishlistPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-vault-text text-sm truncate">{item.card?.name || '...'}</h3>
                     <p className="text-xs text-vault-muted">{item.card?.set?.toUpperCase()} • {item.card?.rarity}</p>
-                    <div className="mt-1.5 text-xs">
+                    <div className="mt-1.5 text-xs flex items-center gap-1.5 flex-wrap">
                       <span className="text-vault-muted">{t('wl.external')}: </span>
                       <CardPrice usd={item.card?.price_usd} purchaseUri={item.card?.purchase_uri} compact />
+                      {item.delta != null && item.delta !== 0 && (
+                        <span className={`inline-flex items-center gap-0.5 font-mono ${item.delta > 0 ? 'text-red-400' : 'text-green-400'}`}
+                          title={t('wl.sinceAdded')}>
+                          {item.delta > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                          {item.delta > 0 ? '+' : ''}{item.delta.toFixed(2)} ({item.delta_pct > 0 ? '+' : ''}{item.delta_pct}%)
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -169,6 +181,26 @@ export default function WishlistPage() {
                     {!isPremium && <Lock size={11} />}
                   </button>
                 )}
+
+                {/* Target price alert */}
+                {item.target_hit && (
+                  <div className="text-xs rounded-lg bg-vault-gold/15 border border-vault-gold/40 text-vault-gold px-3 py-2 flex items-center gap-2 font-medium">
+                    🎯 {t('wl.targetHit', { price: `$${item.max_price.toFixed(2)}` })}
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 text-xs text-vault-muted">
+                  <Bell size={12} /> {t('wl.alertWhen')} $
+                  <input
+                    type="number" step="0.01" min="0" defaultValue={item.max_price ?? ''} placeholder="—"
+                    className="input-field !w-20 !py-1 text-xs"
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                    onBlur={(e) => {
+                      const raw = e.target.value.trim()
+                      if (raw === '' && item.max_price != null) targetMutation.mutate({ id: item.id, clear_target: true })
+                      else { const v = parseFloat(raw); if (!isNaN(v) && v !== item.max_price) targetMutation.mutate({ id: item.id, max_price: v }) }
+                    }}
+                  />
+                </div>
 
                 {item.notes && <p className="text-xs text-vault-muted italic">{item.notes}</p>}
 

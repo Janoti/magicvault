@@ -138,7 +138,8 @@ class WishlistEntry(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
     scryfall_id: Mapped[str] = mapped_column(String(64))
     quantity: Mapped[int] = mapped_column(Integer, default=1)
-    max_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    max_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)  # target price (alert)
+    price_snapshot: Mapped[Optional[float]] = mapped_column(Float, nullable=True)  # price when added (baseline)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

@@ -133,7 +133,11 @@
     "searchMarket": "Buscar en nuestro mercado",
     "bought": "Ya la compré",
     "toDeck": "Al mazo",
-    "movedToCollection": "¡Movida a la colección!"
+    "movedToCollection": "¡Movida a la colección!",
+    "sinceAdded": "Variación desde que la añadiste",
+    "alertWhen": "Avisar cuando ≤",
+    "targetHit": "¡Precio objetivo alcanzado! (≤ {{price}})",
+    "targetSaved": "¡Alerta de precio guardada!"
   },
   "pubprofile": {
     "title": "Vitrina de {{name}}",

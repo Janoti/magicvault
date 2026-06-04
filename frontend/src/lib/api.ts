@@ -153,6 +153,7 @@ export const decksApi = {
 export const wishlistApi = {
   list: () => api.get('/api/wishlist').then(r => r.data),
   add: (data: object) => api.post('/api/wishlist', data).then(r => r.data),
+  update: (id: number, data: object) => api.patch(`/api/wishlist/${id}`, data).then(r => r.data),
   remove: (id: number) => api.delete(`/api/wishlist/${id}`),
 }
 

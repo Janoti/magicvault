@@ -133,7 +133,11 @@
     "searchMarket": "Search our marketplace",
     "bought": "I bought it",
     "toDeck": "To deck",
-    "movedToCollection": "Moved to collection!"
+    "movedToCollection": "Moved to collection!",
+    "sinceAdded": "Change since you added it",
+    "alertWhen": "Alert when ≤",
+    "targetHit": "Target price reached! (≤ {{price}})",
+    "targetSaved": "Price alert saved!"
   },
   "pubprofile": {
     "title": "{{name}}'s showcase",
