@@ -104,7 +104,7 @@
     "f1Title": "Your collection, organized",
     "f1Desc": "Add by search, track quantity, condition and foil. Filter by set, rarity and name, with live total value.",
     "f2Title": "Decks with analysis",
-    "f2Desc": "From Commander to Standard. Mana curve, roles (ramp/removal...), and compare your deck against friends' or public ones.",
+    "f2Desc": "From Commander to Standard. Analysis, playtest, comparison, suggestions (EDHREC) and an AI Deck Doctor.",
     "f3Title": "Themed binders",
     "f3Desc": "Organize by theme, color and set, and see each binder's total value.",
     "f4Title": "Deck vs collection",
@@ -172,7 +172,8 @@
           "Filter by name, set, rarity, type, condition and foil",
           "Prices with a link to the official store (TCGplayer/Cardmarket)",
           "Import and export CSV (grimdeck-compatible)",
-          "Themed binders with per-binder value"
+          "Themed binders with value and physical location (page/slot)",
+          "Wishlist with price alerts (up/down + target price)"
         ]
       },
       "decks": {
@@ -183,6 +184,8 @@
           "Analysis: mana curve, colors, types and per-card roles",
           "Deck vs collection: what's missing and the cost to complete",
           "Compare against friends' or public decks, with a verdict",
+          "Playtest, pile view and an AI Deck Doctor",
+          "Card suggestions (EDHREC) flagging what you already own",
           "Make a deck public and share it"
         ]
       },

@@ -104,7 +104,7 @@
     "f1Title": "Sua coleção, organizada",
     "f1Desc": "Adicione por busca, controle quantidade, condição e foil. Filtre por set, raridade e nome, com valor total em tempo real.",
     "f2Title": "Decks com análise",
-    "f2Desc": "De Commander a Standard. Curva de mana, categorias (ramp/remoção...), e compare seu deck com o de amigos ou públicos.",
+    "f2Desc": "De Commander a Standard. Análise, playtest, comparação, sugestões (EDHREC) e um Deck Doctor por IA.",
     "f3Title": "Binders temáticos",
     "f3Desc": "Organize por tema, cor e set, e veja o valor total de cada binder.",
     "f4Title": "Deck × coleção",
@@ -172,7 +172,8 @@
           "Filtros por nome, set, raridade, tipo, condição e foil",
           "Preços com link pra loja oficial (TCGplayer/Cardmarket)",
           "Importe e exporte em CSV (compatível com grimdeck)",
-          "Binders temáticos com valor por binder"
+          "Binders temáticos com valor e localização física (página/slot)",
+          "Wishlist com alertas de preço (subiu/caiu + preço-alvo)"
         ]
       },
       "decks": {
@@ -183,6 +184,8 @@
           "Análise: curva de mana, cores, tipos e funções por carta",
           "Deck × coleção: o que falta e o custo pra completar",
           "Compare com decks de amigos ou públicos, com veredito",
+          "Playtest, visualização em pilhas e Deck Doctor por IA",
+          "Sugestões de cartas (EDHREC) marcando o que você já tem",
           "Deixe o deck público e compartilhe"
         ]
       },

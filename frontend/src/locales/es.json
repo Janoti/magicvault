@@ -104,7 +104,7 @@
     "f1Title": "Tu colección, organizada",
     "f1Desc": "Añade por búsqueda, controla cantidad, condición y foil. Filtra por edición, rareza y nombre, con valor total en tiempo real.",
     "f2Title": "Mazos con análisis",
-    "f2Desc": "De Commander a Standard. Curva de maná, roles (ramp/remoción...), y compara tu mazo con los de amigos o públicos.",
+    "f2Desc": "De Commander a Standard. Análisis, playtest, comparación, sugerencias (EDHREC) y un Deck Doctor por IA.",
     "f3Title": "Carpetas temáticas",
     "f3Desc": "Organiza por tema, color y edición, y mira el valor total de cada carpeta.",
     "f4Title": "Mazo vs colección",
@@ -172,7 +172,8 @@
           "Filtra por nombre, edición, rareza, tipo, condición y foil",
           "Precios con enlace a la tienda oficial (TCGplayer/Cardmarket)",
           "Importa y exporta CSV (compatible con grimdeck)",
-          "Carpetas temáticas con valor por carpeta"
+          "Carpetas temáticas con valor y ubicación física (página/slot)",
+          "Wishlist con alertas de precio (sube/baja + precio objetivo)"
         ]
       },
       "decks": {
@@ -183,6 +184,8 @@
           "Análisis: curva de maná, colores, tipos y roles por carta",
           "Mazo vs colección: qué falta y el costo para completar",
           "Compara con mazos de amigos o públicos, con veredicto",
+          "Playtest, vista en pilas y un Deck Doctor por IA",
+          "Sugerencias de cartas (EDHREC) marcando lo que ya tienes",
           "Haz público un mazo y compártelo"
         ]
       },
