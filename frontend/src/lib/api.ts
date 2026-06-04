@@ -130,6 +130,8 @@ export const bindersApi = {
   delete: (id: number) => api.delete(`/api/binders/${id}`),
   addCard: (binderId: number, data: object) => api.post(`/api/binders/${binderId}/cards`, data).then(r => r.data),
   removeCard: (binderId: number, cardId: number) => api.delete(`/api/binders/${binderId}/cards/${cardId}`),
+  setLocation: (binderId: number, cardId: number, data: { page?: number; slot?: number }) =>
+    api.patch(`/api/binders/${binderId}/cards/${cardId}`, data).then(r => r.data),
 }
 
 // Decks

@@ -147,6 +147,10 @@
     "targetHit": "Preço-alvo atingido! (≤ {{price}})",
     "targetSaved": "Alerta de preço salvo!"
   },
+  "binder": {
+    "page": "Pág.",
+    "slot": "Slot"
+  },
   "pubprofile": {
     "title": "Vitrine de {{name}}",
     "subtitle": "Coleção e decks que esta pessoa deixou públicos.",

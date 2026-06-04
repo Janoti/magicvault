@@ -147,6 +147,10 @@
     "targetHit": "¡Precio objetivo alcanzado! (≤ {{price}})",
     "targetSaved": "¡Alerta de precio guardada!"
   },
+  "binder": {
+    "page": "Pág.",
+    "slot": "Slot"
+  },
   "pubprofile": {
     "title": "Vitrina de {{name}}",
     "subtitle": "Colección y mazos que esta persona hizo públicos.",

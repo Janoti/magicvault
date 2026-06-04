@@ -93,6 +93,8 @@ class BinderCard(Base):
     binder_id: Mapped[int] = mapped_column(Integer, ForeignKey("binders.id"), index=True)
     collection_entry_id: Mapped[int] = mapped_column(Integer, ForeignKey("collection_entries.id"))
     position: Mapped[int] = mapped_column(Integer, default=0)
+    page: Mapped[int] = mapped_column(Integer, default=0)   # physical location: page
+    slot: Mapped[int] = mapped_column(Integer, default=0)   # physical location: pocket 1-9
     added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     binder: Mapped["Binder"] = relationship(back_populates="cards")

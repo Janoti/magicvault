@@ -90,7 +90,7 @@ async def get_binder(
         select(BinderCard, CollectionEntry)
         .join(CollectionEntry, BinderCard.collection_entry_id == CollectionEntry.id)
         .where(BinderCard.binder_id == binder_id)
-        .order_by(BinderCard.position)
+        .order_by(BinderCard.page, BinderCard.slot, BinderCard.position)
     )
     cards = []
     for bc, ce in cards_result:
@@ -104,6 +104,8 @@ async def get_binder(
             "binder_card_id": bc.id,
             "collection_entry_id": ce.id,
             "position": bc.position,
+            "page": bc.page,
+            "slot": bc.slot,
             "quantity": ce.quantity,
             "condition": ce.condition,
             "foil": ce.foil,
@@ -211,3 +213,33 @@ async def remove_card_from_binder(
     if not bc:
         raise HTTPException(status_code=404, detail="Not found")
     await db.delete(bc)
+
+
+class UpdateLocationRequest(BaseModel):
+    page: Optional[int] = None
+    slot: Optional[int] = None
+
+
+@router.patch("/{binder_id}/cards/{binder_card_id}")
+async def update_card_location(
+    binder_id: int,
+    binder_card_id: int,
+    data: UpdateLocationRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Set the physical location (page / pocket slot) of a card in the binder."""
+    bc = (await db.execute(
+        select(BinderCard).join(Binder).where(
+            BinderCard.id == binder_card_id,
+            BinderCard.binder_id == binder_id,
+            Binder.user_id == current_user.id,
+        )
+    )).scalar_one_or_none()
+    if not bc:
+        raise HTTPException(status_code=404, detail="Not found")
+    if data.page is not None:
+        bc.page = max(0, min(data.page, 999))
+    if data.slot is not None:
+        bc.slot = max(0, min(data.slot, 9))
+    return {"page": bc.page, "slot": bc.slot}

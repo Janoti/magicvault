@@ -147,6 +147,10 @@
     "targetHit": "Target price reached! (≤ {{price}})",
     "targetSaved": "Price alert saved!"
   },
+  "binder": {
+    "page": "Pg.",
+    "slot": "Slot"
+  },
   "pubprofile": {
     "title": "{{name}}'s showcase",
     "subtitle": "Collection and decks this person chose to make public.",

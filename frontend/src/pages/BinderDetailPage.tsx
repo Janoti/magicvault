@@ -22,8 +22,8 @@ export default function BinderDetailPage() {
   })
 
   const { data: collection } = useQuery({
-    queryKey: ['collection-all'],
-    queryFn: () => collectionApi.list({ per_page: 200 }),
+    queryKey: ['collection-all-with-cards'],
+    queryFn: () => collectionApi.list({ per_page: 200, with_cards: true }),
     enabled: showAddCard,
   })
 
@@ -37,6 +37,11 @@ export default function BinderDetailPage() {
 
   const removeCardMutation = useMutation({
     mutationFn: (binderCardId: number) => bindersApi.removeCard(binderId, binderCardId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['binder', binderId] }),
+  })
+
+  const locationMutation = useMutation({
+    mutationFn: (v: { cardId: number; page?: number; slot?: number }) => bindersApi.setLocation(binderId, v.cardId, { page: v.page, slot: v.slot }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['binder', binderId] }),
   })
 
@@ -109,20 +114,33 @@ export default function BinderDetailPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           {binder?.cards?.map((entry: any) => (
-            <div key={entry.binder_card_id} className="relative group">
-              <CardTile card={entry.card} showActions={false} />
-              <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => removeCardMutation.mutate(entry.binder_card_id)}
-                  className="p-1 rounded-lg bg-red-500/80 text-white hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 size={12} />
-                </button>
+            <div key={entry.binder_card_id} className="group">
+              <div className="relative">
+                <CardTile card={entry.card} showActions={false} />
+                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => removeCardMutation.mutate(entry.binder_card_id)}
+                    className="p-1 rounded-lg bg-red-500/80 text-white hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+                <div className="absolute top-1 left-1">
+                  <span className="text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded font-mono">
+                    {entry.condition}{entry.foil ? ' ⚡' : ''}
+                  </span>
+                </div>
               </div>
-              <div className="absolute top-1 left-1">
-                <span className="text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded font-mono">
-                  {entry.condition}{entry.foil ? ' ⚡' : ''}
-                </span>
+              {/* Physical location: page / pocket */}
+              <div className="flex items-center justify-center gap-1.5 mt-1.5 text-[10px] text-vault-muted">
+                <span>{t('binder.page')}</span>
+                <input type="number" min="0" defaultValue={entry.page || ''} placeholder="—"
+                  className="w-9 bg-vault-card border border-vault-border rounded px-1 py-0.5 text-center text-vault-text"
+                  onBlur={(e) => { const v = parseInt(e.target.value) || 0; if (v !== (entry.page || 0)) locationMutation.mutate({ cardId: entry.binder_card_id, page: v }) }} />
+                <span>{t('binder.slot')}</span>
+                <input type="number" min="0" max="9" defaultValue={entry.slot || ''} placeholder="—"
+                  className="w-9 bg-vault-card border border-vault-border rounded px-1 py-0.5 text-center text-vault-text"
+                  onBlur={(e) => { const v = parseInt(e.target.value) || 0; if (v !== (entry.slot || 0)) locationMutation.mutate({ cardId: entry.binder_card_id, slot: v }) }} />
               </div>
             </div>
           ))}
