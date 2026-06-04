@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Áreas privadas / sem valor de busca
+Disallow: /admin
+Disallow: /account
+Disallow: /unsubscribe
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: https://vaultspell.com/sitemap.xml
