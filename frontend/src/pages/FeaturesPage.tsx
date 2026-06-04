@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import {
-  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles,
+  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X,
 } from 'lucide-react'
 
 // key = i18n namespace · icon · img = optional screenshot in /public/screenshots/<img>
@@ -20,8 +20,12 @@ const CATS = [
 const fadeUp = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true } }
 
 // Screenshot slot — falls back to an icon panel when the image isn't present yet.
+// Click to open a full-screen lightbox.
 function Shot({ img, Icon }: { img: string; Icon: any }) {
   const [failed, setFailed] = useState(false)
+  const [zoom, setZoom] = useState(false)
+  const src = `/screenshots/${img}`
+
   if (failed) {
     return (
       <div className="aspect-video w-full rounded-2xl border border-vault-border bg-gradient-to-br from-vault-accent/10 to-vault-card flex items-center justify-center">
@@ -30,12 +34,33 @@ function Shot({ img, Icon }: { img: string; Icon: any }) {
     )
   }
   return (
-    <img
-      src={`/screenshots/${img}`}
-      onError={() => setFailed(true)}
-      alt=""
-      className="w-full rounded-2xl border border-vault-border shadow-2xl"
-    />
+    <>
+      <button onClick={() => setZoom(true)} className="group relative block w-full" title="Ampliar">
+        <img src={src} onError={() => setFailed(true)} alt=""
+          className="w-full rounded-2xl border border-vault-border shadow-2xl transition-transform group-hover:scale-[1.02]" />
+        <span className="absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 text-white rounded-full p-2">
+            <ZoomIn size={20} />
+          </span>
+        </span>
+      </button>
+      <AnimatePresence>
+        {zoom && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 cursor-zoom-out"
+            onClick={() => setZoom(false)}
+          >
+            <button className="absolute top-4 right-4 text-white/80 hover:text-white" onClick={() => setZoom(false)}><X size={26} /></button>
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              src={src} alt="" className="max-w-full max-h-[92vh] rounded-xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
