@@ -8,8 +8,10 @@ import { useSeo } from '@/components/Seo'
 import { billingApi, cardsApi } from '@/lib/api'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
-  ArrowRight, Check, Github, ArrowLeftRight, Crown, Layers, SearchCode, Users,
+  ArrowRight, Check, Github, ArrowLeftRight, Crown, Layers, SearchCode, Users, Instagram,
 } from 'lucide-react'
+
+const INSTAGRAM_URL = 'https://www.instagram.com/vault.spell/'
 
 const features = [
   { icon: Library, k: 'f1' },
@@ -68,6 +70,7 @@ export default function LandingPage() {
             <Link to="/features" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('landing.featuresNav')}</Link>
             <Link to="/eventos" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('nav.events')}</Link>
             <Link to="/lojas" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('events.storesNav')}</Link>
+            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram" className="hidden sm:inline text-vault-muted hover:text-vault-text transition-colors"><Instagram size={18} /></a>
             <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text transition-colors">{t('common.login')}</Link>
             <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
           </div>
@@ -204,10 +207,16 @@ export default function LandingPage() {
             <Link to="/eventos" className="hover:text-vault-text transition-colors">{t('nav.events')}</Link>
             <Link to="/lojas" className="hover:text-vault-text transition-colors">{t('events.storesNav')}</Link>
           </div>
-          <a href="https://github.com/Janoti/magicvault" target="_blank" rel="noreferrer"
-            className="flex items-center gap-2 hover:text-vault-text transition-colors">
-            <Github size={15} /> {t('landing.openSource')}
-          </a>
+          <div className="flex items-center gap-5">
+            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
+              className="flex items-center gap-2 hover:text-vault-text transition-colors">
+              <Instagram size={15} /> @vault.spell
+            </a>
+            <a href="https://github.com/Janoti/magicvault" target="_blank" rel="noreferrer"
+              className="flex items-center gap-2 hover:text-vault-text transition-colors">
+              <Github size={15} /> {t('landing.openSource')}
+            </a>
+          </div>
         </div>
       </footer>
     </div>

@@ -7,7 +7,7 @@ import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { useSeo } from '@/components/Seo'
 import { billingApi } from '@/lib/api'
 import {
-  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X, Crown, BrainCircuit, Store, MessageCircle,
+  Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X, Crown, BrainCircuit, Store, MessageCircle, Instagram,
 } from 'lucide-react'
 
 // key = i18n namespace · icon · img = optional screenshot in /public/screenshots/<img>
@@ -143,6 +143,7 @@ export default function FeaturesPage() {
           <div className="flex items-center gap-3">
             <Link to="/eventos" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text">{t('nav.events')}</Link>
             <Link to="/lojas" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text">{t('events.storesNav')}</Link>
+            <a href="https://www.instagram.com/vault.spell/" target="_blank" rel="noreferrer" aria-label="Instagram" className="hidden sm:inline text-vault-muted hover:text-vault-text"><Instagram size={18} /></a>
             <LanguageSwitcher compact direction="down" />
             <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text">{t('common.login')}</Link>
             <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
