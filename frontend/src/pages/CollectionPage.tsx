@@ -87,7 +87,10 @@ export default function CollectionPage() {
 
   const publicMutation = useMutation({
     mutationFn: (collection_public: boolean) => authApi.updateMe({ collection_public }),
-    onSuccess: (updated) => setUser(updated),
+    onSuccess: (updated, isPublic) => {
+      setUser(updated)
+      setNotice(isPublic ? t('col.nowPublic') : t('col.nowPrivate'))
+    },
   })
 
   const addToDeckMutation = useMutation({

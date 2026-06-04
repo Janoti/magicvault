@@ -46,6 +46,7 @@ export default function DeckDetailPage() {
   const [showExport, setShowExport] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showDoctor, setShowDoctor] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
   const { t, i18n } = useTranslation()
   const qc = useQueryClient()
   const navigate = useNavigate()
@@ -73,7 +74,10 @@ export default function DeckDetailPage() {
 
   const publicMutation = useMutation({
     mutationFn: (is_public: boolean) => decksApi.update(deckId, { is_public }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['deck', deckId] }),
+    onSuccess: (_d, isPublic) => {
+      qc.invalidateQueries({ queryKey: ['deck', deckId] })
+      setNotice(isPublic ? 'public' : 'private')
+    },
   })
 
   const [wished, setWished] = useState<Record<string, boolean>>({})
@@ -132,6 +136,25 @@ export default function DeckDetailPage() {
 
   return (
     <div className="p-6">
+      {/* Public/private toggle feedback */}
+      <AnimatePresence>
+        {notice && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            className={`mb-4 surface p-3 flex items-center justify-between gap-3 text-sm ${notice === 'public' ? 'border-green-500/40' : 'border-vault-border'}`}
+          >
+            <span className="flex items-center gap-2 text-vault-text">
+              {notice === 'public' ? <Globe size={15} className="text-green-400" /> : <Lock size={15} className="text-vault-muted" />}
+              {notice === 'public' ? t('detail.nowPublic') : t('detail.nowPrivate')}
+              {notice === 'public' && user?.username && (
+                <Link to={`/u/${user.username}`} className="text-vault-accent hover:underline">{t('detail.seeProfile')}</Link>
+              )}
+            </span>
+            <button onClick={() => setNotice(null)} className="text-vault-muted hover:text-vault-text"><X size={15} /></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link to="/decks" className="btn-ghost !p-2"><ArrowLeft size={18} /></Link>
