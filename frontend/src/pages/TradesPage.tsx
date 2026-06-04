@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
 import CreateListingModal from '@/components/trades/CreateListingModal'
 import ChatModal from '@/components/trades/ChatModal'
+import ConfirmModal from '@/components/ConfirmModal'
 
 const RESOLVED_LABEL: Record<string, string> = { sold: '💰', traded: '🔄', cancelled: '✖️' }
 
@@ -116,11 +117,7 @@ export default function TradesPage() {
     qc.invalidateQueries({ queryKey: ['listings-stats'] })
   }
   const delMut = useMutation({ mutationFn: (l: any) => listingsApi.remove(l.id), onSuccess: invalidateMine })
-  const confirmDelete = (l: any) => {
-    const n = l.interests || 0
-    const msg = n > 0 ? t('trades.confirmDeleteInterested', { count: n }) : t('trades.confirmDelete')
-    if (window.confirm(msg)) delMut.mutate(l)
-  }
+  const [deleteTarget, setDeleteTarget] = useState<any>(null)
   const resolveMut = useMutation({ mutationFn: (v: { l: any; outcome: string }) => listingsApi.resolve(v.l.id, v.outcome), onSuccess: invalidateMine })
   const reopenMut = useMutation({ mutationFn: (l: any) => listingsApi.setStatus(l.id, 'active'), onSuccess: invalidateMine })
   const interestMut = useMutation({
@@ -186,7 +183,7 @@ export default function TradesPage() {
                 onInterests={setInterestsFor}
                 onResolve={(x: any, outcome: string) => resolveMut.mutate({ l: x, outcome })}
                 onReopen={(x: any) => reopenMut.mutate(x)}
-                onDelete={(x: any) => confirmDelete(x)}
+                onDelete={(x: any) => setDeleteTarget(x)}
               />
             ))}
           </div>
@@ -275,6 +272,18 @@ export default function TradesPage() {
       )}
 
       {chat && <ChatModal interestId={chat.id} other={chat.other} onClose={() => setChat(null)} />}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        danger
+        title={t('trades.deleteTitle')}
+        message={deleteTarget?.interests > 0
+          ? t('trades.confirmDeleteInterested', { count: deleteTarget.interests })
+          : t('trades.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        onConfirm={() => { delMut.mutate(deleteTarget); setDeleteTarget(null) }}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }
