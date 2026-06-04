@@ -34,13 +34,23 @@ async def client():
     await engine.dispose()
 
 
-@pytest_asyncio.fixture
-async def auth(client):
-    """Registers a fresh user and returns an authenticated client + creds."""
-    email = f"u{uuid.uuid4().hex[:10]}@test.dev"
-    username = f"u{uuid.uuid4().hex[:10]}"
+async def register_user(client):
+    """Register a fresh user; returns creds + ready-to-use auth headers.
+    Use this when a test needs more than one user (e.g. IDOR checks)."""
+    s = uuid.uuid4().hex[:10]
+    email, username = f"u{s}@test.dev", f"u{s}"
     r = await client.post("/api/auth/register", json={"email": email, "username": username, "password": "secret123"})
     assert r.status_code == 201, r.text
     token = r.json()["access_token"]
-    client.headers["Authorization"] = f"Bearer {token}"
-    return {"client": client, "email": email, "username": username, "token": token, "user": r.json()["user"]}
+    return {
+        "email": email, "username": username, "token": token,
+        "headers": {"Authorization": f"Bearer {token}"}, "user": r.json()["user"],
+    }
+
+
+@pytest_asyncio.fixture
+async def auth(client):
+    """Registers a fresh user and returns an authenticated client + creds."""
+    u = await register_user(client)
+    client.headers["Authorization"] = f"Bearer {u['token']}"
+    return {"client": client, **u}
