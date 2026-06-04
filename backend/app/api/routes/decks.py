@@ -465,13 +465,15 @@ async def get_deck(deck_id: int, current_user: User = Depends(get_current_user),
                       "is_commander": dc.is_commander, "card": card, "role": primary})
 
     return {"id": deck.id, "name": deck.name, "format": deck.format,
-            "description": deck.description, "is_public": deck.is_public, "cards": cards}
+            "description": deck.description, "primer": deck.primer,
+            "is_public": deck.is_public, "cards": cards}
 
 
 class UpdateDeckRequest(BaseModel):
     name: Optional[str] = None
     format: Optional[str] = None
     description: Optional[str] = None
+    primer: Optional[str] = None
     is_public: Optional[bool] = None
 
 
@@ -486,6 +488,8 @@ async def update_deck(deck_id: int, data: UpdateDeckRequest, current_user: User 
         deck.format = data.format[:30]
     if data.description is not None:
         deck.description = data.description or None
+    if data.primer is not None:
+        deck.primer = data.primer[:8000] or None
     if data.is_public is not None:
         deck.is_public = data.is_public
     return {"id": deck.id, "is_public": deck.is_public}

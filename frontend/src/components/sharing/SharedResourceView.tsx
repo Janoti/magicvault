@@ -48,6 +48,12 @@ export default function SharedResourceView({ data }: { data: any }) {
             {totalValue > 0 && <> • <span className="text-green-400 font-mono">${totalValue.toFixed(2)}</span></>}
           </p>
           {data.description && <p className="text-sm text-vault-muted mt-2 max-w-2xl">{data.description}</p>}
+          {data.primer && (
+            <details className="mt-3 max-w-2xl">
+              <summary className="text-sm font-medium text-vault-accent cursor-pointer">{t('primer.title')}</summary>
+              <p className="text-sm text-vault-text whitespace-pre-wrap leading-relaxed mt-2">{data.primer}</p>
+            </details>
+          )}
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
           <button onClick={() => setShowQr(v => !v)} className="btn-ghost !py-1.5 flex items-center gap-2 text-xs">

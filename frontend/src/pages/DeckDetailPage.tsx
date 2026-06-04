@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi, wishlistApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardPrice from '@/components/cards/CardPrice'
@@ -85,6 +85,9 @@ export default function DeckDetailPage() {
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [showCompare, setShowCompare] = useState(false)
   const [showSuggest, setShowSuggest] = useState(false)
+  const [showPrimer, setShowPrimer] = useState(false)
+  const [primerText, setPrimerText] = useState('')
+  const [primerSaved, setPrimerSaved] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showPlaytest, setShowPlaytest] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -121,6 +124,12 @@ export default function DeckDetailPage() {
       qc.invalidateQueries({ queryKey: ['deck', deckId] })
       setNotice(isPublic ? 'public' : 'private')
     },
+  })
+
+  useEffect(() => { if (deck) setPrimerText(deck.primer || '') }, [deck?.primer])
+  const primerMutation = useMutation({
+    mutationFn: () => decksApi.update(deckId, { primer: primerText }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['deck', deckId] }); setPrimerSaved(true); setTimeout(() => setPrimerSaved(false), 1500) },
   })
 
   const [wished, setWished] = useState<Record<string, boolean>>({})
@@ -247,6 +256,7 @@ export default function DeckDetailPage() {
           { id: 'coverage', icon: Library, label: t('coverage.compare'), on: showCoverage, set: setShowCoverage },
           { id: 'compare', icon: GitCompareArrows, label: t('compare.title'), on: showCompare, set: setShowCompare },
           { id: 'suggest', icon: Sparkles, label: t('suggest.title'), on: showSuggest, set: setShowSuggest },
+          { id: 'primer', icon: ScrollText, label: t('primer.title'), on: showPrimer, set: setShowPrimer },
         ].map(b => (
           <button
             key={b.id}
@@ -379,6 +389,37 @@ export default function DeckDetailPage() {
                 <button onClick={() => setShowSuggest(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
               </div>
               <DeckSuggestions deckId={deckId} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Deck primer (strategy notes) */}
+      <AnimatePresence>
+        {showPrimer && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden mb-6">
+            <div className="surface p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-accent">
+                  <ScrollText size={15} /> {t('primer.title')}
+                </h2>
+                <button onClick={() => setShowPrimer(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
+              </div>
+              <p className="text-xs text-vault-muted mb-2">{t('primer.hint')}</p>
+              <textarea
+                value={primerText}
+                onChange={(e) => setPrimerText(e.target.value)}
+                rows={10}
+                placeholder={t('primer.placeholder')}
+                className="input-field resize-y w-full text-sm leading-relaxed"
+              />
+              <div className="flex items-center gap-3 mt-3">
+                <button onClick={() => primerMutation.mutate()} disabled={primerMutation.isPending} className="btn-primary flex items-center gap-2 disabled:opacity-50">
+                  {primerSaved ? <Check size={15} /> : null} {primerSaved ? t('detail.copied') : t('common.save')}
+                </button>
+                <span className="text-[11px] text-vault-muted">{t('primer.publicNote')}</span>
+              </div>
             </div>
           </motion.div>
         )}

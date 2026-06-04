@@ -55,13 +55,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             className="absolute inset-0 bg-cover bg-center pointer-events-none"
             style={{ backgroundImage: `url(${arts[artIdx]})` }}
             initial={{ opacity: 0, scale: 1.08 }}
-            animate={{ opacity: 0.18, scale: 1 }}
+            animate={{ opacity: 0.28, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ opacity: { duration: 2.5 }, scale: { duration: 8, ease: 'linear' } }}
           />
         </AnimatePresence>
       )}
-      <div className="absolute inset-0 bg-gradient-to-br from-vault-bg/70 via-vault-bg/80 to-vault-bg pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-vault-bg/45 via-vault-bg/65 to-vault-bg pointer-events-none" />
 
       {/* Animated arcane background */}
       <div className="absolute inset-0 pointer-events-none">

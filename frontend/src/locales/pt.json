@@ -442,6 +442,12 @@
     "moreCreatures": "Mais criaturas: {{a}} vs {{b}}",
     "lessCreatures": "Menos criaturas: {{a}} vs {{b}}"
   },
+  "primer": {
+    "title": "Primer",
+    "hint": "Anote a estratégia do deck: win conditions, mulligan, combos, matchups.",
+    "placeholder": "Win conditions:\n- ...\n\nMulligan:\n- ...\n\nCombos:\n- ...\n\nMatchups:\n- ...",
+    "publicNote": "Aparece no deck público, se ele estiver público."
+  },
   "suggest": {
     "title": "Sugestões",
     "basedOn": "Cartas que mais combinam com {{name}} (via EDHREC)",

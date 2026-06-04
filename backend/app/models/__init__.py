@@ -109,6 +109,7 @@ class Deck(Base):
     name: Mapped[str] = mapped_column(String(200))
     format: Mapped[str] = mapped_column(String(50), default="casual")
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    primer: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # strategy notes
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -442,6 +442,12 @@
     "moreCreatures": "Más criaturas: {{a}} vs {{b}}",
     "lessCreatures": "Menos criaturas: {{a}} vs {{b}}"
   },
+  "primer": {
+    "title": "Primer",
+    "hint": "Escribe la estrategia del mazo: win conditions, mulligan, combos, matchups.",
+    "placeholder": "Win conditions:\n- ...\n\nMulligan:\n- ...\n\nCombos:\n- ...\n\nMatchups:\n- ...",
+    "publicNote": "Aparece en el mazo público, si está público."
+  },
   "suggest": {
     "title": "Sugerencias",
     "basedOn": "Cartas que mejor combinan con {{name}} (vía EDHREC)",

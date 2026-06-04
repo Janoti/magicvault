@@ -70,7 +70,8 @@ async def build_resource_view(
             "is_commander": dc.is_commander, "card": _summarize(cards_raw, dc.scryfall_id),
         } for dc in rows]
         return {"resource_type": "deck", "owner": owner_name, "title": deck.name,
-                "format": deck.format, "description": deck.description, "cards": cards}
+                "format": deck.format, "description": deck.description,
+                "primer": deck.primer, "cards": cards}
 
     raise HTTPException(status_code=400, detail="Invalid resource type")
 

@@ -80,13 +80,13 @@ export default function LandingPage() {
               className="absolute inset-0 bg-cover bg-center pointer-events-none"
               style={{ backgroundImage: `url(${arts[artIdx]})` }}
               initial={{ opacity: 0, scale: 1.08 }}
-              animate={{ opacity: 0.16, scale: 1 }}
+              animate={{ opacity: 0.26, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ opacity: { duration: 2.5 }, scale: { duration: 8, ease: 'linear' } }}
             />
           </AnimatePresence>
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-vault-bg/50 via-vault-bg/75 to-vault-bg pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-vault-bg/25 via-vault-bg/55 to-vault-bg pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-b from-vault-accent/10 via-transparent to-transparent pointer-events-none" />
         <div className="max-w-6xl mx-auto px-6 pt-24 pb-16 text-center relative">
           <motion.h1 {...fadeUp} transition={{ delay: 0.05 }}

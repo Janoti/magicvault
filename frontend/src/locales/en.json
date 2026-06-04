@@ -442,6 +442,12 @@
     "moreCreatures": "More creatures: {{a}} vs {{b}}",
     "lessCreatures": "Fewer creatures: {{a}} vs {{b}}"
   },
+  "primer": {
+    "title": "Primer",
+    "hint": "Write the deck's strategy: win conditions, mulligan, combos, matchups.",
+    "placeholder": "Win conditions:\n- ...\n\nMulligan:\n- ...\n\nCombos:\n- ...\n\nMatchups:\n- ...",
+    "publicNote": "Shows on the public deck, if it's public."
+  },
   "suggest": {
     "title": "Suggestions",
     "basedOn": "Cards that pair best with {{name}} (via EDHREC)",
