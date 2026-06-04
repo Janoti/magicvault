@@ -16,6 +16,7 @@ from app.models.user import (
     EmailCampaign, Store, Event,
 )
 from app.services.email import send_email, render_campaign_html
+from app.services.calendar_sync import sync_store
 
 router = APIRouter()
 
@@ -280,14 +281,18 @@ class StoreIn(BaseModel):
     is_wpn: bool = False
     featured: bool = False
     notes: Optional[str] = None
+    calendar_url: Optional[str] = None
 
 
 _STORE_FIELDS = ["name", "city", "neighborhood", "address", "phone", "phone2", "email",
-                 "website", "instagram", "logo", "is_wpn", "featured", "notes"]
+                 "website", "instagram", "logo", "is_wpn", "featured", "notes", "calendar_url"]
 
 
 def _store_out(s: Store) -> dict:
-    return {f: getattr(s, f) for f in _STORE_FIELDS} | {"id": s.id}
+    return {f: getattr(s, f) for f in _STORE_FIELDS} | {
+        "id": s.id,
+        "calendar_synced_at": s.calendar_synced_at.isoformat() if s.calendar_synced_at else None,
+    }
 
 
 @router.get("/stores")
@@ -324,6 +329,18 @@ async def admin_delete_store(sid: int, _: User = Depends(get_current_admin), db:
     # Keep the store's events but detach them.
     await db.execute(Event.__table__.update().where(Event.store_id == sid).values(store_id=None))
     await db.execute(delete(Store).where(Store.id == sid))
+
+
+@router.post("/stores/{sid}/sync-calendar")
+async def admin_sync_store_calendar(sid: int, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    """Fetch the store's iCal feed now and refresh its synced events."""
+    s = (await db.execute(select(Store).where(Store.id == sid))).scalar_one_or_none()
+    if not s:
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
+    if not s.calendar_url:
+        raise HTTPException(status_code=400, detail="Esta loja não tem calendário configurado")
+    imported = await sync_store(s, db)
+    return {"imported": imported, "synced_at": s.calendar_synced_at.isoformat() if s.calendar_synced_at else None}
 
 
 # --- Events ----------------------------------------------------------------

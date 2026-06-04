@@ -375,7 +375,12 @@
       "featured": "Featured partner",
       "wpn": "WPN store",
       "confirmDelete": "Delete this store?",
-      "saveError": "Error saving store"
+      "saveError": "Error saving store",
+      "calendar": "Calendar (public iCal / Google Calendar link)",
+      "sync": "Sync",
+      "syncResult": "Synced: {{count}} events imported.",
+      "syncedAt": "synced {{date}}",
+      "syncNever": "not synced yet"
     },
     "events": {
       "title": "Events",
@@ -431,8 +436,8 @@
     "eventsNav": "Events",
     "partner": "partner",
     "empty": "No stores listed yet.",
-    "ctaTitle": "Run a store and want to be listed here?",
-    "ctaBody": "Promote your events and your shop to the player community.",
+    "ctaTitle": "Run a store and want to be listed here? It's free!",
+    "ctaBody": "Promote your events and your shop to the player community — for free.",
     "seeEvents": "See the events calendar"
   },
   "community": {

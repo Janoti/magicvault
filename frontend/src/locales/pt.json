@@ -375,7 +375,12 @@
       "featured": "Parceira em destaque",
       "wpn": "Loja WPN",
       "confirmDelete": "Excluir esta loja?",
-      "saveError": "Erro ao salvar loja"
+      "saveError": "Erro ao salvar loja",
+      "calendar": "Calendário (link iCal / Google Agenda público)",
+      "sync": "Sincronizar",
+      "syncResult": "Sincronizado: {{count}} eventos importados.",
+      "syncedAt": "sincronizado {{date}}",
+      "syncNever": "ainda não sincronizado"
     },
     "events": {
       "title": "Eventos",
@@ -431,8 +436,8 @@
     "eventsNav": "Eventos",
     "partner": "parceira",
     "empty": "Nenhuma loja cadastrada ainda.",
-    "ctaTitle": "Tem uma loja e quer aparecer aqui?",
-    "ctaBody": "Divulgue seus eventos e sua loja pra comunidade de jogadores.",
+    "ctaTitle": "Tem uma loja e quer aparecer aqui? É grátis!",
+    "ctaBody": "Divulgue seus eventos e sua loja de graça pra comunidade de jogadores.",
     "seeEvents": "Ver agenda de eventos"
   },
   "community": {

@@ -106,6 +106,7 @@ export const adminApi = {
   createStore: (data: object) => api.post('/api/admin/stores', data).then(r => r.data),
   updateStore: (id: number, data: object) => api.patch(`/api/admin/stores/${id}`, data).then(r => r.data),
   deleteStore: (id: number) => api.delete(`/api/admin/stores/${id}`).then(r => r.data),
+  syncStoreCalendar: (id: number) => api.post(`/api/admin/stores/${id}/sync-calendar`).then(r => r.data),
   events: () => api.get('/api/admin/events').then(r => r.data),
   createEvent: (data: object) => api.post('/api/admin/events', data).then(r => r.data),
   updateEvent: (id: number, data: object) => api.patch(`/api/admin/events/${id}`, data).then(r => r.data),

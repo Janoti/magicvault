@@ -271,6 +271,8 @@ class Store(Base):
     is_wpn: Mapped[bool] = mapped_column(Boolean, default=False)            # Wizards Play Network
     featured: Mapped[bool] = mapped_column(Boolean, default=False)          # promoted partner
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    calendar_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # iCal/.ics feed (Google Calendar)
+    calendar_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -293,6 +295,7 @@ class Event(Base):
     weekday: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)     # 0=Mon .. 6=Sun (weekly)
     event_date: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)    # one-off date
     time_label: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)  # "19:00"
+    source: Mapped[str] = mapped_column(String(10), default="manual")          # manual | ical
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

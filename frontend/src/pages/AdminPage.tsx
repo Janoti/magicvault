@@ -10,7 +10,7 @@ import Avatar from '@/components/Avatar'
 const EMPTY_STORE = {
   id: null as number | null, name: '', city: '', neighborhood: '', address: '',
   phone: '', phone2: '', email: '', website: '', instagram: '', logo: '',
-  is_wpn: false, featured: false, notes: '',
+  is_wpn: false, featured: false, notes: '', calendar_url: '',
 }
 
 function StoresSection() {
@@ -27,6 +27,11 @@ function StoresSection() {
     onError: (e: any) => alert(e?.response?.data?.detail || t('admin.stores.saveError')),
   })
   const delMut = useMutation({ mutationFn: (id: number) => adminApi.deleteStore(id), onSuccess: refresh })
+  const syncMut = useMutation({
+    mutationFn: (id: number) => adminApi.syncStoreCalendar(id),
+    onSuccess: (r: any) => { refresh(); alert(t('admin.stores.syncResult', { count: r?.imported ?? 0 })) },
+    onError: (e: any) => alert(e?.response?.data?.detail || t('admin.stores.saveError')),
+  })
 
   const startNew = () => { setForm(EMPTY_STORE); setOpen(true) }
   const startEdit = (s: any) => { setForm({ ...EMPTY_STORE, ...s }); setOpen(true) }
@@ -36,7 +41,7 @@ function StoresSection() {
     ['name', t('admin.stores.name')], ['city', t('admin.stores.city')], ['neighborhood', t('admin.stores.neighborhood')],
     ['address', t('admin.stores.address')], ['phone', t('admin.stores.phone')], ['phone2', t('admin.stores.phone2')],
     ['email', t('admin.stores.email')], ['website', t('admin.stores.website')], ['instagram', t('admin.stores.instagram')],
-    ['logo', t('admin.stores.logo')],
+    ['logo', t('admin.stores.logo')], ['calendar_url', t('admin.stores.calendar')],
   ]
 
   return (
@@ -57,9 +62,15 @@ function StoresSection() {
                   {s.featured && <span className="text-[10px] text-vault-gold">★</span>}
                   {s.is_wpn && <span className="text-[10px] text-vault-accent">WPN</span>}
                 </div>
-                <p className="text-xs text-vault-muted truncate">{[s.city, s.neighborhood].filter(Boolean).join(' · ')}</p>
+                <p className="text-xs text-vault-muted truncate">
+                  {[s.city, s.neighborhood].filter(Boolean).join(' · ')}
+                  {s.calendar_url && <span className="text-vault-accent"> · 📅 {s.calendar_synced_at ? t('admin.stores.syncedAt', { date: new Date(s.calendar_synced_at).toLocaleString() }) : t('admin.stores.syncNever')}</span>}
+                </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                {s.calendar_url && (
+                  <button onClick={() => syncMut.mutate(s.id)} disabled={syncMut.isPending} className="text-xs px-2 py-1 rounded border border-vault-border text-vault-muted hover:text-vault-accent disabled:opacity-50">{t('admin.stores.sync')}</button>
+                )}
                 <button onClick={() => startEdit(s)} className="text-vault-muted hover:text-vault-accent"><Pencil size={14} /></button>
                 <button onClick={() => { if (confirm(t('admin.stores.confirmDelete'))) delMut.mutate(s.id) }} className="text-vault-muted hover:text-red-400"><Trash2 size={14} /></button>
               </div>
@@ -78,7 +89,7 @@ function StoresSection() {
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               {FIELDS.map(([k, label]) => (
-                <div key={k} className={k === 'name' || k === 'address' || k === 'logo' ? 'sm:col-span-2' : ''}>
+                <div key={k} className={['name', 'address', 'logo', 'calendar_url'].includes(k) ? 'sm:col-span-2' : ''}>
                   <label className="text-xs text-vault-muted">{label}</label>
                   <input className="input-field w-full" value={form[k] || ''} onChange={(e) => field(k, e.target.value)} />
                 </div>

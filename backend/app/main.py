@@ -1,6 +1,7 @@
 import os
 import time
 import uuid
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -16,6 +17,7 @@ from app.core.ratelimit import limiter
 from app.core.logging import setup_logging, request_id_var
 from app.core.database import engine, Base
 from app.core.seed import seed_stores
+from app.services.calendar_sync import sync_all_stores
 
 setup_logging()
 logger = logging.getLogger("vaultspell.request")
@@ -54,7 +56,20 @@ _COLUMN_MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS unsubscribe_token VARCHAR(64)",
     "ALTER TABLE interests ADD COLUMN IF NOT EXISTS hidden_by_buyer BOOLEAN DEFAULT FALSE",
     "ALTER TABLE interests ADD COLUMN IF NOT EXISTS hidden_by_seller BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE stores ADD COLUMN IF NOT EXISTS calendar_url TEXT",
+    "ALTER TABLE stores ADD COLUMN IF NOT EXISTS calendar_synced_at TIMESTAMP",
+    "ALTER TABLE events ADD COLUMN IF NOT EXISTS source VARCHAR(10) DEFAULT 'manual'",
 ]
+
+
+async def _calendar_sync_loop():
+    """Refresh store calendars on boot, then every 6 hours."""
+    while True:
+        try:
+            await sync_all_stores()
+        except Exception:
+            logger.warning("calendar sync loop error", exc_info=True)
+        await asyncio.sleep(6 * 60 * 60)
 
 
 @asynccontextmanager
@@ -70,7 +85,13 @@ async def lifespan(app: FastAPI):
                 {"e": settings.admin_email.strip().lower()},
             )
         await seed_stores(conn)
-    yield
+
+    # Periodically sync store calendars (iCal) in the background.
+    sync_task = asyncio.create_task(_calendar_sync_loop())
+    try:
+        yield
+    finally:
+        sync_task.cancel()
 
 
 app = FastAPI(
