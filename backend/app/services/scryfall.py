@@ -132,6 +132,39 @@ async def get_set_cards(set_code: str) -> List[Dict[str, Any]]:
     return all_cards
 
 
+async def get_card_prints(scryfall_id: str) -> List[Dict[str, Any]]:
+    """All printings of a card (matched by oracle id), newest first."""
+    cache_key = f"scryfall:prints:{scryfall_id}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    card = await get_card_by_id(scryfall_id)
+    if not card:
+        return []
+
+    oracle_id = card.get("oracle_id")
+    prints: List[Dict[str, Any]] = []
+    if oracle_id:
+        try:
+            data = await _get(f"{BASE}/cards/search", params={
+                "q": f"oracleid:{oracle_id}", "unique": "prints",
+                "order": "released", "dir": "desc",
+            })
+            prints = data.get("data", [])
+            while data.get("has_more") and data.get("next_page"):
+                data = await _get(data["next_page"])
+                prints.extend(data.get("data", []))
+        except Exception:
+            prints = []
+
+    if not prints:
+        prints = [card]
+
+    await cache_set(cache_key, prints, ttl=86400)
+    return prints
+
+
 def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
     """Extract the fields we care about from a Scryfall card object."""
     prices = card.get("prices", {})
@@ -165,6 +198,8 @@ def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
         "price_usd": float(prices.get("usd") or 0),
         "price_usd_foil": float(prices.get("usd_foil") or 0),
         "price_eur": float(prices.get("eur") or 0),
+        "finishes": card.get("finishes", []),
+        "lang": card.get("lang", "en"),
         "scryfall_uri": card.get("scryfall_uri", ""),
         # Official store page with the live price (TCGplayer in USD, else Cardmarket in EUR).
         "purchase_uri": purchase.get("tcgplayer") or purchase.get("cardmarket") or card.get("scryfall_uri", ""),

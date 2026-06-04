@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from app.services.scryfall import (
     search_cards, get_card_by_id, get_card_by_name,
-    autocomplete_cards, extract_card_summary
+    autocomplete_cards, extract_card_summary, get_card_prints
 )
 from app.services.fx import get_usd_brl
 
@@ -47,6 +47,16 @@ async def get_card(scryfall_id: str):
     try:
         card = await get_card_by_id(scryfall_id)
         return extract_card_summary(card)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Card not found")
+
+
+@router.get("/{scryfall_id}/prints")
+async def card_prints(scryfall_id: str):
+    """All printings (editions) of a card, newest first — for the edition selector."""
+    try:
+        prints = await get_card_prints(scryfall_id)
+        return {"prints": [extract_card_summary(c) for c in prints]}
     except Exception:
         raise HTTPException(status_code=404, detail="Card not found")
 
