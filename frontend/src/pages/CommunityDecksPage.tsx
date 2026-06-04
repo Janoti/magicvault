@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { Eye, X, ExternalLink, Layers, Flame, Clock } from 'lucide-react'
+import { useQuery, useInfiniteQuery, useMutation } from '@tanstack/react-query'
+import { Eye, X, ExternalLink, Layers, Flame, Clock, Copy } from 'lucide-react'
 import { useSeo } from '@/components/Seo'
 import PublicPage from '@/components/PublicPage'
 import { communityApi } from '@/lib/api'
+import { useAuthStore } from '@/store/auth'
 
 const COLOR_HEX: Record<string, string> = { W: '#f4e6b8', U: '#3b82c4', B: '#5b5563', R: '#d6584f', G: '#4ca766' }
 
@@ -19,7 +21,14 @@ function ColorPips({ colors }: { colors: string[] }) {
 
 function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
   const { data: deck, isLoading } = useQuery({ queryKey: ['community-deck', id], queryFn: () => communityApi.deck(id) })
+  const copyMut = useMutation({
+    mutationFn: () => communityApi.copyDeck(id),
+    onSuccess: (r: any) => { onClose(); navigate(`/decks/${r.id}`) },
+    onError: (e: any) => alert(e?.response?.data?.detail || t('community.copyError')),
+  })
 
   // Group cards by category, preserving a sensible order (Commander first).
   const groups = useMemo(() => {
@@ -79,11 +88,22 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
             </div>
           )}
         </div>
-        {deck?.url && (
-          <div className="relative p-4 border-t border-vault-border text-center">
-            <a href={deck.url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-sm text-vault-accent hover:underline">
-              {t('community.viewOnArchidekt')} <ExternalLink size={13} />
-            </a>
+        {deck && (
+          <div className="relative p-4 border-t border-vault-border flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            {user ? (
+              <button onClick={() => copyMut.mutate()} disabled={copyMut.isPending}
+                className="btn-primary text-sm flex items-center gap-1.5 disabled:opacity-50">
+                {copyMut.isPending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Copy size={14} />}
+                {t('community.copy')}
+              </button>
+            ) : (
+              <Link to="/login" className="btn-primary text-sm flex items-center gap-1.5"><Copy size={14} /> {t('community.copyLogin')}</Link>
+            )}
+            {deck.url && (
+              <a href={deck.url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-sm text-vault-accent hover:underline">
+                {t('community.viewOnArchidekt')} <ExternalLink size={13} />
+              </a>
+            )}
           </div>
         )}
       </div>

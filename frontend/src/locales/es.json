@@ -451,7 +451,10 @@
     "cards": "cartas",
     "deckEmpty": "No se pudo cargar este deck.",
     "viewOnArchidekt": "Ver en Archidekt",
-    "poweredBy": "Decks vía Archidekt"
+    "poweredBy": "Decks vía Archidekt",
+    "copy": "Copiar a mis decks",
+    "copyLogin": "Inicia sesión para copiar",
+    "copyError": "Error al copiar el deck"
   },
   "unsubscribe": {
     "invalid": "Enlace inválido o expirado.",

@@ -125,6 +125,7 @@ export const communityApi = {
   formats: () => api.get('/api/community/formats').then(r => r.data),
   decks: (params?: object) => api.get('/api/community/decks', { params }).then(r => r.data),
   deck: (id: number) => api.get(`/api/community/decks/${id}`).then(r => r.data),
+  copyDeck: (id: number) => api.post(`/api/community/decks/${id}/copy`).then(r => r.data),
 }
 
 // Cards
