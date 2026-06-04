@@ -37,6 +37,7 @@ export default function LandingPage() {
           <span className="font-display text-xl font-bold text-vault-gold tracking-wider">📖 VaultSpell</span>
           <div className="flex items-center gap-3">
             <LanguageSwitcher compact direction="down" />
+            <Link to="/features" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('landing.featuresNav')}</Link>
             <Link to="/login" className="text-sm text-vault-muted hover:text-vault-text transition-colors">{t('common.login')}</Link>
             <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
           </div>
@@ -95,6 +96,11 @@ export default function LandingPage() {
             </motion.div>
           ))}
         </div>
+        <motion.div {...fadeUp} className="text-center mt-8">
+          <Link to="/features" className="btn-primary inline-flex items-center gap-2 text-base px-7 py-3">
+            {t('landing.seeAll')} <ArrowRight size={18} />
+          </Link>
+        </motion.div>
       </section>
 
       {/* Sharing highlight */}
