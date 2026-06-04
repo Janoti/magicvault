@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { useSeo } from '@/components/Seo'
 import { billingApi } from '@/lib/api'
 import {
   Library, Swords, SearchCode, ArrowLeftRight, Share2, Settings, ArrowRight, Check, Sparkles, ZoomIn, X, Crown, BrainCircuit, Store, MessageCircle,
@@ -133,6 +134,7 @@ function PremiumBlock() {
 
 export default function FeaturesPage() {
   const { t } = useTranslation()
+  useSeo({ title: `${t('feat.title')} — VaultSpell`, description: t('feat.subtitle'), path: '/features' })
   return (
     <div className="min-h-screen bg-vault-bg text-vault-text">
       <header className="border-b border-vault-border/60 backdrop-blur sticky top-0 z-20 bg-vault-bg/80">

@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight, Ticket, Sparkles,
 } from 'lucide-react'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { useSeo, JsonLd } from '@/components/Seo'
 import { eventsApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 
@@ -78,6 +79,7 @@ function EventCard({ e }: { e: any }) {
 
 export default function EventsPage() {
   const { t, i18n } = useTranslation()
+  useSeo({ title: `${t('events.title')} — VaultSpell`, description: t('events.subtitle'), path: '/eventos' })
   const [view, setView] = useState<'list' | 'calendar'>('list')
   const [city, setCity] = useState('')
   const [format, setFormat] = useState('')
@@ -96,6 +98,18 @@ export default function EventsPage() {
     queryFn: () => eventsApi.list({ from: range.from, to: range.to, city: city || undefined, format: format || undefined }),
   })
   const events: any[] = data?.events || []
+
+  // schema.org Event structured data (rich results in Google), capped for size.
+  const eventLd = events.slice(0, 30).map((e) => ({
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: e.title,
+    startDate: `${e.date}T${e.time_label || '00:00'}:00-03:00`,
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    location: { '@type': 'Place', name: e.store?.name || e.city, address: e.address || e.city },
+    ...(e.link ? { url: e.link } : {}),
+    ...(e.store?.name ? { organizer: { '@type': 'Organization', name: e.store.name } } : {}),
+  }))
 
   // Group occurrences by date for the agenda list.
   const grouped = useMemo(() => {
@@ -130,6 +144,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-vault-bg text-vault-text">
+      {eventLd.length > 0 && <JsonLd data={eventLd} />}
       <TopBar />
 
       <section className="max-w-5xl mx-auto px-6 pt-12 pb-4 text-center">

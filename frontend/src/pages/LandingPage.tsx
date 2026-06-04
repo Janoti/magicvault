@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { useSeo } from '@/components/Seo'
 import { billingApi, cardsApi } from '@/lib/api'
 import {
   Library, Swords, BookOpen, Share2, TrendingUp, Upload,
@@ -35,6 +36,7 @@ const ART_CARDS = [
 
 export default function LandingPage() {
   const { t } = useTranslation()
+  useSeo({ title: `VaultSpell — ${t('nav.subtitle')}`, description: t('landing.heroSubtitle'), path: '/' })
   const { data: beta } = useQuery({ queryKey: ['beta-status'], queryFn: billingApi.beta })
 
   // Rotating translucent card-art background.

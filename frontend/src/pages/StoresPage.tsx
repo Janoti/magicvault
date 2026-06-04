@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { MapPin, Phone, Mail, Globe, Instagram, BadgeCheck, CalendarDays, Store as StoreIcon } from 'lucide-react'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { useSeo, JsonLd } from '@/components/Seo'
 import { eventsApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 
@@ -61,7 +62,26 @@ function StoreCard({ s }: { s: any }) {
 
 export default function StoresPage() {
   const { t } = useTranslation()
+  useSeo({ title: `${t('stores.title')} — VaultSpell`, description: t('stores.subtitle'), path: '/lojas' })
   const { data: stores = [], isLoading } = useQuery({ queryKey: ['stores'], queryFn: () => eventsApi.stores() })
+
+  // schema.org structured data for each store (local SEO / rich results).
+  const storeLd = stores.map((s: any) => ({
+    '@context': 'https://schema.org',
+    '@type': 'Store',
+    name: s.name,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: s.city,
+      ...(s.address ? { streetAddress: s.address } : {}),
+      ...(s.neighborhood ? { addressRegion: s.neighborhood } : {}),
+      addressCountry: 'BR',
+    },
+    ...(s.phone ? { telephone: s.phone } : {}),
+    ...(s.email ? { email: s.email } : {}),
+    ...(s.website ? { url: s.website } : {}),
+    sameAs: [s.website, s.instagram ? `https://instagram.com/${s.instagram.replace(/^@/, '')}` : null].filter(Boolean),
+  }))
 
   // Group by city; featured first within each city.
   const byCity = useMemo(() => {
@@ -73,6 +93,7 @@ export default function StoresPage() {
 
   return (
     <div className="min-h-screen bg-vault-bg text-vault-text">
+      {storeLd.length > 0 && <JsonLd data={storeLd} />}
       <TopBar />
 
       <section className="max-w-5xl mx-auto px-6 pt-12 pb-4 text-center">

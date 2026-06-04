@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { Eye, X, ExternalLink, Layers, Flame, Clock } from 'lucide-react'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { useSeo } from '@/components/Seo'
 import { communityApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 
@@ -117,6 +118,7 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
 
 export default function CommunityDecksPage() {
   const { t } = useTranslation()
+  useSeo({ title: `${t('community.title')} — VaultSpell`, description: t('community.subtitle'), path: '/decks-comunidade' })
   const [format, setFormat] = useState(3)
   const [order, setOrder] = useState<'popular' | 'recent'>('popular')
   const [selected, setSelected] = useState<number | null>(null)
