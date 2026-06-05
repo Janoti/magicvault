@@ -141,6 +141,7 @@ export default function FeaturesPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="font-display text-xl font-bold text-vault-gold tracking-wider">📖 VaultSpell</Link>
           <div className="flex items-center gap-3">
+            <Link to="/guia" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text">{t('nav.guide')}</Link>
             <Link to="/eventos" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text">{t('nav.events')}</Link>
             <Link to="/lojas" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text">{t('events.storesNav')}</Link>
             <a href="https://www.instagram.com/vault.spell/" target="_blank" rel="noreferrer" aria-label="Instagram" className="hidden sm:inline text-vault-muted hover:text-vault-text"><Instagram size={18} /></a>

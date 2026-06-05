@@ -404,7 +404,8 @@
           "Friends by username or email",
           "Share collection, deck or binder with friends or a public link",
           "Pretty public links (vaultspell.com/p/you/deck)",
-          "Public profile with bio, links and contact (WhatsApp)"
+          "Public profile with bio, links and contact (WhatsApp)",
+          "Show your public binders and your cards for sale on your profile"
         ]
       },
       "platform": {

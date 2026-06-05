@@ -404,7 +404,8 @@
           "Amigos por usuario o email",
           "Comparte colección, mazo o carpeta con amigos o enlace público",
           "Enlaces públicos bonitos (vaultspell.com/p/tu/mazo)",
-          "Perfil público con bio, enlaces y contacto (WhatsApp)"
+          "Perfil público con bio, enlaces y contacto (WhatsApp)",
+          "Muestra tus carpetas públicas y tus cartas a la venta en tu perfil"
         ]
       },
       "platform": {

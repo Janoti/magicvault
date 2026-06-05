@@ -68,6 +68,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <LanguageSwitcher compact direction="down" />
             <Link to="/features" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('landing.featuresNav')}</Link>
+            <Link to="/guia" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('nav.guide')}</Link>
             <Link to="/eventos" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('nav.events')}</Link>
             <Link to="/lojas" className="hidden sm:inline text-sm text-vault-muted hover:text-vault-text transition-colors">{t('events.storesNav')}</Link>
             <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram" className="hidden sm:inline text-vault-muted hover:text-vault-text transition-colors"><Instagram size={18} /></a>
@@ -226,6 +227,7 @@ export default function LandingPage() {
           <span className="font-display text-vault-gold">📖 VaultSpell</span>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <Link to="/features" className="hover:text-vault-text transition-colors">{t('landing.featuresNav')}</Link>
+            <Link to="/guia" className="hover:text-vault-text transition-colors">{t('nav.guide')}</Link>
             <Link to="/eventos" className="hover:text-vault-text transition-colors">{t('nav.events')}</Link>
             <Link to="/lojas" className="hover:text-vault-text transition-colors">{t('events.storesNav')}</Link>
           </div>
