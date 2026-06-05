@@ -213,7 +213,15 @@ async def resubscribe(request: Request, data: UnsubscribeRequest, db: AsyncSessi
 
 
 @router.get("/me", response_model=UserOut)
-async def me(current_user: User = Depends(get_current_user)):
+async def me(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    # Treat each app open as activity: users who stay logged in via a stored
+    # token never hit /login, so last_login_at would otherwise show "never".
+    # Throttle the write to once every 15 minutes to avoid churn on each request.
+    now = datetime.utcnow()
+    last = current_user.last_login_at
+    if last is None or (now - last) > timedelta(minutes=15):
+        current_user.last_login_at = now
+        await db.commit()
     return to_user_out(current_user)
 
 
