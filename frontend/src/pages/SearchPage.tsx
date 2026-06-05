@@ -4,7 +4,7 @@ import { cardsApi, collectionApi, wishlistApi } from '@/lib/api'
 import CardTile from '@/components/cards/CardTile'
 import AddCardModal from '@/components/collection/AddCardModal'
 import CardInfoModal from '@/components/cards/CardInfoModal'
-import { Search, Filter, ChevronLeft, ChevronRight, Star, Crown } from 'lucide-react'
+import { Search, Filter, ChevronLeft, ChevronRight, Star, Crown, HelpCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debounce } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
@@ -22,6 +22,7 @@ export default function SearchPage() {
   const { t } = useTranslation()
   const [mode, setMode] = useState<Mode>('name')
   const [commanderOnly, setCommanderOnly] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [query, setQuery] = useState('')        // final Scryfall query that gets sent
   const [searchInput, setSearchInput] = useState('')
   const [page, setPage] = useState(1)
@@ -45,7 +46,7 @@ export default function SearchPage() {
     if (input.length >= 2 || next) { setQuery(buildQuery(input, mode, next)); setPage(1) }
   }
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['card-search', query, page],
     queryFn: () => cardsApi.search(query, page),
     enabled: query.length >= 2,
@@ -96,15 +97,58 @@ export default function SearchPage() {
     setShowModal(true)
   }
 
+  // Run a raw Scryfall query (from the syntax-help examples).
+  const runRaw = (q: string) => { setMode('name'); setSearchInput(q); setQuery(q.trim()); setPage(1); setShowHelp(false) }
+
+  // Common Scryfall operators with a concrete, clickable example.
+  const SYNTAX = [
+    { ex: 't:creature', d: t('search.help.type') },
+    { ex: 'c:blue', d: t('search.help.color') },
+    { ex: 'id:wu', d: t('search.help.identity') },
+    { ex: 'cmc<=3', d: t('search.help.cmc') },
+    { ex: 'pow>=4', d: t('search.help.power') },
+    { ex: 'r:mythic', d: t('search.help.rarity') },
+    { ex: 'set:lci', d: t('search.help.set') },
+    { ex: 'o:"draw a card"', d: t('search.help.oracle') },
+    { ex: 'is:commander', d: t('search.help.commander') },
+    { ex: 't:creature c:blue cmc<=2', d: t('search.help.combine') },
+  ]
+
   return (
     <div className="p-6">
       <div className="mb-4">
         <h1 className="font-display text-3xl font-bold text-vault-gold mb-1">{t('search.title')}</h1>
-        <p className="text-vault-muted text-sm">
+        <p className="text-vault-muted text-sm flex items-center gap-2 flex-wrap">
           {mode === 'effect'
             ? t('search.effectHint')
             : <>{t('search.syntaxHint')} <code className="text-vault-accent bg-vault-card px-1 rounded">t:creature c:blue</code></>}
+          <button onClick={() => setShowHelp(v => !v)} className="inline-flex items-center gap-1 text-vault-accent hover:underline">
+            <HelpCircle size={14} /> {t('search.help.button')}
+          </button>
         </p>
+        <AnimatePresence>
+          {showHelp && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden">
+              <div className="surface p-4 mt-3">
+                <p className="text-xs text-vault-muted mb-3">{t('search.help.intro')}</p>
+                <div className="grid sm:grid-cols-2 gap-1.5">
+                  {SYNTAX.map(s => (
+                    <button key={s.ex} onClick={() => runRaw(s.ex)}
+                      className="flex items-center gap-2 text-left px-2.5 py-1.5 rounded-lg hover:bg-vault-card/60 transition-colors group">
+                      <code className="text-[11px] text-vault-accent bg-vault-card px-1.5 py-0.5 rounded shrink-0 group-hover:bg-vault-accent/20">{s.ex}</code>
+                      <span className="text-xs text-vault-muted truncate">{s.d}</span>
+                    </button>
+                  ))}
+                </div>
+                <a href="https://scryfall.com/docs/syntax" target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-vault-accent hover:underline mt-3">
+                  {t('search.help.full')} ↗
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Mode toggle: search by name, or by ability/effect text */}
@@ -185,7 +229,18 @@ export default function SearchPage() {
         </div>
       )}
 
-      {data && (
+      {isError && !isLoading && (
+        <div className="text-center py-16">
+          <p className="text-vault-muted mb-3">{t('search.errorRetry')}</p>
+          <button onClick={() => refetch()} className="btn-ghost">{t('search.retry')}</button>
+        </div>
+      )}
+
+      {data && !isLoading && data.cards?.length === 0 && (
+        <div className="text-center py-16 text-vault-muted">{t('search.noResults')}</div>
+      )}
+
+      {data && data.cards?.length > 0 && (
         <>
           <div className="flex items-center justify-between mb-4">
             <p className="text-vault-muted text-sm">
