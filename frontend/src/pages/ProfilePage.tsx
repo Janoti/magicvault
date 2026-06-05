@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye } from 'lucide-react'
 import { usersApi } from '@/lib/api'
-import { useAuthStore } from '@/store/auth'
+import PublicPage from '@/components/PublicPage'
 import Avatar from '@/components/Avatar'
 
 // Only allow http(s) links (blocks javascript:/data: XSS in user-supplied URLs).
@@ -25,7 +25,6 @@ const contactHref = (c: string) => {
 export default function ProfilePage() {
   const { username = '' } = useParams()
   const { t } = useTranslation()
-  const isAuth = useAuthStore((s) => s.isAuthenticated())
   const [contact, setContact] = useState<string | null>(null)
   const [revealing, setRevealing] = useState(false)
   const revealContact = async () => {
@@ -191,15 +190,6 @@ export default function ProfilePage() {
     </div>
   )
 
-  // Logged-in users see it inside the app layout; logged-out get a minimal shell.
-  if (isAuth) return body
-  return (
-    <div className="min-h-screen bg-vault-bg">
-      <header className="border-b border-vault-border bg-vault-surface px-6 py-3 flex items-center justify-between">
-        <Link to="/" className="font-display text-lg font-bold text-vault-gold tracking-wider">📖 VaultSpell</Link>
-        <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
-      </header>
-      {body}
-    </div>
-  )
+  // Logged-in users get the app Layout (sidebar); visitors get the public header.
+  return <PublicPage>{body}</PublicPage>
 }

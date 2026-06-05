@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { decksApi, collectionApi } from '@/lib/api'
 import SharedResourceView from '@/components/sharing/SharedResourceView'
+import PublicPage from '@/components/PublicPage'
 
 // Renders a public deck (/d/:id) or a public collection (/c/:username).
 export default function PublicEntityPage({ kind }: { kind: 'deck' | 'collection' }) {
@@ -16,12 +17,7 @@ export default function PublicEntityPage({ kind }: { kind: 'deck' | 'collection'
   })
 
   return (
-    <div className="min-h-screen bg-vault-bg">
-      <header className="border-b border-vault-border bg-vault-surface px-6 py-3 flex items-center justify-between">
-        <Link to="/" className="font-display text-lg font-bold text-vault-gold tracking-wider">📖 VaultSpell</Link>
-        <Link to="/register" className="btn-primary text-sm">{t('common.register')}</Link>
-      </header>
-
+    <PublicPage>
       <main className="p-6 max-w-7xl mx-auto">
         {isLoading ? (
           <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" /></div>
@@ -35,6 +31,6 @@ export default function PublicEntityPage({ kind }: { kind: 'deck' | 'collection'
           <SharedResourceView data={data} />
         )}
       </main>
-    </div>
+    </PublicPage>
   )
 }
