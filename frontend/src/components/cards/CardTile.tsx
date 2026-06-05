@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, Star, Eye } from 'lucide-react'
 import { motion } from 'framer-motion'
 import CardPrice from './CardPrice'
@@ -40,6 +41,7 @@ const colorMap: Record<string, string> = {
 }
 
 export default function CardTile({ card, onAdd, onWishlist, onClick, showActions = true, compact = false }: CardTileProps) {
+  const { t } = useTranslation()
   const [hovered, setHovered] = useState(false)
   const [imgError, setImgError] = useState(false)
 
@@ -87,7 +89,7 @@ export default function CardTile({ card, onAdd, onWishlist, onClick, showActions
                 className="flex items-center gap-2 bg-vault-accent hover:bg-vault-accent-hover text-white text-xs font-medium px-3 py-2 rounded-lg w-full justify-center transition-all"
               >
                 <Plus size={14} />
-                Adicionar
+                {t('common.add')}
               </button>
             )}
             {onWishlist && (
@@ -96,7 +98,7 @@ export default function CardTile({ card, onAdd, onWishlist, onClick, showActions
                 className="flex items-center gap-2 border border-vault-gold/50 text-vault-gold text-xs font-medium px-3 py-2 rounded-lg w-full justify-center hover:bg-vault-gold/10 transition-all"
               >
                 <Star size={14} />
-                Wishlist
+                {t('nav.wishlist')}
               </button>
             )}
           </motion.div>
