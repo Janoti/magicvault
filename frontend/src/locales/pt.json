@@ -11,6 +11,7 @@
     "shared": "Compartilhados",
     "events": "Eventos",
     "communityDecks": "Decks da comunidade",
+    "guide": "Como funciona",
     "logout": "Sair",
     "subtitle": "MTG Collection Manager",
     "total": "Total",
@@ -194,6 +195,99 @@
       "forTrade": "Para troca",
       "viewAll": "Abrir no mercado",
       "empty": "Nenhuma oferta ativa no momento."
+    }
+  },
+  "guide": {
+    "badge": "Primeiros passos",
+    "title": "Como o VaultSpell funciona",
+    "subtitle": "Um tour rápido por tudo que dá pra fazer — de catalogar a coleção a vender cartas e organizar eventos.",
+    "goTo": "Abrir",
+    "footer": "Novidades saem com frequência. Veja a página de recursos pra saber o que vem por aí.",
+    "seeFeatures": "Ver todos os recursos",
+    "sections": {
+      "collection": {
+        "title": "Sua coleção",
+        "intro": "Catalogue cada carta que você tem e acompanhe o valor.",
+        "steps": [
+          "Adicione cartas buscando, ou escaneie com a câmera do celular.",
+          "Defina quantidade, condição, idioma e se é foil.",
+          "Escolha a edição/impressão exata — mude quando quiser.",
+          "Veja o valor da coleção em tempo real, em dólar e real.",
+          "Registre quanto pagou para acompanhar lucro e prejuízo (Premium)."
+        ]
+      },
+      "decks": {
+        "title": "Decks",
+        "intro": "Monte e organize decks em todos os formatos.",
+        "steps": [
+          "Crie um deck, escolha o formato e adicione cartas.",
+          "Agrupe decks em pastas para se organizar.",
+          "Marque um deck como público para exibi-lo no perfil.",
+          "Compartilhe um deck por link privado, ou exporte.",
+          "Explore decks da comunidade para se inspirar."
+        ]
+      },
+      "binders": {
+        "title": "Binders",
+        "intro": "Organize cartas em fichários virtuais, como na vida real.",
+        "steps": [
+          "Crie binders com nome, cor e ícone personalizados.",
+          "Posicione as cartas por página e espaço.",
+          "Torne um binder público para exibi-lo no seu perfil.",
+          "Compartilhe um binder com qualquer pessoa por link."
+        ]
+      },
+      "search": {
+        "title": "Busca & informações da carta",
+        "intro": "Encontre qualquer carta e veja os detalhes.",
+        "steps": [
+          "Busque na base completa, com imagens e preços.",
+          "Abra uma carta para ver todas as impressões e preços ao vivo.",
+          "Troque o idioma da carta (EN / PT / ES) quando disponível.",
+          "Adicione a carta direto à coleção ou à wishlist."
+        ]
+      },
+      "market": {
+        "title": "Mercado & trocas",
+        "intro": "Compre, venda e troque cartas com outros colecionadores (Premium).",
+        "steps": [
+          "Anuncie uma carta para venda, troca, ou os dois.",
+          "Coloque preço, foto real e o que você quer em troca.",
+          "Receba interesse e converse no chat embutido.",
+          "Finalize como vendida ou trocada; apague conversas que não precisa.",
+          "Suas ofertas ativas aparecem no seu perfil público."
+        ]
+      },
+      "social": {
+        "title": "Amigos & perfil",
+        "intro": "Conecte-se com outros jogadores e mostre o que você montou.",
+        "steps": [
+          "Adicione amigos e veja os perfis dentro do app.",
+          "Torne sua coleção, decks e binders públicos.",
+          "Escolha mostrar um contato, revelado só ao clicar.",
+          "Compartilhe qualquer recurso por link privado."
+        ]
+      },
+      "events": {
+        "title": "Eventos & lojas",
+        "intro": "Descubra o que rola na cena local (quando habilitado).",
+        "steps": [
+          "Veja os próximos eventos em lista ou calendário.",
+          "Conheça lojas parceiras da sua região.",
+          "Crie seus próprios eventos públicos ou privados.",
+          "Marque interesse e exporte para a sua agenda."
+        ]
+      },
+      "account": {
+        "title": "Conta & configurações",
+        "intro": "Deixe o VaultSpell com a sua cara.",
+        "steps": [
+          "Troque o idioma da interface (português, inglês, espanhol).",
+          "Edite seu perfil, avatar, bio e links.",
+          "Instale o app na tela inicial (PWA).",
+          "Gerencie sua assinatura Premium quando quiser."
+        ]
+      }
     }
   },
   "userEvents": {

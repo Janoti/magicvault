@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
   Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2, ShieldCheck,
-  ChevronDown, Settings, ArrowLeftRight, Crown, CalendarDays, Layers, Menu, X
+  ChevronDown, Settings, ArrowLeftRight, Crown, CalendarDays, Layers, Menu, X, Compass
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -191,6 +191,18 @@ export default function Layout({ children }: { children?: ReactNode }) {
             }
           >
             <Crown size={16} /> {t('premium.nav')}
+          </NavLink>
+
+          <NavLink
+            to="/guia"
+            className={({ isActive }) =>
+              `mt-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                isActive ? 'bg-vault-accent/15 text-vault-accent font-medium' : 'text-vault-muted hover:text-vault-text hover:bg-vault-card/60'
+              }`
+            }
+          >
+            <Compass size={16} />
+            {t('nav.guide')}
           </NavLink>
 
           {user?.is_admin && (

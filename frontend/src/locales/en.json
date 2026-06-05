@@ -11,6 +11,7 @@
     "shared": "Shared",
     "events": "Events",
     "communityDecks": "Community decks",
+    "guide": "How it works",
     "logout": "Log out",
     "subtitle": "MTG Collection Manager",
     "total": "Total",
@@ -194,6 +195,99 @@
       "forTrade": "For trade",
       "viewAll": "Open in the marketplace",
       "empty": "No active listings right now."
+    }
+  },
+  "guide": {
+    "badge": "Getting started",
+    "title": "How VaultSpell works",
+    "subtitle": "A quick tour of everything you can do — from cataloguing your collection to selling cards and running events.",
+    "goTo": "Open",
+    "footer": "New things ship often. Check the features page to see what's coming.",
+    "seeFeatures": "See all features",
+    "sections": {
+      "collection": {
+        "title": "Your collection",
+        "intro": "Catalogue every card you own and track what it's worth.",
+        "steps": [
+          "Add cards by searching, or scan them with your phone's camera.",
+          "Set quantity, condition, language and whether it's foil.",
+          "Pick the exact printing/set — change it anytime.",
+          "See your collection's live value in USD and BRL.",
+          "Record what you paid to track profit & loss (Premium)."
+        ]
+      },
+      "decks": {
+        "title": "Decks",
+        "intro": "Build and organise decks in every format.",
+        "steps": [
+          "Create a deck, choose its format and add cards.",
+          "Group decks into folders to stay organised.",
+          "Mark a deck public to show it on your profile.",
+          "Share a deck with a private link, or export it.",
+          "Browse community decks for inspiration."
+        ]
+      },
+      "binders": {
+        "title": "Binders",
+        "intro": "Arrange cards into virtual binders, just like the real thing.",
+        "steps": [
+          "Create binders with custom names, colours and icons.",
+          "Place cards by page and slot.",
+          "Make a binder public to showcase it on your profile.",
+          "Share a binder with anyone via a link."
+        ]
+      },
+      "search": {
+        "title": "Search & card info",
+        "intro": "Find any card and dig into the details.",
+        "steps": [
+          "Search the full card database with images and prices.",
+          "Open a card to see every printing and live prices.",
+          "Switch a card's language (EN / PT / ES) when available.",
+          "Add a card straight to your collection or wishlist."
+        ]
+      },
+      "market": {
+        "title": "Marketplace & trades",
+        "intro": "Buy, sell and trade cards with other collectors (Premium).",
+        "steps": [
+          "List a card for sale, for trade, or both.",
+          "Add a price, a real photo and what you want in return.",
+          "Receive interest and chat in built-in conversations.",
+          "Close a deal as sold or traded; delete chats you don't need.",
+          "Your active listings appear on your public profile."
+        ]
+      },
+      "social": {
+        "title": "Friends & profile",
+        "intro": "Connect with other players and show off what you've built.",
+        "steps": [
+          "Add friends and view their profiles inside the app.",
+          "Make your collection, decks and binders public.",
+          "Choose whether to show a contact, revealed only on click.",
+          "Share any resource with a private link."
+        ]
+      },
+      "events": {
+        "title": "Events & stores",
+        "intro": "Find what's happening in the local scene (when enabled).",
+        "steps": [
+          "Browse upcoming events in a list or calendar.",
+          "Discover partner stores in your region.",
+          "Create your own public or private events.",
+          "Mark yourself as interested and export to your calendar."
+        ]
+      },
+      "account": {
+        "title": "Account & settings",
+        "intro": "Make VaultSpell yours.",
+        "steps": [
+          "Switch the interface language (English, Portuguese, Spanish).",
+          "Edit your profile, avatar, bio and links.",
+          "Install the app to your home screen (PWA).",
+          "Manage your Premium subscription anytime."
+        ]
+      }
     }
   },
   "userEvents": {

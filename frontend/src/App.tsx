@@ -7,6 +7,7 @@ import Layout from '@/components/layout/Layout'
 // fetches what the current route needs.
 const LandingPage = lazy(() => import('@/pages/LandingPage'))
 const FeaturesPage = lazy(() => import('@/pages/FeaturesPage'))
+const GuidePage = lazy(() => import('@/pages/GuidePage'))
 const PublicEntityPage = lazy(() => import('@/pages/PublicEntityPage'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'))
@@ -63,6 +64,8 @@ export default function App() {
         {/* Public */}
         <Route path="/" element={<RootRoute />} />
         <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/guia" element={<GuidePage />} />
+        <Route path="/guide" element={<GuidePage />} />
         <Route path="/eventos" element={<EventsPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/lojas" element={<StoresPage />} />
