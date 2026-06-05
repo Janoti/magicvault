@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { cardsApi } from '@/lib/api'
+import { FLAGS } from '@/lib/flags'
 
 interface AddCardModalProps {
   card: any
@@ -59,6 +60,8 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
 
   const [langNote, setLangNote] = useState('')
   const [langLoading, setLangLoading] = useState(false)
+  const [acquiredPrice, setAcquiredPrice] = useState('')
+  const [acquiredCurrency, setAcquiredCurrency] = useState<'USD' | 'BRL'>('BRL')
 
   const pickPrint = (p: any) => {
     setSelected(p)
@@ -81,7 +84,11 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
   }
 
   const handleSubmit = () => {
-    onConfirm({ scryfall_id: selected.id, quantity, condition, foil, language: selected.lang || language })
+    onConfirm({
+      scryfall_id: selected.id, quantity, condition, foil, language: selected.lang || language,
+      acquired_price: acquiredPrice ? parseFloat(acquiredPrice) : null,
+      acquired_currency: acquiredPrice ? acquiredCurrency : null,
+    })
   }
 
   const foilAvailable = canFoil(selected)
@@ -249,6 +256,24 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
                 )}
               </span>
             </div>
+
+            {FLAGS.pnl && (
+              <div>
+                <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.acquiredPrice')}</label>
+                <div className="flex gap-2">
+                  <input type="number" step="0.01" min="0" className="input-field flex-1" placeholder={t('modal.optional')}
+                    value={acquiredPrice} onChange={(e) => setAcquiredPrice(e.target.value)} />
+                  <div className="flex rounded-lg border border-vault-border overflow-hidden">
+                    {(['BRL', 'USD'] as const).map((c) => (
+                      <button key={c} type="button" onClick={() => setAcquiredCurrency(c)}
+                        className={`px-3 text-sm ${acquiredCurrency === c ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted'}`}>
+                        {c === 'BRL' ? 'R$' : '$'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 mt-6">

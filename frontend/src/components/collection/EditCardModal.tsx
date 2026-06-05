@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { cardsApi } from '@/lib/api'
+import { FLAGS } from '@/lib/flags'
 
 const rarityDot: Record<string, string> = {
   common: 'bg-vault-muted', uncommon: 'bg-slate-300', rare: 'bg-vault-gold',
@@ -35,6 +36,8 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
   const [notes, setNotes] = useState<string>(entry.notes ?? '')
   const [selected, setSelected] = useState<any>(card || { id: entry.scryfall_id })
   const [editionOpen, setEditionOpen] = useState(false)
+  const [acquiredPrice, setAcquiredPrice] = useState<string>(entry.acquired_price != null ? String(entry.acquired_price) : '')
+  const [acquiredCurrency, setAcquiredCurrency] = useState<'USD' | 'BRL'>((entry.acquired_currency as 'USD' | 'BRL') || 'BRL')
 
   const { data: printsData, isLoading: loadingPrints } = useQuery({
     queryKey: ['card-prints', entry.scryfall_id],
@@ -44,7 +47,11 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
   const prints: any[] = printsData?.prints || []
 
   const handleSubmit = () => {
-    onConfirm({ quantity, condition, foil, notes: notes || null, scryfall_id: selected.id })
+    onConfirm({
+      quantity, condition, foil, notes: notes || null, scryfall_id: selected.id,
+      acquired_price: acquiredPrice ? parseFloat(acquiredPrice) : 0,
+      acquired_currency: acquiredPrice ? acquiredCurrency : null,
+    })
   }
 
   return (
@@ -173,6 +180,24 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
               </label>
               <span className="text-sm text-vault-text">{t('modal.foil')}</span>
             </div>
+
+            {FLAGS.pnl && (
+              <div>
+                <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.acquiredPrice')}</label>
+                <div className="flex gap-2">
+                  <input type="number" step="0.01" min="0" className="input-field flex-1" placeholder={t('modal.optional')}
+                    value={acquiredPrice} onChange={(e) => setAcquiredPrice(e.target.value)} />
+                  <div className="flex rounded-lg border border-vault-border overflow-hidden">
+                    {(['BRL', 'USD'] as const).map((c) => (
+                      <button key={c} type="button" onClick={() => setAcquiredCurrency(c)}
+                        className={`px-3 text-sm ${acquiredCurrency === c ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted'}`}>
+                        {c === 'BRL' ? 'R$' : '$'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <p className="text-[11px] text-vault-muted">{t('modal.mergeHint')}</p>
           </div>

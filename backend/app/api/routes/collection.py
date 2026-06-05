@@ -13,6 +13,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User, CollectionEntry, Binder, BinderCard, Listing, CollectionSnapshot
 from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk, get_sets
+from app.services.fx import get_usd_brl
 from app.services.sharing import build_resource_view
 
 router = APIRouter()
@@ -63,6 +64,8 @@ class AddCardRequest(BaseModel):
     foil: bool = False
     language: str = "en"
     notes: Optional[str] = None
+    acquired_price: Optional[float] = None
+    acquired_currency: Optional[str] = None  # USD | BRL
 
 
 class UpdateCardRequest(BaseModel):
@@ -71,6 +74,8 @@ class UpdateCardRequest(BaseModel):
     foil: Optional[bool] = None
     notes: Optional[str] = None
     scryfall_id: Optional[str] = None  # change the printing/edition in place
+    acquired_price: Optional[float] = None
+    acquired_currency: Optional[str] = None
 
 
 @router.get("/public/{username}")
@@ -101,7 +106,10 @@ async def stats(
         select(CollectionEntry).where(CollectionEntry.user_id == current_user.id)
     )).scalars().all()
     total_value = 0.0
+    cost_usd = 0.0           # what the user paid (for entries with a cost), in USD
+    costed_value_usd = 0.0   # current value of just those entries, in USD
     if entries:
+        rate = await get_usd_brl() or 0
         cards = await get_cards_bulk([e.scryfall_id for e in entries])
         for e in entries:
             raw = cards.get(e.scryfall_id)
@@ -110,6 +118,12 @@ async def stats(
             summary = extract_card_summary(raw)
             unit = summary["price_usd_foil"] if e.foil else summary["price_usd"]
             total_value += (unit or 0) * e.quantity
+            if e.acquired_price:
+                c = e.acquired_price
+                if (e.acquired_currency or "USD") == "BRL" and rate:
+                    c = c / rate
+                cost_usd += c * e.quantity
+                costed_value_usd += (unit or 0) * e.quantity
 
     # Record (or refresh) today's value snapshot for the value-over-time chart.
     today = date.today()
@@ -127,6 +141,8 @@ async def stats(
         "unique_cards": row.unique_cards or 0,
         "total_cards": row.total_cards or 0,
         "total_value": round(total_value, 2),
+        "cost_usd": round(cost_usd, 2),               # cost basis (entries with a price)
+        "costed_value_usd": round(costed_value_usd, 2),  # current value of those entries
     }
 
 
@@ -201,6 +217,8 @@ async def list_collection(
             "language": entry.language,
             "notes": entry.notes,
             "price_at_add": entry.price_at_add,
+            "acquired_price": entry.acquired_price,
+            "acquired_currency": entry.acquired_currency,
             "added_at": entry.added_at.isoformat(),
         }
 
@@ -361,6 +379,9 @@ async def add_card(
 
     if existing:
         existing.quantity += data.quantity
+        if data.acquired_price is not None:
+            existing.acquired_price = data.acquired_price
+            existing.acquired_currency = (data.acquired_currency or "USD")
         entry = existing
     else:
         entry = CollectionEntry(
@@ -372,6 +393,8 @@ async def add_card(
             language=data.language,
             notes=data.notes,
             price_at_add=price,
+            acquired_price=data.acquired_price,
+            acquired_currency=(data.acquired_currency or "USD") if data.acquired_price is not None else None,
         )
         db.add(entry)
 
@@ -428,6 +451,9 @@ async def update_entry(
     entry.scryfall_id = new_scryfall_id
     if data.notes is not None:
         entry.notes = data.notes
+    if data.acquired_price is not None:
+        entry.acquired_price = data.acquired_price or None
+        entry.acquired_currency = (data.acquired_currency or "USD") if data.acquired_price else None
 
     return {"message": "Updated"}
 

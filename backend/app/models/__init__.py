@@ -65,6 +65,8 @@ class CollectionEntry(Base):
     foil: Mapped[bool] = mapped_column(Boolean, default=False)
     language: Mapped[str] = mapped_column(String(10), default="en")
     price_at_add: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    acquired_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)        # what the user paid (cost basis)
+    acquired_currency: Mapped[Optional[str]] = mapped_column(String(3), nullable=True)   # USD | BRL
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

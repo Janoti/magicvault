@@ -63,6 +63,8 @@ _COLUMN_MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS login_count INTEGER DEFAULT 0",
     "ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS segment VARCHAR(20) DEFAULT 'all'",
     "ALTER TABLE decks ADD COLUMN IF NOT EXISTS folder_id INTEGER",
+    "ALTER TABLE collection_entries ADD COLUMN IF NOT EXISTS acquired_price DOUBLE PRECISION",
+    "ALTER TABLE collection_entries ADD COLUMN IF NOT EXISTS acquired_currency VARCHAR(3)",
 ]
 
 

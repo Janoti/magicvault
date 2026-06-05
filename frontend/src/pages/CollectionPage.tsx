@@ -9,6 +9,7 @@ import CardTile from '@/components/cards/CardTile'
 import CardInfoModal from '@/components/cards/CardInfoModal'
 import ValueChart from '@/components/collection/ValueChart'
 import SetCompletion from '@/components/collection/SetCompletion'
+import PnL from '@/components/collection/PnL'
 import RoleTag from '@/components/cards/RoleTag'
 import { FLAGS } from '@/lib/flags'
 import { cardRole } from '@/lib/cardRole'
@@ -335,6 +336,7 @@ export default function CollectionPage() {
       ) : (
         <>
           <ValueChart />
+          {FLAGS.pnl && <PnL />}
           {FLAGS.setCompletion && <SetCompletion />}
           {selectedIds.size > 0 && (
             <div className="surface p-3 mb-3 flex flex-wrap items-center gap-3 border-vault-accent/30">
