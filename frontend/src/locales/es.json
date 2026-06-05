@@ -86,6 +86,9 @@
     "bulkDeleteConfirm": "¿Eliminar {{count}} carta(s) de la colección?",
     "bulkClear": "Limpiar selección",
     "valueOverTime": "Valor de la colección en el tiempo",
+    "setCompletion": "Completado por edición",
+    "showLess": "Ver menos",
+    "showAllSets": "Ver las {{count}} ediciones",
     "perUnit": "{{price}} c/u",
     "totalCards": "{{count}} cartas en total",
     "onThisPage": "en esta página",
@@ -221,6 +224,7 @@
     "badge": "Todo en un solo lugar",
     "soonBadge": "Próximamente",
     "soonEvents": "🗓️ Eventos y tiendas de Magic cerca de ti",
+    "soonCollector": "📊 Costo y ganancia/pérdida · ✅ % de set · 📜 rulings · 📧 resumen semanal de precios",
     "title": "El centro de tu colección de Magic",
     "subtitle": "El único lugar que une de verdad tu colección, tus mazos y un mercado — no como accesorio, sino como el corazón de la app. Lo esencial es gratis; dos funciones avanzadas son Premium.",
     "cta": "Crear cuenta gratis",
@@ -576,7 +580,8 @@
     "rarity": "Rareza",
     "artist": "Artista",
     "loyalty": "Lealtad",
-    "langUnavailable": "Esta carta no existe en {{lang}} — usando inglés"
+    "langUnavailable": "Esta carta no existe en {{lang}} — usando inglés",
+    "rulings": "Rulings (interacciones oficiales)"
   },
   "unsubscribe": {
     "invalid": "Enlace inválido o expirado.",

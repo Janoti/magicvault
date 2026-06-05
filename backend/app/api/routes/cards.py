@@ -3,7 +3,8 @@ from typing import List, Optional
 
 from app.services.scryfall import (
     search_cards, get_card_by_id, get_card_by_name,
-    autocomplete_cards, extract_card_summary, get_card_prints, get_card_lang_variant
+    autocomplete_cards, extract_card_summary, get_card_prints, get_card_lang_variant,
+    get_card_rulings,
 )
 from app.services.fx import get_usd_brl
 
@@ -59,6 +60,12 @@ async def card_prints(scryfall_id: str):
         return {"prints": [extract_card_summary(c) for c in prints]}
     except Exception:
         raise HTTPException(status_code=404, detail="Card not found")
+
+
+@router.get("/{scryfall_id}/rulings")
+async def card_rulings(scryfall_id: str):
+    """Official rulings/interactions for a card."""
+    return {"rulings": await get_card_rulings(scryfall_id)}
 
 
 @router.get("/{scryfall_id}/lang/{lang}")

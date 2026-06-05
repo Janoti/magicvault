@@ -7,6 +7,7 @@ import { X, ShoppingCart, ExternalLink, Plus, Library } from 'lucide-react'
 import { collectionApi, cardsApi } from '@/lib/api'
 import { useUsdBrl } from '@/components/cards/CardPrice'
 import { useAuthStore } from '@/store/auth'
+import { FLAGS } from '@/lib/flags'
 
 const LANGS = [{ code: 'en', label: 'EN' }, { code: 'pt', label: 'PT' }, { code: 'es', label: 'ES' }]
 const LANG_LABEL: Record<string, string> = { en: 'Inglês', pt: 'Português', es: 'Espanhol' }
@@ -75,6 +76,13 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
     enabled: !!initialCard?.id && !!user,
     staleTime: 60_000,
   })
+  const { data: rulingsData } = useQuery({
+    queryKey: ['card-rulings', card.id],
+    queryFn: () => cardsApi.rulings(card.id),
+    enabled: FLAGS.cardRulings && !!card.id,
+    staleTime: 1000 * 60 * 60,
+  })
+  const rulings = rulingsData?.rulings ?? []
   const owned = ctx?.owned ?? 0
   const market = ctx?.market ?? { count: 0, min_price: null }
 
@@ -201,6 +209,18 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
                   })}
                 </div>
               </div>
+
+              {/* Rulings (official interactions) */}
+              {FLAGS.cardRulings && rulings.length > 0 && (
+                <div className="pt-2">
+                  <p className="text-[11px] uppercase tracking-wide text-vault-muted mb-1.5">{t('cardInfo.rulings')}</p>
+                  <ul className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                    {rulings.map((r: any, i: number) => (
+                      <li key={i} className="text-xs text-vault-muted leading-relaxed border-l-2 border-vault-border pl-2">{r.comment}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

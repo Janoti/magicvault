@@ -132,6 +132,23 @@ async def get_set_cards(set_code: str) -> List[Dict[str, Any]]:
     return all_cards
 
 
+async def get_card_rulings(scryfall_id: str) -> List[Dict[str, Any]]:
+    """Official rulings for a card (date + text), cached for a week."""
+    cache_key = f"scryfall:rulings:{scryfall_id}"
+    cached = await cache_get(cache_key)
+    if cached is not None:
+        return cached
+    out: List[Dict[str, Any]] = []
+    try:
+        data = await _get(f"{BASE}/cards/{scryfall_id}/rulings")
+        out = [{"date": r.get("published_at"), "comment": r.get("comment")}
+               for r in data.get("data", []) if r.get("comment")]
+    except Exception:
+        out = []
+    await cache_set(cache_key, out, ttl=86400 * 7)
+    return out
+
+
 async def get_card_lang_variant(scryfall_id: str, lang: str) -> Optional[Dict[str, Any]]:
     """This card in another language. Tries the same printing first, then ANY
     printing (by exact name). Returns None only if no printing exists in that

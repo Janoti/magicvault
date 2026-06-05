@@ -86,6 +86,9 @@
     "bulkDeleteConfirm": "Delete {{count}} card(s) from the collection?",
     "bulkClear": "Clear selection",
     "valueOverTime": "Collection value over time",
+    "setCompletion": "Set completion",
+    "showLess": "Show less",
+    "showAllSets": "Show all {{count}} sets",
     "perUnit": "{{price}} ea.",
     "totalCards": "{{count}} cards total",
     "onThisPage": "on this page",
@@ -221,6 +224,7 @@
     "badge": "Everything in one place",
     "soonBadge": "Coming soon",
     "soonEvents": "🗓️ Magic events and stores near you",
+    "soonCollector": "📊 Cost & profit/loss · ✅ set completion % · 📜 card rulings · 📧 weekly price digest",
     "title": "The home base for your Magic collection",
     "subtitle": "The only place that truly ties together your collection, decks and a marketplace — not as an add-on, but as the heart of the app. The essentials are free; two advanced features are Premium.",
     "cta": "Create a free account",
@@ -576,7 +580,8 @@
     "rarity": "Rarity",
     "artist": "Artist",
     "loyalty": "Loyalty",
-    "langUnavailable": "This card doesn't exist in {{lang}} — using English"
+    "langUnavailable": "This card doesn't exist in {{lang}} — using English",
+    "rulings": "Rulings (official interactions)"
   },
   "unsubscribe": {
     "invalid": "Invalid or expired link.",

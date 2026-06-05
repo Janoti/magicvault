@@ -202,6 +202,7 @@ export default function LandingPage() {
                 <span className="flex items-center gap-2"><Check size={15} className="text-vault-accent" /> {t('landing.eventsB2')}</span>
                 <span className="flex items-center gap-2"><Check size={15} className="text-vault-accent" /> {t('landing.eventsB3')}</span>
               </div>
+              <p className="text-xs text-vault-muted mt-5">{t('feat.soonBadge')}: {t('feat.soonCollector')}</p>
             </div>
           </div>
         </motion.div>

@@ -157,10 +157,12 @@ export default function FeaturesPage() {
         </motion.div>
         <motion.h1 {...fadeUp} transition={{ delay: 0.05 }} className="font-display text-4xl sm:text-5xl font-bold text-vault-gold leading-tight">{t('feat.title')}</motion.h1>
         <motion.p {...fadeUp} transition={{ delay: 0.1 }} className="text-vault-muted text-lg mt-4 max-w-2xl mx-auto">{t('feat.subtitle')}</motion.p>
-        <motion.div {...fadeUp} transition={{ delay: 0.15 }}
-          className="mt-6 inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-vault-accent/30 bg-vault-accent/10 px-4 py-2">
-          <span className="text-[11px] uppercase tracking-wider font-bold text-vault-accent">{t('feat.soonBadge')}</span>
-          <span className="text-sm text-vault-text">{t('feat.soonEvents')}</span>
+        <motion.div {...fadeUp} transition={{ delay: 0.15 }} className="mt-6 flex flex-col items-center gap-2">
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-vault-accent/30 bg-vault-accent/10 px-4 py-2">
+            <span className="text-[11px] uppercase tracking-wider font-bold text-vault-accent">{t('feat.soonBadge')}</span>
+            <span className="text-sm text-vault-text">{t('feat.soonEvents')}</span>
+          </div>
+          <p className="text-xs text-vault-muted max-w-2xl text-center">{t('feat.soonCollector')}</p>
         </motion.div>
       </section>
 

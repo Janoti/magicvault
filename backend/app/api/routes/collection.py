@@ -12,7 +12,7 @@ import io
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User, CollectionEntry, Binder, BinderCard, Listing, CollectionSnapshot
-from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk
+from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk, get_sets
 from app.services.sharing import build_resource_view
 
 router = APIRouter()
@@ -304,6 +304,34 @@ async def collection_sets(
             sets[code] = {"code": code, "name": raw.get("set_name", code.upper()), "count": 0}
         sets[code]["count"] += 1
     return sorted(sets.values(), key=lambda s: s["name"])
+
+
+@router.get("/set-completion")
+async def set_completion(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Per-set completion: unique cards owned vs the set's total."""
+    entries = (await db.execute(
+        select(CollectionEntry.scryfall_id).where(CollectionEntry.user_id == current_user.id)
+    )).scalars().all()
+    if not entries:
+        return []
+    cards = await get_cards_bulk(list(set(entries)))
+    owned: dict[str, int] = {}
+    for raw in cards.values():
+        code = raw.get("set")
+        if code:
+            owned[code] = owned.get(code, 0) + 1
+    meta = {s["code"]: s for s in (await get_sets())}
+    out = []
+    for code, cnt in owned.items():
+        m = meta.get(code, {})
+        total = m.get("card_count") or 0
+        out.append({
+            "code": code, "name": m.get("name", code.upper()),
+            "owned": cnt, "total": total,
+            "pct": round(cnt / total * 100) if total else 0,
+        })
+    out.sort(key=lambda s: (-s["pct"], s["name"]))
+    return out
 
 
 @router.post("", status_code=201)
