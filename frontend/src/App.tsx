@@ -48,13 +48,15 @@ function PageLoader() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />
+  // Select the token (a value) rather than the isAuthenticated function, so this
+  // re-renders on login/logout and redirects immediately instead of freezing.
+  const authed = useAuthStore((s) => !!s.token)
+  return authed ? <>{children}</> : <Navigate to="/login" replace />
 }
 
 function RootRoute() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  return isAuthenticated() ? <Navigate to="/collection" replace /> : <LandingPage />
+  const authed = useAuthStore((s) => !!s.token)
+  return authed ? <Navigate to="/collection" replace /> : <LandingPage />
 }
 
 export default function App() {
