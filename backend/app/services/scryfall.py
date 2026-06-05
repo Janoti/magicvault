@@ -133,29 +133,50 @@ async def get_set_cards(set_code: str) -> List[Dict[str, Any]]:
 
 
 async def get_card_lang_variant(scryfall_id: str, lang: str) -> Optional[Dict[str, Any]]:
-    """The same printing (set + collector number) in another language, or None if
-    that language doesn't exist for this card. English returns the base card."""
+    """This card in another language. Tries the same printing first, then ANY
+    printing (by exact name). Returns None only if no printing exists in that
+    language at all — so the caller can truthfully say "not available". English
+    returns the base card."""
     base = await get_card_by_id(scryfall_id)
     if not base:
         return None
     if lang == "en" or base.get("lang") == lang:
         return base
-    set_code = base.get("set")
-    cn = base.get("collector_number")
-    if not set_code or not cn:
-        return None
-    cache_key = f"scryfall:langvar:{set_code}:{cn}:{lang}"
+
+    cache_key = f"scryfall:langvar:{scryfall_id}:{lang}"
     cached = await cache_get(cache_key)
     if cached is not None:
-        return cached or None  # cached False means "doesn't exist"
-    try:
-        data = await _get(f"{BASE}/cards/{set_code}/{cn}/{lang}")
-        await cache_set(f"scryfall:card:{data['id']}", data)
-        await cache_set(cache_key, data)
-        return data
-    except Exception:
-        await cache_set(cache_key, False, ttl=86400)  # remember the miss for a day
-        return None
+        return cached or None  # cached False means "doesn't exist in any printing"
+
+    # 1) Same printing (set + collector number) in the requested language.
+    set_code, cn = base.get("set"), base.get("collector_number")
+    if set_code and cn:
+        try:
+            data = await _get(f"{BASE}/cards/{set_code}/{cn}/{lang}")
+            await cache_set(f"scryfall:card:{data['id']}", data)
+            await cache_set(cache_key, data)
+            return data
+        except Exception:
+            pass
+
+    # 2) Any printing of this card in that language (newest first).
+    name = base.get("name")
+    if name:
+        try:
+            res = await _get(f"{BASE}/cards/search", params={
+                "q": f'!"{name}" lang:{lang}', "unique": "prints", "order": "released", "dir": "desc",
+            })
+            cards = res.get("data") or []
+            if cards:
+                data = cards[0]
+                await cache_set(f"scryfall:card:{data['id']}", data)
+                await cache_set(cache_key, data)
+                return data
+        except Exception:
+            pass
+
+    await cache_set(cache_key, False, ttl=86400)  # truly no printing in that language
+    return None
 
 
 async def get_card_prints(scryfall_id: str) -> List[Dict[str, Any]]:

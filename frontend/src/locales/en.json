@@ -575,7 +575,7 @@
     "rarity": "Rarity",
     "artist": "Artist",
     "loyalty": "Loyalty",
-    "langUnavailable": "Not available in {{lang}} — using English"
+    "langUnavailable": "This card doesn't exist in {{lang}} — using English"
   },
   "unsubscribe": {
     "invalid": "Invalid or expired link.",
@@ -616,7 +616,7 @@
     "quantity": "Quantity",
     "condition": "Condition",
     "language": "Language",
-    "langUnavailable": "Not available in {{lang}} — using English",
+    "langUnavailable": "This card doesn't exist in {{lang}} — using English",
     "notes": "Notes",
     "optional": "Optional",
     "foil": "Foil",
