@@ -106,17 +106,17 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
           className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
         <motion.div initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}
           className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-vault-surface border border-vault-border rounded-2xl shadow-2xl">
-          <div className="flex items-center justify-between px-6 pt-5">
-            <h2 className="font-display text-2xl font-bold text-vault-gold flex items-center gap-2">
+          <div className="flex items-start justify-between gap-2 px-4 sm:px-6 pt-4 sm:pt-5">
+            <h2 className="font-display text-xl sm:text-2xl font-bold text-vault-gold flex items-center gap-2 flex-wrap">
               {card.name} <ManaCost cost={card.mana_cost} />
             </h2>
-            <button onClick={onClose} className="text-vault-muted hover:text-vault-text"><X size={20} /></button>
+            <button onClick={onClose} className="text-vault-muted hover:text-vault-text shrink-0 mt-1"><X size={20} /></button>
           </div>
 
-          <div className="p-6 grid sm:grid-cols-[200px_1fr] gap-6">
+          <div className="p-4 sm:p-6 grid md:grid-cols-[200px_1fr] gap-4 sm:gap-6">
             {/* Left: image + actions */}
             <div className="space-y-3">
-              {image && <img src={image} alt={card.name} className="w-full rounded-xl shadow-lg" />}
+              {image && <img src={image} alt={card.name} className="w-full max-w-[200px] mx-auto md:max-w-none rounded-xl shadow-lg" />}
               {(usd > 0 || usdFoil > 0) && (
                 <div className="text-center text-sm font-mono">
                   {usd > 0 && <span className="text-green-400">${usd.toFixed(2)}</span>}
