@@ -1,38 +1,50 @@
+import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import Layout from '@/components/layout/Layout'
-import LandingPage from '@/pages/LandingPage'
-import FeaturesPage from '@/pages/FeaturesPage'
-import PublicEntityPage from '@/pages/PublicEntityPage'
-import LoginPage from '@/pages/LoginPage'
-import RegisterPage from '@/pages/RegisterPage'
-import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
-import ResetPasswordPage from '@/pages/ResetPasswordPage'
-import UnsubscribePage from '@/pages/UnsubscribePage'
-import EventsPage from '@/pages/EventsPage'
-import StoresPage from '@/pages/StoresPage'
-import CommunityDecksPage from '@/pages/CommunityDecksPage'
-import EventPage from '@/pages/EventPage'
-import MyEventsPage from '@/pages/MyEventsPage'
-import PublicFolderPage from '@/pages/PublicFolderPage'
-import CollectionPage from '@/pages/CollectionPage'
-import SearchPage from '@/pages/SearchPage'
-import CardScanPage from '@/pages/CardScanPage'
-import BindersPage from '@/pages/BindersPage'
-import BinderDetailPage from '@/pages/BinderDetailPage'
-import DecksPage from '@/pages/DecksPage'
-import DeckDetailPage from '@/pages/DeckDetailPage'
-import WishlistPage from '@/pages/WishlistPage'
-import SetsPage from '@/pages/SetsPage'
-import SetDetailPage from '@/pages/SetDetailPage'
-import FriendsPage from '@/pages/FriendsPage'
-import SharedWithMePage from '@/pages/SharedWithMePage'
-import PublicViewPage from '@/pages/PublicViewPage'
-import AccountPage from '@/pages/AccountPage'
-import ProfilePage from '@/pages/ProfilePage'
-import AdminPage from '@/pages/AdminPage'
-import TradesPage from '@/pages/TradesPage'
-import PremiumPage from '@/pages/PremiumPage'
+
+// Lazy-loaded pages — each becomes its own chunk, so the initial load only
+// fetches what the current route needs.
+const LandingPage = lazy(() => import('@/pages/LandingPage'))
+const FeaturesPage = lazy(() => import('@/pages/FeaturesPage'))
+const PublicEntityPage = lazy(() => import('@/pages/PublicEntityPage'))
+const LoginPage = lazy(() => import('@/pages/LoginPage'))
+const RegisterPage = lazy(() => import('@/pages/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'))
+const UnsubscribePage = lazy(() => import('@/pages/UnsubscribePage'))
+const EventsPage = lazy(() => import('@/pages/EventsPage'))
+const StoresPage = lazy(() => import('@/pages/StoresPage'))
+const CommunityDecksPage = lazy(() => import('@/pages/CommunityDecksPage'))
+const EventPage = lazy(() => import('@/pages/EventPage'))
+const MyEventsPage = lazy(() => import('@/pages/MyEventsPage'))
+const PublicFolderPage = lazy(() => import('@/pages/PublicFolderPage'))
+const CollectionPage = lazy(() => import('@/pages/CollectionPage'))
+const SearchPage = lazy(() => import('@/pages/SearchPage'))
+const CardScanPage = lazy(() => import('@/pages/CardScanPage'))
+const BindersPage = lazy(() => import('@/pages/BindersPage'))
+const BinderDetailPage = lazy(() => import('@/pages/BinderDetailPage'))
+const DecksPage = lazy(() => import('@/pages/DecksPage'))
+const DeckDetailPage = lazy(() => import('@/pages/DeckDetailPage'))
+const WishlistPage = lazy(() => import('@/pages/WishlistPage'))
+const SetsPage = lazy(() => import('@/pages/SetsPage'))
+const SetDetailPage = lazy(() => import('@/pages/SetDetailPage'))
+const FriendsPage = lazy(() => import('@/pages/FriendsPage'))
+const SharedWithMePage = lazy(() => import('@/pages/SharedWithMePage'))
+const PublicViewPage = lazy(() => import('@/pages/PublicViewPage'))
+const AccountPage = lazy(() => import('@/pages/AccountPage'))
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
+const AdminPage = lazy(() => import('@/pages/AdminPage'))
+const TradesPage = lazy(() => import('@/pages/TradesPage'))
+const PremiumPage = lazy(() => import('@/pages/PremiumPage'))
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-vault-bg">
+      <div className="w-8 h-8 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -46,58 +58,60 @@ function RootRoute() {
 
 export default function App() {
   return (
-    <Routes>
-      {/* Public */}
-      <Route path="/" element={<RootRoute />} />
-      <Route path="/features" element={<FeaturesPage />} />
-      <Route path="/eventos" element={<EventsPage />} />
-      <Route path="/events" element={<EventsPage />} />
-      <Route path="/lojas" element={<StoresPage />} />
-      <Route path="/stores" element={<StoresPage />} />
-      <Route path="/decks-comunidade" element={<CommunityDecksPage />} />
-      <Route path="/community-decks" element={<CommunityDecksPage />} />
-      <Route path="/e/:id" element={<EventPage />} />
-      <Route path="/f/:token" element={<PublicFolderPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/unsubscribe" element={<UnsubscribePage />} />
-      <Route path="/p/:token" element={<PublicViewPage />} />
-      <Route path="/p/:username/:slug" element={<PublicViewPage />} />
-      <Route path="/u/:username" element={<ProfilePage />} />
-      <Route path="/d/:id" element={<PublicEntityPage kind="deck" />} />
-      <Route path="/c/:username" element={<PublicEntityPage kind="collection" />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Public */}
+        <Route path="/" element={<RootRoute />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/eventos" element={<EventsPage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/lojas" element={<StoresPage />} />
+        <Route path="/stores" element={<StoresPage />} />
+        <Route path="/decks-comunidade" element={<CommunityDecksPage />} />
+        <Route path="/community-decks" element={<CommunityDecksPage />} />
+        <Route path="/e/:id" element={<EventPage />} />
+        <Route path="/f/:token" element={<PublicFolderPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/unsubscribe" element={<UnsubscribePage />} />
+        <Route path="/p/:token" element={<PublicViewPage />} />
+        <Route path="/p/:username/:slug" element={<PublicViewPage />} />
+        <Route path="/u/:username" element={<ProfilePage />} />
+        <Route path="/d/:id" element={<PublicEntityPage kind="deck" />} />
+        <Route path="/c/:username" element={<PublicEntityPage kind="collection" />} />
 
-      {/* Authenticated app */}
-      <Route
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/collection" element={<CollectionPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/scan" element={<CardScanPage />} />
-        <Route path="/binders" element={<BindersPage />} />
-        <Route path="/binders/:id" element={<BinderDetailPage />} />
-        <Route path="/decks" element={<DecksPage />} />
-        <Route path="/decks/:id" element={<DeckDetailPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/sets" element={<SetsPage />} />
-        <Route path="/sets/:code" element={<SetDetailPage />} />
-        <Route path="/friends" element={<FriendsPage />} />
-        <Route path="/shared" element={<SharedWithMePage />} />
-        <Route path="/trades" element={<TradesPage />} />
-        <Route path="/premium" element={<PremiumPage />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/meus-eventos" element={<MyEventsPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-      </Route>
+        {/* Authenticated app */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/collection" element={<CollectionPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/scan" element={<CardScanPage />} />
+          <Route path="/binders" element={<BindersPage />} />
+          <Route path="/binders/:id" element={<BinderDetailPage />} />
+          <Route path="/decks" element={<DecksPage />} />
+          <Route path="/decks/:id" element={<DeckDetailPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/sets" element={<SetsPage />} />
+          <Route path="/sets/:code" element={<SetDetailPage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/shared" element={<SharedWithMePage />} />
+          <Route path="/trades" element={<TradesPage />} />
+          <Route path="/premium" element={<PremiumPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/meus-eventos" element={<MyEventsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   )
 }
