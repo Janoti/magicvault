@@ -236,18 +236,33 @@ def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
     purchase = card.get("purchase_uris", {}) or {}
 
     # Handle double-faced cards
+    faces = card.get("card_faces") or [{}]
     if not image_uris and card.get("card_faces"):
         image_uris = card["card_faces"][0].get("image_uris", {})
 
+    # Localized printings (lang != en) keep the English text in name/type_line/
+    # oracle_text and put the translation in printed_*. Prefer the printed_*
+    # values so PT/ES cards read in their own language; English cards have no
+    # printed_* fields and fall back to the defaults unchanged.
+    def _printed_name() -> str:
+        if card.get("printed_name"):
+            return card["printed_name"]
+        names = [f.get("printed_name") for f in faces if f.get("printed_name")]
+        return " // ".join(names) if names else card["name"]
+
+    type_line = card.get("printed_type_line") or card.get("type_line", "")
+    oracle_text = (card.get("printed_text") or card.get("oracle_text")
+                   or faces[0].get("printed_text") or faces[0].get("oracle_text", ""))
+
     return {
         "id": card["id"],
-        "name": card["name"],
+        "name": _printed_name(),
         "set": card.get("set", ""),
         "set_name": card.get("set_name", ""),
         "collector_number": card.get("collector_number", ""),
-        "mana_cost": card.get("mana_cost") or (card.get("card_faces", [{}])[0].get("mana_cost", "")),
-        "type_line": card.get("type_line", ""),
-        "oracle_text": card.get("oracle_text") or (card.get("card_faces", [{}])[0].get("oracle_text", "")),
+        "mana_cost": card.get("mana_cost") or (faces[0].get("mana_cost", "")),
+        "type_line": type_line,
+        "oracle_text": oracle_text,
         "colors": card.get("colors", []),
         "color_identity": card.get("color_identity", []),
         "rarity": card.get("rarity", ""),
