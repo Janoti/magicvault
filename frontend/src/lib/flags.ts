@@ -3,8 +3,8 @@ import { api } from '@/lib/api'
 
 // Effective feature flags for the current viewer (resolved by the backend from
 // each flag's state: off / admin-only / on). Controlled from the admin panel.
-export type Flags = { cardRulings: boolean; setCompletion: boolean; pnl: boolean; events: boolean }
-const DEFAULT: Flags = { cardRulings: false, setCompletion: false, pnl: false, events: false }
+export type Flags = { cardRulings: boolean; setCompletion: boolean; pnl: boolean; events: boolean; aiDoctor: boolean; aiPrimer: boolean }
+const DEFAULT: Flags = { cardRulings: false, setCompletion: false, pnl: false, events: false, aiDoctor: false, aiPrimer: false }
 
 export function useFlags(): Flags {
   const { data } = useQuery({

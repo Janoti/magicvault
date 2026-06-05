@@ -871,7 +871,10 @@
     "title": "Primer",
     "hint": "Escribe la estrategia del mazo: win conditions, mulligan, combos, matchups.",
     "placeholder": "Win conditions:\n- ...\n\nMulligan:\n- ...\n\nCombos:\n- ...\n\nMatchups:\n- ...",
-    "publicNote": "Aparece en el mazo público, si está público."
+    "publicNote": "Aparece en el mazo público, si está público.",
+    "generate": "Generar con IA",
+    "generating": "Generando...",
+    "aiReview": "Borrador de IA — revisa y edita antes de guardar."
   },
   "suggest": {
     "title": "Sugerencias",

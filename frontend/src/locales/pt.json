@@ -871,7 +871,10 @@
     "title": "Primer",
     "hint": "Anote a estratégia do deck: win conditions, mulligan, combos, matchups.",
     "placeholder": "Win conditions:\n- ...\n\nMulligan:\n- ...\n\nCombos:\n- ...\n\nMatchups:\n- ...",
-    "publicNote": "Aparece no deck público, se ele estiver público."
+    "publicNote": "Aparece no deck público, se ele estiver público.",
+    "generate": "Gerar com IA",
+    "generating": "Gerando...",
+    "aiReview": "Rascunho da IA — revise e edite antes de salvar."
   },
   "suggest": {
     "title": "Sugestões",

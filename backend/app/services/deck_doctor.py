@@ -100,3 +100,30 @@ async def run_doctor(deck: dict, analysis: dict, cards: list, lang: str = "en") 
     if settings.anthropic_api_key:
         return await _call_anthropic(system, prompt)
     return await _call_xai(system, prompt)
+
+
+_PRIMER_SYSTEM = (
+    "You are an expert Magic: The Gathering player writing a deck primer for the deck's "
+    "owner to publish. Be concise, practical and honest. Only reference cards that exist "
+    "in the provided decklist; do not invent cards. Reply in {language}. Use exactly these "
+    "four section headings, each followed by short bullet lines starting with '- ': "
+    "{h1}, {h2}, {h3}, {h4}. No preamble, no closing remarks."
+)
+
+_PRIMER_HEADINGS = {
+    "pt": ("Win conditions:", "Mulligan:", "Combos:", "Matchups:"),
+    "en": ("Win conditions:", "Mulligan:", "Combos:", "Matchups:"),
+    "es": ("Condiciones de victoria:", "Mulligan:", "Combos:", "Enfrentamientos:"),
+}
+
+
+async def run_primer(deck: dict, analysis: dict, cards: list, lang: str = "en") -> str:
+    """Generate a deck primer (win cons / mulligan / combos / matchups) as text."""
+    if not is_configured():
+        raise RuntimeError("AI not configured")
+    h = _PRIMER_HEADINGS.get(lang, _PRIMER_HEADINGS["en"])
+    system = _PRIMER_SYSTEM.format(language=_LANG.get(lang, "English"), h1=h[0], h2=h[1], h3=h[2], h4=h[3])
+    prompt = build_prompt(deck, analysis, cards).split("\n\nGive:")[0]
+    if settings.anthropic_api_key:
+        return await _call_anthropic(system, prompt)
+    return await _call_xai(system, prompt)

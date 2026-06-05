@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi, wishlistApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText, Wand2 } from 'lucide-react'
+import { useFlags } from '@/lib/flags'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardInfoModal from '@/components/cards/CardInfoModal'
@@ -100,6 +101,7 @@ export default function DeckDetailPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const isPremium = !!(user?.is_premium || user?.is_admin)
+  const flags = useFlags()
 
   const { data: doctorCfg } = useQuery({ queryKey: ['doctor-status'], queryFn: decksApi.doctorStatus })
   const doctorMutation = useMutation({ mutationFn: (refresh?: boolean) => decksApi.doctor(deckId, i18n.language, !!refresh) })
@@ -132,6 +134,11 @@ export default function DeckDetailPage() {
   const primerMutation = useMutation({
     mutationFn: () => decksApi.update(deckId, { primer: primerText }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['deck', deckId] }); setPrimerSaved(true); setTimeout(() => setPrimerSaved(false), 1500) },
+  })
+  // AI suggestion — fills the textarea; the user reviews and saves themselves.
+  const primerSuggestMutation = useMutation({
+    mutationFn: () => decksApi.primerSuggest(deckId, i18n.language),
+    onSuccess: (r: any) => { if (r?.text) setPrimerText(r.text) },
   })
 
   const [wished, setWished] = useState<Record<string, boolean>>({})
@@ -272,7 +279,7 @@ export default function DeckDetailPage() {
             <b.icon size={16} /> {b.label}
           </button>
         ))}
-        {doctorCfg?.configured && (
+        {doctorCfg?.configured && flags.aiDoctor && (
           <button
             onClick={() => {
               if (!isPremium) { navigate('/premium'); return }
@@ -410,7 +417,19 @@ export default function DeckDetailPage() {
                 </h2>
                 <button onClick={() => setShowPrimer(false)} className="text-vault-muted hover:text-vault-text"><X size={16} /></button>
               </div>
-              <p className="text-xs text-vault-muted mb-2">{t('primer.hint')}</p>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <p className="text-xs text-vault-muted">{t('primer.hint')}</p>
+                {doctorCfg?.configured && flags.aiPrimer && (
+                  <button
+                    onClick={() => { if (!isPremium) { navigate('/premium'); return } primerSuggestMutation.mutate() }}
+                    disabled={primerSuggestMutation.isPending}
+                    className="shrink-0 inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-vault-gold/40 bg-vault-gold/10 text-vault-gold hover:bg-vault-gold/20 disabled:opacity-50 transition-all">
+                    {primerSuggestMutation.isPending
+                      ? <><div className="w-3 h-3 border-2 border-vault-gold border-t-transparent rounded-full animate-spin" /> {t('primer.generating')}</>
+                      : <><Wand2 size={13} /> {t('primer.generate')} {!isPremium && <Lock size={11} />}</>}
+                  </button>
+                )}
+              </div>
               <textarea
                 value={primerText}
                 onChange={(e) => setPrimerText(e.target.value)}
@@ -418,10 +437,14 @@ export default function DeckDetailPage() {
                 placeholder={t('primer.placeholder')}
                 className="input-field resize-y w-full text-sm leading-relaxed"
               />
-              <div className="flex items-center gap-3 mt-3">
+              {primerSuggestMutation.isError && (
+                <p className="text-xs text-red-400 mt-2">{(primerSuggestMutation.error as any)?.response?.data?.detail || t('doctor.error')}</p>
+              )}
+              <div className="flex items-center gap-3 mt-3 flex-wrap">
                 <button onClick={() => primerMutation.mutate()} disabled={primerMutation.isPending} className="btn-primary flex items-center gap-2 disabled:opacity-50">
                   {primerSaved ? <Check size={15} /> : null} {primerSaved ? t('detail.copied') : t('common.save')}
                 </button>
+                {primerSuggestMutation.isSuccess && <span className="text-[11px] text-vault-gold">{t('primer.aiReview')}</span>}
                 <span className="text-[11px] text-vault-muted">{t('primer.publicNote')}</span>
               </div>
             </div>

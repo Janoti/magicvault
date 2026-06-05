@@ -16,6 +16,7 @@ from app.services.scryfall import get_sets, get_card_by_id, get_card_by_name, ex
 from app.services import deck_doctor, edhrec
 from app.services.sharing import build_resource_view
 from app.core.cache import cache_get, cache_set
+from app.core.feature_flags import flag_on_for
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -179,6 +180,8 @@ async def deck_doctor_run(deck_id: int, lang: str = "en", refresh: bool = False,
     an explicit refresh)."""
     if not deck_doctor.is_configured():
         raise HTTPException(status_code=503, detail="IA ainda não configurada")
+    if not await flag_on_for(db, "aiDoctor", premium):
+        raise HTTPException(status_code=403, detail="Recurso desativado")
     deck = await _viewable_deck(db, deck_id, premium)
     analysis = await deck_analysis(deck_id, premium, db)
 
@@ -209,6 +212,47 @@ async def deck_doctor_run(deck_id: int, lang: str = "en", refresh: bool = False,
         logger.error("Deck Doctor failed: %s", e)
         raise HTTPException(status_code=502, detail=f"Erro na IA — {str(e)[:200]}")
     await cache_set(cache_key, text, ttl=60 * 60 * 24 * 14)  # 14 days
+    return {"text": text, "cached": False}
+
+
+@router.post("/{deck_id}/primer-suggest")
+async def deck_primer_suggest(deck_id: int, lang: str = "en", premium: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
+    """Premium + aiPrimer flag: generate a primer suggestion from the real cards.
+    Returned as text for the owner to review and save (never auto-saved)."""
+    if not deck_doctor.is_configured():
+        raise HTTPException(status_code=503, detail="IA ainda não configurada")
+    if not await flag_on_for(db, "aiPrimer", premium):
+        raise HTTPException(status_code=403, detail="Recurso desativado")
+    deck = (await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == premium.id))).scalar_one_or_none()
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    analysis = await deck_analysis(deck_id, premium, db)
+
+    rows = (await db.execute(select(DeckCard).where(DeckCard.deck_id == deck_id, DeckCard.is_sideboard == False))).scalars().all()  # noqa: E712
+    if not rows:
+        raise HTTPException(status_code=400, detail="Deck vazio")
+    cards_raw = await get_cards_bulk([dc.scryfall_id for dc in rows])
+    cards = []
+    for dc in rows:
+        raw = cards_raw.get(dc.scryfall_id)
+        c = extract_card_summary(raw) if raw else {"name": "?", "type_line": "", "cmc": 0}
+        cards.append({"qty": dc.quantity, "name": c.get("name", "?"),
+                      "type": c.get("type_line", ""), "cmc": int(c.get("cmc") or 0)})
+
+    sig = hashlib.sha1(("|".join(sorted(f"{c['qty']}x{c['name']}" for c in cards))).encode()).hexdigest()[:16]
+    cache_key = f"primer:{deck_id}:{lang}:{sig}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return {"text": cached, "cached": True}
+
+    try:
+        text = await deck_doctor.run_primer(
+            {"name": deck.name, "format": deck.format}, analysis, cards, lang=lang,
+        )
+    except Exception as e:
+        logger.error("Primer generation failed: %s", e)
+        raise HTTPException(status_code=502, detail=f"Erro na IA — {str(e)[:200]}")
+    await cache_set(cache_key, text, ttl=60 * 60 * 24 * 14)
     return {"text": text, "cached": False}
 
 

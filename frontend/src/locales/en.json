@@ -871,7 +871,10 @@
     "title": "Primer",
     "hint": "Write the deck's strategy: win conditions, mulligan, combos, matchups.",
     "placeholder": "Win conditions:\n- ...\n\nMulligan:\n- ...\n\nCombos:\n- ...\n\nMatchups:\n- ...",
-    "publicNote": "Shows on the public deck, if it's public."
+    "publicNote": "Shows on the public deck, if it's public.",
+    "generate": "Generate with AI",
+    "generating": "Generating...",
+    "aiReview": "AI draft — review and edit before saving."
   },
   "suggest": {
     "title": "Suggestions",
