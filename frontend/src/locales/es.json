@@ -685,6 +685,10 @@
   },
   "cardInfo": {
     "inCollection": "En la colección",
+    "paidTitle": "Cuánto pagaste (opcional)",
+    "paidSaved": "Guardado",
+    "paidVsNow": "vs. ahora",
+    "paidHint": "Controla ganancia/pérdida. Solo tú lo ves.",
     "copies": "{{count}} copias",
     "inMarket": "{{count}} en venta · desde {{price}}",
     "notInMarket": "No está a la venta en nuestro market",

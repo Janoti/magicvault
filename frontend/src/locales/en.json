@@ -685,6 +685,10 @@
   },
   "cardInfo": {
     "inCollection": "In collection",
+    "paidTitle": "What you paid (optional)",
+    "paidSaved": "Saved",
+    "paidVsNow": "vs. now",
+    "paidHint": "Track profit/loss. Only you see this.",
     "copies": "{{count}} copies",
     "inMarket": "{{count}} for sale · from {{price}}",
     "notInMarket": "Not for sale in our market",

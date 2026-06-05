@@ -44,6 +44,7 @@ export default function CollectionPage() {
   const [editEntry, setEditEntry] = useState<any>(null)
   const [infoCard, setInfoCard] = useState<any>(null)
   const [infoEntryId, setInfoEntryId] = useState<number | null>(null)
+  const [infoEntry, setInfoEntry] = useState<any>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [bulkCond, setBulkCond] = useState('NM')
   const [binderEntry, setBinderEntry] = useState<any>(null)
@@ -358,7 +359,7 @@ export default function CollectionPage() {
                 const card = entry.card
                 return (
                   <div key={entry.id} className="relative group">
-                    <CardTile card={card || { id: entry.scryfall_id, name: '…' }} showActions={false} onClick={() => { if (card) { setInfoCard(card); setInfoEntryId(entry.id) } }} />
+                    <CardTile card={card || { id: entry.scryfall_id, name: '…' }} showActions={false} onClick={() => { if (card) { setInfoCard(card); setInfoEntryId(entry.id); setInfoEntry(entry) } }} />
                     <div className="absolute top-1 left-1 flex gap-1">
                       <span className="text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{entry.quantity}</span>
                       <span className="text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">{entry.condition}{entry.foil ? ' ⚡' : ''}</span>
@@ -414,7 +415,7 @@ export default function CollectionPage() {
                           onMouseLeave={() => setPreview(null)}
                         >
                           {card?.image_small ? (
-                            <img src={card.image_small} alt={card.name} onClick={() => { setInfoCard(card); setInfoEntryId(entry.id) }} className="w-8 rounded shadow cursor-pointer" />
+                            <img src={card.image_small} alt={card.name} onClick={() => { setInfoCard(card); setInfoEntryId(entry.id); setInfoEntry(entry) }} className="w-8 rounded shadow cursor-pointer" />
                           ) : (
                             <div className="w-8 h-11 bg-vault-card rounded" />
                           )}
@@ -590,7 +591,7 @@ export default function CollectionPage() {
         />
       )}
 
-      {infoCard && <CardInfoModal card={infoCard} entryId={infoEntryId ?? undefined} onClose={() => { setInfoCard(null); setInfoEntryId(null) }} />}
+      {infoCard && <CardInfoModal card={infoCard} entryId={infoEntryId ?? undefined} acquiredPrice={infoEntry?.acquired_price} acquiredCurrency={infoEntry?.acquired_currency} onClose={() => { setInfoCard(null); setInfoEntryId(null); setInfoEntry(null) }} />}
 
       {editEntry && (
         <EditCardModal

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ShoppingCart, ExternalLink, Plus, Library } from 'lucide-react'
+import { X, ShoppingCart, ExternalLink, Plus, Library, Check, TrendingUp, TrendingDown } from 'lucide-react'
 import { collectionApi, cardsApi } from '@/lib/api'
 import { useUsdBrl } from '@/components/cards/CardPrice'
 import { useAuthStore } from '@/store/auth'
@@ -39,11 +39,13 @@ function ManaCost({ cost }: { cost?: string }) {
   )
 }
 
-export default function CardInfoModal({ card: initialCard, onClose, onAddToCollection, entryId }: {
+export default function CardInfoModal({ card: initialCard, onClose, onAddToCollection, entryId, acquiredPrice: initialAcquired, acquiredCurrency: initialCurrency }: {
   card: any
   onClose: () => void
   onAddToCollection?: (card: any) => void
   entryId?: number   // when set (collection), switching language persists the printing
+  acquiredPrice?: number | null
+  acquiredCurrency?: string | null
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -56,6 +58,18 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
   const [lang, setLang] = useState<string>(initialCard.lang || 'en')
   const [langNote, setLangNote] = useState('')
   const [langLoading, setLangLoading] = useState(false)
+
+  // P&L: amount paid for this owned copy (premium + pnl flag), editable inline.
+  const [paid, setPaid] = useState<string>(initialAcquired != null ? String(initialAcquired) : '')
+  const [paidCur, setPaidCur] = useState<'USD' | 'BRL'>((initialCurrency as 'USD' | 'BRL') || 'BRL')
+  const [paidSaved, setPaidSaved] = useState(false)
+  const savePaid = async () => {
+    if (!entryId) return
+    const val = paid ? parseFloat(paid) : 0
+    await collectionApi.update(entryId, { acquired_price: val, acquired_currency: val ? paidCur : null })
+    qc.invalidateQueries({ queryKey: ['collection'] }); qc.invalidateQueries({ queryKey: ['collection-stats'] })
+    setPaidSaved(true); setTimeout(() => setPaidSaved(false), 1500)
+  }
 
   const chooseLang = async (l: string) => {
     if (l === (card.lang || 'en')) { setLang(l); setLangNote(''); return }
@@ -178,6 +192,44 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
                   <span className={owned > 0 ? 'text-vault-gold font-medium' : 'text-vault-muted'}>{t('cardInfo.copies', { count: owned })}</span>
                 </div>
               )}
+
+              {/* Amount paid + profit/loss for this owned copy (premium · P&L). */}
+              {entryId && flags.pnl && (() => {
+                const num = parseFloat(paid) || 0
+                const paidUsd = num ? (paidCur === 'BRL' && rate ? num / rate : num) : 0
+                const delta = usd - paidUsd
+                const pct = paidUsd > 0 ? Math.round((delta / paidUsd) * 100) : 0
+                const up = delta >= 0
+                return (
+                  <div className="rounded-lg bg-vault-card/40 border border-vault-border px-3 py-2.5">
+                    <p className="text-xs font-medium text-vault-text mb-1.5">{t('cardInfo.paidTitle')}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center border border-vault-border rounded-lg overflow-hidden flex-1">
+                        <input type="number" step="0.01" min="0" inputMode="decimal" value={paid}
+                          onChange={(e) => setPaid(e.target.value)} placeholder="0,00"
+                          className="bg-transparent px-2 py-1.5 text-sm w-full outline-none" />
+                        {(['BRL', 'USD'] as const).map(c => (
+                          <button key={c} onClick={() => setPaidCur(c)}
+                            className={`px-2.5 py-1.5 text-xs ${paidCur === c ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted'}`}>
+                            {c === 'BRL' ? 'R$' : '$'}
+                          </button>
+                        ))}
+                      </div>
+                      <button onClick={savePaid} className="btn-primary !py-1.5 !px-3 text-xs flex items-center gap-1">
+                        {paidSaved ? <Check size={13} /> : null}{paidSaved ? t('cardInfo.paidSaved') : t('common.save')}
+                      </button>
+                    </div>
+                    {num > 0 && usd > 0 && (
+                      <div className={`mt-2 flex items-center gap-1.5 text-xs font-mono ${up ? 'text-green-400' : 'text-red-400'}`}>
+                        {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+                        {up ? '+' : ''}{brl(delta) || `$${delta.toFixed(2)}`} ({up ? '+' : ''}{pct}%)
+                        <span className="text-vault-muted font-sans ml-1">{t('cardInfo.paidVsNow')}</span>
+                      </div>
+                    )}
+                    <p className="text-[11px] text-vault-muted mt-1.5">{t('cardInfo.paidHint')}</p>
+                  </div>
+                )
+              })()}
 
               {card.oracle_text && (
                 <p className="text-sm text-vault-text/90 whitespace-pre-line leading-relaxed">{card.oracle_text}</p>

@@ -685,6 +685,10 @@
   },
   "cardInfo": {
     "inCollection": "Na coleção",
+    "paidTitle": "Quanto você pagou (opcional)",
+    "paidSaved": "Salvo",
+    "paidVsNow": "vs. agora",
+    "paidHint": "Acompanhe lucro/prejuízo. Só você vê isto.",
     "copies": "{{count}} cópias",
     "inMarket": "{{count}} à venda · a partir de {{price}}",
     "notInMarket": "Não está à venda no nosso market",
