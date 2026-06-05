@@ -16,6 +16,47 @@ function loadTesseract(): Promise<any> {
   })
 }
 
+// A reusable worker tuned for a single line of card-name text (much more
+// accurate than the default full-page model on stylised card fonts).
+function getWorker(): Promise<any> {
+  const w = window as any
+  if (w.__vsOcrWorker) return w.__vsOcrWorker
+  w.__vsOcrWorker = (async () => {
+    const T = await loadTesseract()
+    const worker = await T.createWorker('eng')
+    await worker.setParameters({
+      tessedit_pageseg_mode: '7',  // treat the image as a single text line
+      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ,'-",
+    })
+    return worker
+  })()
+  return w.__vsOcrWorker
+}
+
+// Boost legibility for OCR: grayscale + contrast, and flip light-on-dark names
+// (black-bordered cards) so the text is always dark on a light background.
+function preprocess(canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext('2d')!
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const d = img.data
+  let sum = 0
+  for (let i = 0; i < d.length; i += 4) {
+    const g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]
+    d[i] = d[i + 1] = d[i + 2] = g
+    sum += g
+  }
+  const mean = sum / (d.length / 4)
+  const invert = mean < 115  // mostly dark → light text; invert it
+  for (let i = 0; i < d.length; i += 4) {
+    let v = d[i]
+    if (invert) v = 255 - v
+    v = (v - 128) * 1.7 + 128  // stretch contrast
+    v = v < 0 ? 0 : v > 255 ? 255 : v
+    d[i] = d[i + 1] = d[i + 2] = v
+  }
+  ctx.putImageData(img, 0, 0)
+}
+
 // Keep the first substantial line (the card name sits at the top of the card).
 function cleanName(raw: string): string {
   const lines = (raw || '').split('\n').map(l => l.trim()).filter(Boolean)
@@ -85,8 +126,9 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
   }
 
   const recognize = async (canvas: HTMLCanvasElement): Promise<string> => {
-    const T = await loadTesseract()
-    const { data } = await T.recognize(canvas, 'eng')
+    preprocess(canvas)
+    const worker = await getWorker()
+    const { data } = await worker.recognize(canvas)
     return cleanName(data?.text || '')
   }
 
