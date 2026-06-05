@@ -366,8 +366,8 @@ export default function CollectionPage() {
               })}
             </div>
           ) : (
-          <div className="surface overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="surface overflow-x-auto">
+            <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="border-b border-vault-border bg-vault-surface">
                   <th className="px-3 py-3 w-8">

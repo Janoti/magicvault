@@ -510,7 +510,7 @@ export default function AdminPage() {
       </div>
 
       <div className="surface overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="border-b border-vault-border bg-vault-surface">
               <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.user')}</th>

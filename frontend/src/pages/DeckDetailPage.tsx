@@ -608,7 +608,7 @@ export default function DeckDetailPage() {
                   ))}
                 </div>
               ) : (
-              <div className="surface overflow-hidden">
+              <div className="surface overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-vault-border bg-vault-surface">
@@ -657,7 +657,7 @@ export default function DeckDetailPage() {
               <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-muted mb-3">
                 <Shield size={14} /> {t('detail.sideboard')} ({t('common.cardsCount', { count: sideboard.reduce((s: number, c: any) => s + c.quantity, 0) })})
               </h2>
-              <div className="surface overflow-hidden">
+              <div className="surface overflow-x-auto">
                 <table className="w-full text-sm">
                   <tbody>
                     {sideboard.map((entry: any) => (
