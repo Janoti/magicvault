@@ -358,7 +358,20 @@
     "wlInList": "Na lista",
     "wlMax": "Máx",
     "bindersEmpty": "Nenhum binder ainda — crie o primeiro",
-    "decksEmpty": "Nenhum deck ainda — crie o primeiro"
+    "decksEmpty": "Nenhum deck ainda — crie o primeiro",
+    "allDecks": "Todos",
+    "noFolder": "Sem pasta",
+    "newFolder": "Nova pasta",
+    "folderNamePrompt": "Nome da pasta:",
+    "shareFolder": "Compartilhar pasta",
+    "rename": "Renomear",
+    "deleteFolder": "Excluir pasta",
+    "confirmDeleteFolder": "Excluir esta pasta? Os decks não são apagados, só saem da pasta.",
+    "folderLinkCopied": "Link da pasta copiado!",
+    "folderEmpty": "Nenhum deck nesta pasta ainda.",
+    "folderNotFound": "Pasta não encontrada.",
+    "folderNoPublic": "Esta pasta ainda não tem decks públicos.",
+    "folderShareDesc": "Decks públicos desta pasta."
   },
   "admin": {
     "nav": "Admin",

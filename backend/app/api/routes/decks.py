@@ -1,6 +1,7 @@
 import re
 import logging
 import hashlib
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -9,8 +10,8 @@ from typing import Optional, List
 
 from app.core.database import get_db
 from app.core.security import get_current_user, get_premium_user
-from sqlalchemy import or_, and_
-from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship
+from sqlalchemy import or_, and_, delete as sa_delete
+from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship, DeckFolder
 from app.services.scryfall import get_sets, get_card_by_id, get_card_by_name, extract_card_summary, get_cards_bulk
 from app.services import deck_doctor, edhrec
 from app.services.sharing import build_resource_view
@@ -309,6 +310,7 @@ async def list_decks(current_user: User = Depends(get_current_user), db: AsyncSe
         items.append({
             "id": d.id, "name": d.name, "format": d.format,
             "description": d.description, "is_public": d.is_public,
+            "folder_id": d.folder_id,
             "card_count": count_r.scalar() or 0,
             "cover": _art_crop(raw) if raw else None,
             "created_at": d.created_at.isoformat(),
@@ -322,6 +324,74 @@ async def create_deck(data: CreateDeckRequest, current_user: User = Depends(get_
     db.add(deck)
     await db.flush()
     return {"id": deck.id, "name": deck.name}
+
+
+# --- Deck folders ----------------------------------------------------------
+
+class FolderIn(BaseModel):
+    name: str
+    color: str = "#6c5ce7"
+
+
+@router.get("/folders")
+async def list_folders(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    folders = (await db.execute(
+        select(DeckFolder).where(DeckFolder.user_id == current_user.id).order_by(DeckFolder.name)
+    )).scalars().all()
+    counts = {}
+    for fid, c in (await db.execute(
+        select(Deck.folder_id, func.count(Deck.id)).where(Deck.user_id == current_user.id, Deck.folder_id.is_not(None)).group_by(Deck.folder_id)
+    )).all():
+        counts[fid] = c
+    return [{"id": f.id, "name": f.name, "color": f.color, "public_token": f.public_token,
+             "deck_count": counts.get(f.id, 0)} for f in folders]
+
+
+@router.post("/folders", status_code=201)
+async def create_folder(data: FolderIn, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if not data.name.strip():
+        raise HTTPException(status_code=400, detail="Nome é obrigatório")
+    f = DeckFolder(user_id=current_user.id, name=data.name.strip()[:120], color=data.color or "#6c5ce7",
+                   public_token=secrets.token_urlsafe(12))
+    db.add(f)
+    await db.flush()
+    return {"id": f.id, "name": f.name, "color": f.color, "public_token": f.public_token, "deck_count": 0}
+
+
+@router.patch("/folders/{folder_id}")
+async def update_folder(folder_id: int, data: FolderIn, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    f = (await db.execute(select(DeckFolder).where(DeckFolder.id == folder_id, DeckFolder.user_id == current_user.id))).scalar_one_or_none()
+    if not f:
+        raise HTTPException(status_code=404, detail="Pasta não encontrada")
+    f.name = data.name.strip()[:120]
+    f.color = data.color or f.color
+    return {"id": f.id, "name": f.name, "color": f.color, "public_token": f.public_token}
+
+
+@router.delete("/folders/{folder_id}", status_code=204)
+async def delete_folder(folder_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    f = (await db.execute(select(DeckFolder).where(DeckFolder.id == folder_id, DeckFolder.user_id == current_user.id))).scalar_one_or_none()
+    if not f:
+        raise HTTPException(status_code=404, detail="Pasta não encontrada")
+    # Unfile the decks (keep them), then remove the folder.
+    await db.execute(Deck.__table__.update().where(Deck.folder_id == folder_id).values(folder_id=None))
+    await db.execute(sa_delete(DeckFolder).where(DeckFolder.id == folder_id))
+
+
+@router.get("/folder/{token}/public")
+async def public_folder(token: str, db: AsyncSession = Depends(get_db)):
+    """Public view of a shared folder: its public decks (no auth)."""
+    f = (await db.execute(select(DeckFolder).where(DeckFolder.public_token == token))).scalar_one_or_none()
+    if not f:
+        raise HTTPException(status_code=404, detail="Pasta não encontrada")
+    decks = (await db.execute(
+        select(Deck).where(Deck.folder_id == f.id, Deck.is_public == True).order_by(Deck.updated_at.desc())  # noqa: E712
+    )).scalars().all()
+    out = []
+    for d in decks:
+        cnt = (await db.execute(select(func.sum(DeckCard.quantity)).where(DeckCard.deck_id == d.id))).scalar() or 0
+        out.append({"id": d.id, "name": d.name, "format": d.format, "card_count": cnt})
+    return {"name": f.name, "color": f.color, "decks": out}
 
 
 class ImportDeckRequest(BaseModel):
@@ -475,6 +545,7 @@ class UpdateDeckRequest(BaseModel):
     description: Optional[str] = None
     primer: Optional[str] = None
     is_public: Optional[bool] = None
+    folder_id: Optional[int] = None   # 0/null moves to "no folder"
 
 
 @router.patch("/{deck_id}")
@@ -492,7 +563,16 @@ async def update_deck(deck_id: int, data: UpdateDeckRequest, current_user: User 
         deck.primer = data.primer[:8000] or None
     if data.is_public is not None:
         deck.is_public = data.is_public
-    return {"id": deck.id, "is_public": deck.is_public}
+    if data.folder_id is not None:
+        # 0 means "remove from folder"; otherwise validate the folder is the user's.
+        if data.folder_id == 0:
+            deck.folder_id = None
+        else:
+            f = (await db.execute(select(DeckFolder).where(DeckFolder.id == data.folder_id, DeckFolder.user_id == current_user.id))).scalar_one_or_none()
+            if not f:
+                raise HTTPException(status_code=404, detail="Pasta não encontrada")
+            deck.folder_id = f.id
+    return {"id": deck.id, "is_public": deck.is_public, "folder_id": deck.folder_id}
 
 
 @router.post("/{deck_id}/cards", status_code=201)

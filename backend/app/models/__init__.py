@@ -115,11 +115,24 @@ class Deck(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     primer: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # strategy notes
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    folder_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("deck_folders.id"), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user: Mapped["User"] = relationship(back_populates="decks")
     cards: Mapped[List["DeckCard"]] = relationship(back_populates="deck", cascade="all, delete-orphan")
+
+
+class DeckFolder(Base):
+    """A folder to group a user's decks. Shareable as a whole via public_token."""
+    __tablename__ = "deck_folders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    color: Mapped[str] = mapped_column(String(20), default="#6c5ce7")
+    public_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class DeckCard(Base):

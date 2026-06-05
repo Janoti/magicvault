@@ -358,7 +358,20 @@
     "wlInList": "In list",
     "wlMax": "Max",
     "bindersEmpty": "No binders yet — create your first",
-    "decksEmpty": "No decks yet — create your first"
+    "decksEmpty": "No decks yet — create your first",
+    "allDecks": "All",
+    "noFolder": "No folder",
+    "newFolder": "New folder",
+    "folderNamePrompt": "Folder name:",
+    "shareFolder": "Share folder",
+    "rename": "Rename",
+    "deleteFolder": "Delete folder",
+    "confirmDeleteFolder": "Delete this folder? The decks aren't deleted, just removed from the folder.",
+    "folderLinkCopied": "Folder link copied!",
+    "folderEmpty": "No decks in this folder yet.",
+    "folderNotFound": "Folder not found.",
+    "folderNoPublic": "This folder has no public decks yet.",
+    "folderShareDesc": "Public decks in this folder."
   },
   "admin": {
     "nav": "Admin",

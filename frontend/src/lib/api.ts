@@ -204,6 +204,12 @@ export const decksApi = {
   publicView: (id: number) => api.get(`/api/decks/public/${id}`).then(r => r.data),
   doctorStatus: () => api.get('/api/decks/doctor/status').then(r => r.data),
   doctor: (id: number, lang: string, refresh = false) => api.post(`/api/decks/${id}/doctor`, null, { params: { lang, refresh } }).then(r => r.data),
+  // Folders
+  folders: () => api.get('/api/decks/folders').then(r => r.data),
+  createFolder: (data: { name: string; color?: string }) => api.post('/api/decks/folders', data).then(r => r.data),
+  updateFolder: (id: number, data: { name: string; color?: string }) => api.patch(`/api/decks/folders/${id}`, data).then(r => r.data),
+  deleteFolder: (id: number) => api.delete(`/api/decks/folders/${id}`),
+  publicFolder: (token: string) => api.get(`/api/decks/folder/${token}/public`).then(r => r.data),
 }
 
 // Wishlist

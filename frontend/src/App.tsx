@@ -14,6 +14,7 @@ import StoresPage from '@/pages/StoresPage'
 import CommunityDecksPage from '@/pages/CommunityDecksPage'
 import EventPage from '@/pages/EventPage'
 import MyEventsPage from '@/pages/MyEventsPage'
+import PublicFolderPage from '@/pages/PublicFolderPage'
 import CollectionPage from '@/pages/CollectionPage'
 import SearchPage from '@/pages/SearchPage'
 import CardScanPage from '@/pages/CardScanPage'
@@ -56,6 +57,7 @@ export default function App() {
       <Route path="/decks-comunidade" element={<CommunityDecksPage />} />
       <Route path="/community-decks" element={<CommunityDecksPage />} />
       <Route path="/e/:id" element={<EventPage />} />
+      <Route path="/f/:token" element={<PublicFolderPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />

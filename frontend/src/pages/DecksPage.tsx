@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi } from '@/lib/api'
 import { useState } from 'react'
-import { Plus, Trash2, Swords, ChevronRight, Upload } from 'lucide-react'
+import { Plus, Trash2, Swords, ChevronRight, Upload, Folder, FolderPlus, Share2, Pencil } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -19,6 +19,22 @@ export default function DecksPage() {
   const navigate = useNavigate()
 
   const { data: decks = [], isLoading } = useQuery({ queryKey: ['decks'], queryFn: decksApi.list })
+  const { data: folders = [] } = useQuery({ queryKey: ['deck-folders'], queryFn: decksApi.folders })
+  const [activeFolder, setActiveFolder] = useState<'all' | 'none' | number>('all')
+
+  const refreshFolders = () => { qc.invalidateQueries({ queryKey: ['deck-folders'] }); qc.invalidateQueries({ queryKey: ['decks'] }) }
+  const folderMut = useMutation({ mutationFn: (v: { id: number; folder_id: number }) => decksApi.update(v.id, { folder_id: v.folder_id }), onSuccess: refreshFolders })
+  const createFolderMut = useMutation({ mutationFn: (name: string) => decksApi.createFolder({ name }), onSuccess: refreshFolders })
+  const renameFolderMut = useMutation({ mutationFn: (v: { id: number; name: string }) => decksApi.updateFolder(v.id, { name: v.name }), onSuccess: refreshFolders })
+  const deleteFolderMut = useMutation({ mutationFn: (id: number) => decksApi.deleteFolder(id), onSuccess: () => { setActiveFolder('all'); refreshFolders() } })
+
+  const shareFolder = (f: any) => {
+    navigator.clipboard?.writeText(`${window.location.origin}/f/${f.public_token}`)
+    alert(t('pages.folderLinkCopied'))
+  }
+  const visibleDecks = decks.filter((d: any) =>
+    activeFolder === 'all' ? true : activeFolder === 'none' ? !d.folder_id : d.folder_id === activeFolder)
+  const activeF = typeof activeFolder === 'number' ? folders.find((f: any) => f.id === activeFolder) : null
 
   const createMutation = useMutation({
     mutationFn: decksApi.create,
@@ -60,6 +76,33 @@ export default function DecksPage() {
         </div>
       </div>
 
+      {/* Folder filter bar */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        {([['all', t('pages.allDecks')], ['none', t('pages.noFolder')]] as const).map(([k, label]) => (
+          <button key={k} onClick={() => setActiveFolder(k)}
+            className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${activeFolder === k ? 'border-vault-accent bg-vault-accent/15 text-vault-accent' : 'border-vault-border text-vault-muted hover:text-vault-text'}`}>
+            {label}
+          </button>
+        ))}
+        {folders.map((f: any) => (
+          <button key={f.id} onClick={() => setActiveFolder(f.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs border transition-all flex items-center gap-1.5 ${activeFolder === f.id ? 'border-vault-accent bg-vault-accent/15 text-vault-accent' : 'border-vault-border text-vault-muted hover:text-vault-text'}`}>
+            <Folder size={13} style={{ color: f.color }} /> {f.name} <span className="opacity-60">{f.deck_count}</span>
+          </button>
+        ))}
+        <button onClick={() => { const n = prompt(t('pages.folderNamePrompt')); if (n?.trim()) createFolderMut.mutate(n.trim()) }}
+          className="px-3 py-1.5 rounded-lg text-xs border border-dashed border-vault-border text-vault-muted hover:text-vault-accent hover:border-vault-accent/40 flex items-center gap-1.5">
+          <FolderPlus size={14} /> {t('pages.newFolder')}
+        </button>
+      </div>
+      {activeF && (
+        <div className="flex flex-wrap items-center gap-3 mb-4 text-xs">
+          <button onClick={() => shareFolder(activeF)} className="flex items-center gap-1.5 text-vault-accent hover:underline"><Share2 size={13} /> {t('pages.shareFolder')}</button>
+          <button onClick={() => { const n = prompt(t('pages.folderNamePrompt'), activeF.name); if (n?.trim()) renameFolderMut.mutate({ id: activeF.id, name: n.trim() }) }} className="flex items-center gap-1.5 text-vault-muted hover:text-vault-text"><Pencil size={13} /> {t('pages.rename')}</button>
+          <button onClick={() => { if (confirm(t('pages.confirmDeleteFolder'))) deleteFolderMut.mutate(activeF.id) }} className="flex items-center gap-1.5 text-vault-muted hover:text-red-400"><Trash2 size={13} /> {t('pages.deleteFolder')}</button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
@@ -72,9 +115,11 @@ export default function DecksPage() {
             <Plus size={16} /> {t('pages.newDeck')}
           </button>
         </div>
+      ) : visibleDecks.length === 0 ? (
+        <p className="surface p-10 text-center text-vault-muted">{t('pages.folderEmpty')}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {decks.map((deck: any, i: number) => (
+          {visibleDecks.map((deck: any, i: number) => (
             <motion.div key={deck.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link to={`/decks/${deck.id}`}
                 className="block surface p-5 hover:border-vault-accent/40 transition-all group relative overflow-hidden min-h-[130px]">
@@ -103,10 +148,20 @@ export default function DecksPage() {
                     </span>
                   </div>
                   {deck.description && <p className="text-xs text-vault-muted mb-3 line-clamp-2">{deck.description}</p>}
-                  <p className="text-xs text-vault-muted flex items-center justify-between">
-                    <span>{t('common.cardsCount', { count: deck.card_count })}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-vault-muted">{t('common.cardsCount', { count: deck.card_count })}</span>
+                    {folders.length > 0 && (
+                      <select
+                        value={deck.folder_id || 0}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                        onChange={(e) => { e.preventDefault(); e.stopPropagation(); folderMut.mutate({ id: deck.id, folder_id: Number(e.target.value) }) }}
+                        className="text-[11px] bg-vault-card border border-vault-border rounded px-1.5 py-0.5 text-vault-muted max-w-[45%]">
+                        <option value={0}>{t('pages.noFolder')}</option>
+                        {folders.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                      </select>
+                    )}
                     <ChevronRight size={15} className="text-vault-muted group-hover:text-vault-accent transition-colors" />
-                  </p>
+                  </div>
                 </div>
               </Link>
             </motion.div>

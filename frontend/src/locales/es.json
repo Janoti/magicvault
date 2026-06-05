@@ -358,7 +358,20 @@
     "wlInList": "En la lista",
     "wlMax": "Máx",
     "bindersEmpty": "Aún no hay carpetas — crea la primera",
-    "decksEmpty": "Aún no hay mazos — crea el primero"
+    "decksEmpty": "Aún no hay mazos — crea el primero",
+    "allDecks": "Todos",
+    "noFolder": "Sin carpeta",
+    "newFolder": "Nueva carpeta",
+    "folderNamePrompt": "Nombre de la carpeta:",
+    "shareFolder": "Compartir carpeta",
+    "rename": "Renombrar",
+    "deleteFolder": "Eliminar carpeta",
+    "confirmDeleteFolder": "¿Eliminar esta carpeta? Los mazos no se borran, solo salen de la carpeta.",
+    "folderLinkCopied": "¡Enlace de la carpeta copiado!",
+    "folderEmpty": "Aún no hay mazos en esta carpeta.",
+    "folderNotFound": "Carpeta no encontrada.",
+    "folderNoPublic": "Esta carpeta aún no tiene mazos públicos.",
+    "folderShareDesc": "Mazos públicos de esta carpeta."
   },
   "admin": {
     "nav": "Admin",
