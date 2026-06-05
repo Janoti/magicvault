@@ -1,6 +1,7 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
+import { authApi } from '@/lib/api'
 import Layout from '@/components/layout/Layout'
 
 // Lazy-loaded pages — each becomes its own chunk, so the initial load only
@@ -61,6 +62,16 @@ function RootRoute() {
 }
 
 export default function App() {
+  // On load, refresh the signed-in user from the server. This keeps cached data
+  // (premium, email_verified, …) fresh and registers activity so last_login_at
+  // updates for users who stay logged in via a stored token.
+  const token = useAuthStore((s) => s.token)
+  const setUser = useAuthStore((s) => s.setUser)
+  useEffect(() => {
+    if (token) authApi.me().then(setUser).catch(() => { /* invalid token handled by interceptor */ })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
