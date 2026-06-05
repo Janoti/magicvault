@@ -545,10 +545,10 @@ export default function AdminPage() {
                   <td className="px-4 py-3 text-xs">
                     {(() => {
                       if (!u.last_login_at) return <span className="text-red-400">{t('admin.never')}</span>
-                      const days = Math.floor((Date.now() - new Date(u.last_login_at).getTime()) / 86400000)
+                      const d = new Date(u.last_login_at)
+                      const days = Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000))
                       const cls = days >= 30 ? 'text-red-400' : days >= 14 ? 'text-amber-400' : 'text-vault-muted'
-                      const label = days === 0 ? t('admin.today') : t('admin.daysAgo', { count: days })
-                      return <span className={cls} title={new Date(u.last_login_at).toLocaleString()}>{label}</span>
+                      return <span className={cls} title={t('admin.daysAgo', { count: days })}>{d.toLocaleString()}</span>
                     })()}
                   </td>
                   <td className="px-4 py-3">

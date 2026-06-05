@@ -54,7 +54,7 @@ async def list_users(_: User = Depends(get_current_admin), db: AsyncSession = De
         "display_name": u.display_name, "avatar": u.avatar,
         "is_active": bool(u.is_active), "is_admin": bool(u.is_admin), "is_premium": bool(u.is_premium),
         "created_at": u.created_at.isoformat() if u.created_at else None,
-        "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None,
+        "last_login_at": (u.last_login_at.isoformat() + "Z") if u.last_login_at else None,
         "login_count": u.login_count or 0,
     } for u in rows]
 
