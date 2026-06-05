@@ -2,11 +2,25 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye, ShoppingBag, Lock, Crown, ArrowLeftRight, MapPin } from 'lucide-react'
+import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye, ShoppingBag, Lock, Crown, ArrowLeftRight, MapPin, Instagram, Facebook, Twitter, Youtube, Twitch, Music2, Globe, Link2 } from 'lucide-react'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import PublicPage from '@/components/PublicPage'
 import Avatar from '@/components/Avatar'
+
+// Pick a brand icon + accent colour from a link's URL/label.
+function socialStyle(url: string, label: string): { Icon: any; color: string } {
+  const s = `${url} ${label}`.toLowerCase()
+  if (s.includes('instagram')) return { Icon: Instagram, color: '#e1306c' }
+  if (s.includes('tiktok')) return { Icon: Music2, color: '#69C9D0' }
+  if (s.includes('facebook') || s.includes('fb.com')) return { Icon: Facebook, color: '#1877f2' }
+  if (s.includes('twitter') || s.includes('x.com')) return { Icon: Twitter, color: '#1da1f2' }
+  if (s.includes('youtube') || s.includes('youtu.be')) return { Icon: Youtube, color: '#ff0000' }
+  if (s.includes('twitch')) return { Icon: Twitch, color: '#9146ff' }
+  if (s.includes('loja') || s.includes('store') || s.includes('shop')) return { Icon: ShoppingBag, color: '#f5a623' }
+  if (s.includes('http')) return { Icon: Globe, color: '#8aa0c0' }
+  return { Icon: Link2, color: '#8aa0c0' }
+}
 
 // Only allow http(s) links (blocks javascript:/data: XSS in user-supplied URLs).
 const safeUrl = (u: string) => {
@@ -117,14 +131,21 @@ export default function ProfilePage() {
           )}
 
           {data.links?.length > 0 && (
-            <div className="surface p-5 space-y-2">
-              {data.links.map((l: any, i: number) => (
-                <a key={i} href={safeUrl(l.url)} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-between p-2.5 rounded-lg border border-vault-border hover:border-vault-accent/40 text-sm text-vault-text transition-all">
-                  {l.label}
-                  <ExternalLink size={14} className="text-vault-muted" />
-                </a>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {data.links.map((l: any, i: number) => {
+                const { Icon, color } = socialStyle(l.url, l.label)
+                return (
+                  <a key={i} href={safeUrl(l.url)} target="_blank" rel="noreferrer"
+                    className="group flex items-center gap-3 p-3 rounded-xl border border-vault-border bg-vault-card/40 hover:border-vault-accent/50 hover:bg-vault-card/70 transition-all">
+                    <span className="w-9 h-9 rounded-lg flex items-center justify-center border shrink-0"
+                      style={{ backgroundColor: `${color}1f`, borderColor: `${color}55` }}>
+                      <Icon size={17} style={{ color }} />
+                    </span>
+                    <span className="text-sm font-medium text-vault-text truncate flex-1">{l.label}</span>
+                    <ExternalLink size={14} className="text-vault-muted group-hover:text-vault-accent transition-colors" />
+                  </a>
+                )
+              })}
             </div>
           )}
 
