@@ -1,6 +1,16 @@
-// Feature flags. Built but NOT published — flip to true to launch.
-export const FLAGS = {
-  cardRulings: false,    // card rulings in the encyclopedia
-  setCompletion: false,  // % owned per set
-  pnl: false,            // cost basis + profit/loss
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
+
+// Effective feature flags for the current viewer (resolved by the backend from
+// each flag's state: off / admin-only / on). Controlled from the admin panel.
+export type Flags = { cardRulings: boolean; setCompletion: boolean; pnl: boolean }
+const DEFAULT: Flags = { cardRulings: false, setCompletion: false, pnl: false }
+
+export function useFlags(): Flags {
+  const { data } = useQuery({
+    queryKey: ['flags'],
+    queryFn: () => api.get('/api/flags').then(r => r.data),
+    staleTime: 1000 * 60 * 5,
+  })
+  return { ...DEFAULT, ...(data || {}) }
 }

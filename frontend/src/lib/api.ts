@@ -113,6 +113,9 @@ export const adminApi = {
   createEvent: (data: object) => api.post('/api/admin/events', data).then(r => r.data),
   updateEvent: (id: number, data: object) => api.patch(`/api/admin/events/${id}`, data).then(r => r.data),
   deleteEvent: (id: number) => api.delete(`/api/admin/events/${id}`).then(r => r.data),
+  // Feature flags
+  flags: () => api.get('/api/admin/flags').then(r => r.data),
+  setFlag: (key: string, state: string) => api.patch(`/api/admin/flags/${key}`, { state }).then(r => r.data),
 }
 
 // Public events calendar + store directory

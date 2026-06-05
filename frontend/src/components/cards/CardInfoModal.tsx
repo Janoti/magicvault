@@ -8,7 +8,7 @@ import { X, ShoppingCart, ExternalLink, Plus, Library } from 'lucide-react'
 import { collectionApi, cardsApi } from '@/lib/api'
 import { useUsdBrl } from '@/components/cards/CardPrice'
 import { useAuthStore } from '@/store/auth'
-import { FLAGS } from '@/lib/flags'
+import { useFlags } from '@/lib/flags'
 
 const LANGS = [{ code: 'en', label: 'EN' }, { code: 'pt', label: 'PT' }, { code: 'es', label: 'ES' }]
 const LANG_LABEL: Record<string, string> = { en: 'Inglês', pt: 'Português', es: 'Espanhol' }
@@ -50,6 +50,7 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
   const user = useAuthStore((s) => s.user)
   const rate = useUsdBrl()
   const qc = useQueryClient()
+  const flags = useFlags()
 
   const [card, setCard] = useState<any>(initialCard)
   const [lang, setLang] = useState<string>(initialCard.lang || 'en')
@@ -80,7 +81,7 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
   const { data: rulingsData } = useQuery({
     queryKey: ['card-rulings', card.id],
     queryFn: () => cardsApi.rulings(card.id),
-    enabled: FLAGS.cardRulings && !!card.id,
+    enabled: flags.cardRulings && !!card.id,
     staleTime: 1000 * 60 * 60,
   })
   const rulings = rulingsData?.rulings ?? []
@@ -212,7 +213,7 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
               </div>
 
               {/* Rulings (official interactions) */}
-              {FLAGS.cardRulings && rulings.length > 0 && (
+              {flags.cardRulings && rulings.length > 0 && (
                 <div className="pt-2">
                   <p className="text-[11px] uppercase tracking-wide text-vault-muted mb-1.5">{t('cardInfo.rulings')}</p>
                   <ul className="space-y-1.5 max-h-40 overflow-y-auto pr-1">

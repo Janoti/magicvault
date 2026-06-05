@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { cardsApi } from '@/lib/api'
-import { FLAGS } from '@/lib/flags'
+import { useFlags } from '@/lib/flags'
 
 const rarityDot: Record<string, string> = {
   common: 'bg-vault-muted', uncommon: 'bg-slate-300', rare: 'bg-vault-gold',
@@ -31,6 +31,7 @@ const conditions = [
 
 export default function EditCardModal({ entry, card, onClose, onConfirm, isLoading }: EditCardModalProps) {
   const { t } = useTranslation()
+  const flags = useFlags()
   const [quantity, setQuantity] = useState<number>(entry.quantity ?? 1)
   const [condition, setCondition] = useState<string>(entry.condition ?? 'NM')
   const [foil, setFoil] = useState<boolean>(!!entry.foil)
@@ -182,7 +183,7 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
               <span className="text-sm text-vault-text">{t('modal.foil')}</span>
             </div>
 
-            {FLAGS.pnl && (
+            {flags.pnl && (
               <div>
                 <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.acquiredPrice')}</label>
                 <div className="flex gap-2">

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { cardsApi } from '@/lib/api'
-import { FLAGS } from '@/lib/flags'
+import { useFlags } from '@/lib/flags'
 
 interface AddCardModalProps {
   card: any
@@ -45,6 +45,7 @@ const canFoil = (c: any) => {
 
 export default function AddCardModal({ card, onClose, onConfirm, isLoading }: AddCardModalProps) {
   const { t } = useTranslation()
+  const flags = useFlags()
   const [selected, setSelected] = useState<any>(card)
   const [editionOpen, setEditionOpen] = useState(false)
   const [quantity, setQuantity] = useState(1)
@@ -258,7 +259,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
               </span>
             </div>
 
-            {FLAGS.pnl && (
+            {flags.pnl && (
               <div>
                 <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.acquiredPrice')}</label>
                 <div className="flex gap-2">

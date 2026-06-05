@@ -2,10 +2,50 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X, Store as StoreIcon, CalendarDays, Activity, Moon } from 'lucide-react'
+import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X, Store as StoreIcon, CalendarDays, Activity, Moon, Flag } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
+
+function FlagsSection() {
+  const { t } = useTranslation()
+  const qc = useQueryClient()
+  const { data: flags = [] } = useQuery({ queryKey: ['admin-flags'], queryFn: adminApi.flags })
+  const mut = useMutation({
+    mutationFn: (v: { key: string; state: string }) => adminApi.setFlag(v.key, v.state),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-flags'] }); qc.invalidateQueries({ queryKey: ['flags'] }) },
+  })
+  const STATES = [
+    { v: 'off', label: t('admin.flags.off') },
+    { v: 'admin', label: t('admin.flags.adminOnly') },
+    { v: 'on', label: t('admin.flags.everyone') },
+  ]
+  return (
+    <div className="mt-8">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-vault-text"><Flag size={15} /> {t('admin.flags.title')}</h2>
+      <p className="text-xs text-vault-muted mb-3">{t('admin.flags.hint')}</p>
+      {flags.length === 0 ? (
+        <p className="surface p-6 text-center text-vault-muted text-sm">—</p>
+      ) : (
+        <div className="space-y-2 max-w-2xl">
+          {flags.map((f: any) => (
+            <div key={f.key} className="surface p-3 flex items-center justify-between gap-3 flex-wrap">
+              <span className="text-sm text-vault-text">{f.label}</span>
+              <div className="flex rounded-lg border border-vault-border overflow-hidden">
+                {STATES.map((s) => (
+                  <button key={s.v} onClick={() => mut.mutate({ key: f.key, state: s.v })}
+                    className={`px-3 py-1.5 text-xs transition-colors ${f.state === s.v ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const EMPTY_STORE = {
   id: null as number | null, name: '', city: '', neighborhood: '', address: '',
@@ -449,6 +489,7 @@ export default function AdminPage() {
   const { t } = useTranslation()
   const me = useAuthStore((s) => s.user)
   const qc = useQueryClient()
+  const [userFilter, setUserFilter] = useState<'all' | 'active30' | 'inactive30'>('all')
 
   const { data: stats } = useQuery({ queryKey: ['admin-stats'], queryFn: adminApi.stats })
   const { data: users = [], isLoading } = useQuery({ queryKey: ['admin-users'], queryFn: adminApi.users })
@@ -480,14 +521,21 @@ export default function AdminPage() {
   if (me && !me.is_admin) return <Navigate to="/collection" replace />
 
   const statCards = [
-    { icon: Users, label: t('admin.users'), value: stats?.users },
+    { icon: Users, label: t('admin.users'), value: stats?.users, filter: 'all' as const },
     { icon: Crown, label: t('admin.premium'), value: stats?.premium },
-    { icon: Activity, label: t('admin.active30'), value: stats?.active_30d },
-    { icon: Moon, label: t('admin.inactive30'), value: stats?.inactive_30d },
+    { icon: Activity, label: t('admin.active30'), value: stats?.active_30d, filter: 'active30' as const },
+    { icon: Moon, label: t('admin.inactive30'), value: stats?.inactive_30d, filter: 'inactive30' as const },
     { icon: Library, label: t('admin.cards'), value: stats?.cards },
     { icon: Swords, label: t('admin.decks'), value: stats?.decks },
     { icon: BookOpen, label: t('admin.binders'), value: stats?.binders },
   ]
+
+  const daysSince = (iso: string | null) => iso ? (Date.now() - new Date(iso).getTime()) / 86400000 : Infinity
+  const shownUsers = (users as any[]).filter((u) => {
+    if (userFilter === 'active30') return daysSince(u.last_login_at) <= 30
+    if (userFilter === 'inactive30') return daysSince(u.last_login_at) > 30
+    return true
+  })
 
   return (
     <div className="p-6">
@@ -500,14 +548,26 @@ export default function AdminPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-        {statCards.map((s, i) => (
-          <div key={i} className="surface p-4 text-center">
-            <s.icon size={18} className="mx-auto text-vault-accent mb-1" />
-            <p className="text-2xl font-display font-bold text-vault-gold">{s.value ?? '—'}</p>
-            <p className="text-xs text-vault-muted">{s.label}</p>
-          </div>
-        ))}
+        {statCards.map((s, i) => {
+          const active = (s as any).filter && userFilter === (s as any).filter
+          const clickable = !!(s as any).filter
+          return (
+            <button key={i} disabled={!clickable} onClick={() => clickable && setUserFilter((s as any).filter)}
+              className={`surface p-4 text-center transition-all ${clickable ? 'hover:border-vault-accent/40 cursor-pointer' : 'cursor-default'} ${active ? 'border-vault-accent ring-1 ring-vault-accent/40' : ''}`}>
+              <s.icon size={18} className="mx-auto text-vault-accent mb-1" />
+              <p className="text-2xl font-display font-bold text-vault-gold">{s.value ?? '—'}</p>
+              <p className="text-xs text-vault-muted">{s.label}</p>
+            </button>
+          )
+        })}
       </div>
+
+      {userFilter !== 'all' && (
+        <div className="flex items-center gap-2 mb-2 text-sm text-vault-muted">
+          <span>{t(userFilter === 'active30' ? 'admin.filteringActive' : 'admin.filteringInactive', { count: shownUsers.length })}</span>
+          <button onClick={() => setUserFilter('all')} className="text-vault-accent hover:underline">{t('admin.clearFilter')}</button>
+        </div>
+      )}
 
       <div className="surface overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">
@@ -525,7 +585,7 @@ export default function AdminPage() {
           <tbody>
             {isLoading ? (
               <tr><td colSpan={7} className="text-center py-10"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin mx-auto" /></td></tr>
-            ) : users.map((u: any) => {
+            ) : shownUsers.map((u: any) => {
               const self = u.id === me?.id
               return (
                 <tr key={u.id} className="border-b border-vault-border/50 hover:bg-vault-card/30">
@@ -604,6 +664,7 @@ export default function AdminPage() {
         )}
       </div>
 
+      <FlagsSection />
       <CampaignsSection />
       <StoresSection />
       <EventsSection />

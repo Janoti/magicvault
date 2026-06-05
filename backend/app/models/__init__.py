@@ -317,6 +317,16 @@ class Event(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class FeatureFlag(Base):
+    """Runtime feature toggle: off | admin (admins only) | on (everyone)."""
+    __tablename__ = "feature_flags"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    key: Mapped[str] = mapped_column(String(40), unique=True, index=True)
+    state: Mapped[str] = mapped_column(String(10), default="off")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class CollectionSnapshot(Base):
     """A daily snapshot of a user's collection total value (for the value-over-time chart)."""
     __tablename__ = "collection_snapshots"

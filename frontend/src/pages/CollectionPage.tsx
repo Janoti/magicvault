@@ -11,7 +11,7 @@ import ValueChart from '@/components/collection/ValueChart'
 import SetCompletion from '@/components/collection/SetCompletion'
 import PnL from '@/components/collection/PnL'
 import RoleTag from '@/components/cards/RoleTag'
-import { FLAGS } from '@/lib/flags'
+import { useFlags } from '@/lib/flags'
 import { cardRole } from '@/lib/cardRole'
 import EditCardModal from '@/components/collection/EditCardModal'
 import AddToBinderModal from '@/components/collection/AddToBinderModal'
@@ -27,6 +27,7 @@ export default function CollectionPage() {
   const user = useAuthStore((s) => s.user)
   const setUser = useAuthStore((s) => s.setUser)
   const { t } = useTranslation()
+  const flags = useFlags()
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(24)
   const [condition, setCondition] = useState('')
@@ -336,8 +337,8 @@ export default function CollectionPage() {
       ) : (
         <>
           <ValueChart />
-          {FLAGS.pnl && <PnL />}
-          {FLAGS.setCompletion && <SetCompletion />}
+          {flags.pnl && <PnL />}
+          {flags.setCompletion && <SetCompletion />}
           {selectedIds.size > 0 && (
             <div className="surface p-3 mb-3 flex flex-wrap items-center gap-3 border-vault-accent/30">
               <span className="text-sm text-vault-text font-medium">{t('col.bulkSelected', { count: selectedIds.size })}</span>

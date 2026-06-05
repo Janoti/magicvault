@@ -13,8 +13,9 @@ from app.core.security import get_current_admin
 from app.models.user import (
     User, CollectionEntry, Binder, BinderCard, Deck, DeckCard, WishlistEntry,
     Friendship, Share, PasswordResetToken, Feedback, Listing, Interest, Message,
-    EmailCampaign, Store, Event,
+    EmailCampaign, Store, Event, FeatureFlag,
 )
+from app.core.feature_flags import KNOWN_FLAGS, get_flag_states
 from app.services.email import send_email, render_campaign_html
 from app.services.calendar_sync import sync_store
 
@@ -289,6 +290,32 @@ async def send_campaign(cid: int, _: User = Depends(get_current_admin), db: Asyn
     c.status = "sent"
     c.sent_at = datetime.utcnow()
     return _campaign_out(c)
+
+
+# --- Feature flags ---------------------------------------------------------
+
+class FlagIn(BaseModel):
+    state: str  # off | admin | on
+
+
+@router.get("/flags")
+async def admin_list_flags(_: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    states = await get_flag_states(db)
+    return [{"key": k, "label": KNOWN_FLAGS[k], "state": states[k]} for k in KNOWN_FLAGS]
+
+
+@router.patch("/flags/{key}")
+async def admin_set_flag(key: str, data: FlagIn, _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    if key not in KNOWN_FLAGS:
+        raise HTTPException(status_code=404, detail="Flag desconhecida")
+    if data.state not in ("off", "admin", "on"):
+        raise HTTPException(status_code=400, detail="Estado inválido")
+    row = (await db.execute(select(FeatureFlag).where(FeatureFlag.key == key))).scalar_one_or_none()
+    if row:
+        row.state = data.state
+    else:
+        db.add(FeatureFlag(key=key, state=data.state))
+    return {"key": key, "state": data.state}
 
 
 # --- Stores directory ------------------------------------------------------
