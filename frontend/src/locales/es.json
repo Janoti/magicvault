@@ -731,7 +731,22 @@
     "memberSince": "Miembro desde",
     "noBio": "Sin bio todavía.",
     "upload": "Subir imagen",
-    "usernameHint": "Usado en tus enlaces (vaultspell.com/u/usuario). Único."
+    "usernameHint": "Usado en tus enlaces (vaultspell.com/u/usuario) y para iniciar sesión. Único.",
+    "displayNameHint": "Es como apareces en la plataforma y cómo te llamarán.",
+    "location": "Ubicación",
+    "cep": "CP / CEP",
+    "cepHint": "Brasil: rellena estado y ciudad automáticamente.",
+    "state": "Estado",
+    "city": "Ciudad",
+    "country": "País",
+    "locationPublic": "Mostrar mi ubicación en mi perfil público",
+    "linkSuggest": "Sugerencias",
+    "emailVerified": "Tu correo está confirmado.",
+    "verifyTitle": "Confirma tu correo",
+    "verifyWhy": "Importante: con el correo confirmado puedes recuperar la contraseña y recibir avisos de intercambios y eventos.",
+    "verifySend": "Enviar confirmación",
+    "verifySending": "Enviando...",
+    "verifySent": "Enviamos un enlace de confirmación a tu correo."
   },
   "modal": {
     "quantity": "Cantidad",
@@ -977,7 +992,16 @@
     "resetInvalid": "Enlace inválido o expirado",
     "confirmPassword": "Repetir contraseña",
     "passwordMismatch": "Las contraseñas no coinciden",
-    "emailHint": "Usa un email válido — se usará para recuperar tu contraseña si lo necesitas."
+    "emailHint": "Usa un email válido — se usará para recuperar tu contraseña si lo necesitas.",
+    "usernameHint": "Usado en el enlace de tu perfil y para iniciar sesión.",
+    "locationOptional": "Ubicación (opcional)"
+  },
+  "verifyEmail": {
+    "okTitle": "¡Correo confirmado!",
+    "okText": "Gracias — tu cuenta ya está protegida.",
+    "errorTitle": "Enlace inválido",
+    "errorText": "Este enlace de confirmación es inválido o expiró.",
+    "cta": "Continuar"
   },
   "feedback": {
     "nav": "Contacto",

@@ -33,7 +33,7 @@ api.interceptors.response.use(
 
 // Auth
 export const authApi = {
-  register: (data: { email: string; username: string; password: string }) =>
+  register: (data: { email: string; username: string; password: string; country?: string; state?: string; city?: string; location_public?: boolean }) =>
     api.post('/api/auth/register', data).then(r => r.data),
   login: (email: string, password: string) => {
     const form = new FormData()
@@ -48,6 +48,20 @@ export const authApi = {
     api.post('/api/auth/reset-password', { token, new_password }).then(r => r.data),
   unsubscribe: (token: string) => api.post('/api/auth/unsubscribe', { token }).then(r => r.data),
   resubscribe: (token: string) => api.post('/api/auth/resubscribe', { token }).then(r => r.data),
+  sendVerification: () => api.post('/api/auth/send-verification').then(r => r.data),
+  verifyEmail: (token: string) => api.post('/api/auth/verify-email', { token }).then(r => r.data),
+}
+
+// CEP lookup (Brazil) via the free public ViaCEP API. Returns { state, city } or null.
+export async function lookupCep(cep: string): Promise<{ state: string; city: string } | null> {
+  const digits = (cep || '').replace(/\D/g, '')
+  if (digits.length !== 8) return null
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+    const d = await r.json()
+    if (d?.erro) return null
+    return { state: d.uf || '', city: d.localidade || '' }
+  } catch { return null }
 }
 
 // Public user profiles

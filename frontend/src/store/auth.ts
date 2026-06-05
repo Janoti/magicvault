@@ -8,14 +8,18 @@ interface User {
   bio?: string | null; links?: { label: string; url: string }[]
   is_admin?: boolean; is_premium?: boolean; is_beta?: boolean
   contact?: string | null; contact_public?: boolean; collection_public?: boolean
+  country?: string | null; state?: string | null; city?: string | null; location_public?: boolean
+  email_verified?: boolean
 }
+
+export interface RegisterExtra { country?: string; state?: string; city?: string; location_public?: boolean }
 
 interface AuthState {
   user: User | null
   token: string | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, username: string, password: string) => Promise<void>
+  register: (email: string, username: string, password: string, extra?: RegisterExtra) => Promise<void>
   logout: () => void
   setUser: (user: User) => void
   isAuthenticated: () => boolean
@@ -40,10 +44,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (email, username, password) => {
+      register: async (email, username, password, extra) => {
         set({ isLoading: true })
         try {
-          const data = await authApi.register({ email, username, password })
+          const data = await authApi.register({ email, username, password, ...(extra || {}) })
           localStorage.setItem('token', data.access_token)
           set({ user: data.user, token: data.access_token, isLoading: false })
         } catch (e) {

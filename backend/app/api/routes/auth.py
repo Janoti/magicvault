@@ -56,6 +56,37 @@ class UserRegister(BaseModel):
     email: EmailStr
     username: str
     password: str
+    country: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    location_public: Optional[bool] = None
+
+
+def _clean_loc(v: Optional[str], n: int) -> Optional[str]:
+    return (v or "").strip()[:n] or None
+
+
+async def _send_verification(user: User) -> None:
+    """Generate a token and email the user a confirmation link (best-effort)."""
+    if not user.email:
+        return
+    user.email_verify_token = secrets.token_urlsafe(32)
+    link = f"{settings.app_url.rstrip('/')}/verify-email?token={user.email_verify_token}"
+    html = (
+        "<div style='font-family:system-ui,sans-serif;max-width:480px;margin:auto;color:#1a1f35'>"
+        "<h2 style='color:#b8860b'>📖 VaultSpell</h2>"
+        f"<p>Olá, <b>{escape(user.display_name or user.username)}</b>! Confirme seu e-mail para "
+        "proteger sua conta — é com ele que você <b>recupera a senha</b> e recebe <b>avisos de "
+        "trades e eventos</b>.</p>"
+        f"<p style='margin:22px 0'><a href='{link}' style='background:#6c5ce7;color:#fff;"
+        "text-decoration:none;padding:11px 20px;border-radius:8px;font-weight:600'>Confirmar e-mail</a></p>"
+        f"<p style='color:#8892b0;font-size:12px'>Ou abra: {link}</p>"
+        "</div>"
+    )
+    try:
+        await send_email(user.email, "Confirme seu e-mail — VaultSpell", html)
+    except Exception:
+        logger.warning("Failed to send verification email", exc_info=True)
 
 
 class LinkItem(BaseModel):
@@ -77,6 +108,11 @@ class UserOut(BaseModel):
     contact: Optional[str] = None
     contact_public: bool = False
     collection_public: bool = False
+    country: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    location_public: bool = False
+    email_verified: bool = False
 
 
 def to_user_out(u: User) -> UserOut:
@@ -88,6 +124,9 @@ def to_user_out(u: User) -> UserOut:
         is_beta=bool(u.is_beta),
         contact=u.contact, contact_public=bool(u.contact_public),
         collection_public=bool(u.collection_public),
+        country=u.country, state=u.state, city=u.city,
+        location_public=bool(u.location_public),
+        email_verified=bool(u.email_verified),
     )
 
 
@@ -124,9 +163,16 @@ async def register(request: Request, data: UserRegister, db: AsyncSession = Depe
         is_beta=beta,
         last_login_at=datetime.utcnow(),
         login_count=1,
+        country=_clean_loc(data.country, 60),
+        state=_clean_loc(data.state, 60),
+        city=_clean_loc(data.city, 80),
+        location_public=bool(data.location_public),
     )
     db.add(user)
     await db.flush()
+
+    # Send the email-confirmation link right away (soft — never blocks signup).
+    await _send_verification(user)
 
     # Best-effort: notify the admin that a new account was created. Never block signup.
     if settings.admin_email:
@@ -235,6 +281,10 @@ class UpdateMeRequest(BaseModel):
     contact: Optional[str] = None
     contact_public: Optional[bool] = None
     collection_public: Optional[bool] = None
+    country: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    location_public: Optional[bool] = None
 
 
 @router.patch("/me", response_model=UserOut)
@@ -248,6 +298,7 @@ async def update_me(
         if dup:
             raise HTTPException(status_code=400, detail="Email já em uso")
         current_user.email = data.email
+        current_user.email_verified = False  # new address must be re-confirmed
     if data.username and data.username != current_user.username:
         username = _validate_username(data.username)
         dup = (await db.execute(select(User).where(func.lower(User.username) == username.lower(), User.id != current_user.id))).scalar_one_or_none()
@@ -270,9 +321,45 @@ async def update_me(
         current_user.contact_public = data.contact_public
     if data.collection_public is not None:
         current_user.collection_public = data.collection_public
+    if data.country is not None:
+        current_user.country = _clean_loc(data.country, 60)
+    if data.state is not None:
+        current_user.state = _clean_loc(data.state, 60)
+    if data.city is not None:
+        current_user.city = _clean_loc(data.city, 80)
+    if data.location_public is not None:
+        current_user.location_public = data.location_public
 
     await db.flush()
     return to_user_out(current_user)
+
+
+@router.post("/send-verification")
+@limiter.limit("3/minute")
+async def send_verification(request: Request, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Email the current user a fresh confirmation link."""
+    if current_user.email_verified:
+        return {"message": "E-mail já confirmado.", "already": True}
+    await _send_verification(current_user)
+    await db.flush()
+    return {"message": "Enviamos um link de confirmação para o seu e-mail."}
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+@router.post("/verify-email")
+@limiter.limit("10/minute")
+async def verify_email(request: Request, data: VerifyEmailRequest, db: AsyncSession = Depends(get_db)):
+    """Confirm an email from the link token. Public (no auth needed)."""
+    token = (data.token or "").strip()
+    user = (await db.execute(select(User).where(User.email_verify_token == token))).scalar_one_or_none() if token else None
+    if not user:
+        raise HTTPException(status_code=400, detail="Link inválido ou expirado")
+    user.email_verified = True
+    user.email_verify_token = None
+    return {"message": "E-mail confirmado com sucesso!"}
 
 
 class ForgotPasswordRequest(BaseModel):

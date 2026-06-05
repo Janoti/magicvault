@@ -731,7 +731,22 @@
     "memberSince": "Member since",
     "noBio": "No bio yet.",
     "upload": "Upload image",
-    "usernameHint": "Used in your links (vaultspell.com/u/username). Unique."
+    "usernameHint": "Used in your links (vaultspell.com/u/username) and to log in. Unique.",
+    "displayNameHint": "How you appear across the platform and how others will call you.",
+    "location": "Location",
+    "cep": "ZIP / CEP",
+    "cepHint": "Brazil: auto-fills state and city.",
+    "state": "State",
+    "city": "City",
+    "country": "Country",
+    "locationPublic": "Show my location on my public profile",
+    "linkSuggest": "Suggestions",
+    "emailVerified": "Your email is confirmed.",
+    "verifyTitle": "Confirm your email",
+    "verifyWhy": "Important: with a confirmed email you can recover your password and get trade & event notifications.",
+    "verifySend": "Send confirmation",
+    "verifySending": "Sending...",
+    "verifySent": "We sent a confirmation link to your email."
   },
   "modal": {
     "quantity": "Quantity",
@@ -977,7 +992,16 @@
     "resetInvalid": "Invalid or expired link",
     "confirmPassword": "Repeat password",
     "passwordMismatch": "Passwords don't match",
-    "emailHint": "Use a valid email — it will be used to recover your password if needed."
+    "emailHint": "Use a valid email — it will be used to recover your password if needed.",
+    "usernameHint": "Used in your profile link and to log in.",
+    "locationOptional": "Location (optional)"
+  },
+  "verifyEmail": {
+    "okTitle": "Email confirmed!",
+    "okText": "Thanks — your account is now protected.",
+    "errorTitle": "Invalid link",
+    "errorText": "This confirmation link is invalid or has expired.",
+    "cta": "Continue"
   },
   "feedback": {
     "nav": "Contact",

@@ -731,7 +731,22 @@
     "memberSince": "Membro desde",
     "noBio": "Sem bio ainda.",
     "upload": "Enviar imagem",
-    "usernameHint": "Usado nos seus links (vaultspell.com/u/usuario). Único."
+    "usernameHint": "Usado nos seus links (vaultspell.com/u/usuario) e para entrar. Único.",
+    "displayNameHint": "É como você aparece na plataforma e como será chamado.",
+    "location": "Localização",
+    "cep": "CEP",
+    "cepHint": "Brasil: preenche estado e cidade automaticamente.",
+    "state": "Estado",
+    "city": "Cidade",
+    "country": "País",
+    "locationPublic": "Mostrar minha localização no perfil público",
+    "linkSuggest": "Sugestões",
+    "emailVerified": "Seu e-mail está confirmado.",
+    "verifyTitle": "Confirme seu e-mail",
+    "verifyWhy": "Importante: com o e-mail confirmado você recupera a senha e recebe avisos de trades e eventos.",
+    "verifySend": "Enviar confirmação",
+    "verifySending": "Enviando...",
+    "verifySent": "Enviamos um link de confirmação para o seu e-mail."
   },
   "modal": {
     "quantity": "Quantidade",
@@ -977,7 +992,16 @@
     "resetInvalid": "Link inválido ou expirado",
     "confirmPassword": "Repetir senha",
     "passwordMismatch": "As senhas não coincidem",
-    "emailHint": "Use um email válido — será usado para recuperar sua senha se precisar."
+    "emailHint": "Use um email válido — será usado para recuperar sua senha se precisar.",
+    "usernameHint": "Usado no link do seu perfil e para entrar.",
+    "locationOptional": "Localização (opcional)"
+  },
+  "verifyEmail": {
+    "okTitle": "E-mail confirmado!",
+    "okText": "Obrigado — sua conta está protegida agora.",
+    "errorTitle": "Link inválido",
+    "errorText": "Este link de confirmação é inválido ou expirou.",
+    "cta": "Continuar"
   },
   "feedback": {
     "nav": "Fale conosco",

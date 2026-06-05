@@ -89,6 +89,8 @@ async def public_profile(username: str, db: AsyncSession = Depends(get_db)):
         # number is fetched on demand via /{username}/contact (click to reveal).
         "has_contact": bool(user.contact_public and user.contact),
         "member_since": user.created_at.isoformat() if user.created_at else None,
+        # Location only if the user opted to show it.
+        "location": ", ".join(p for p in [user.city, user.state, user.country] if p) if user.location_public else None,
         "stats": {"cards": cards or 0, "decks": decks or 0, "binders": binders or 0},
         "public_decks": public_decks,
         "public_binders": public_binders,

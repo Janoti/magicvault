@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
+import { lookupCep } from '@/lib/api'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import AuthLayout from '@/components/auth/AuthLayout'
@@ -10,10 +11,25 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [country, setCountry] = useState('')
+  const [stateProv, setStateProv] = useState('')
+  const [city, setCity] = useState('')
+  const [cep, setCep] = useState('')
+  const [cepLoading, setCepLoading] = useState(false)
+  const [locationPublic, setLocationPublic] = useState(false)
   const [error, setError] = useState('')
   const { register, isLoading } = useAuthStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
+
+  const tryCep = async (value: string) => {
+    setCep(value)
+    if (value.replace(/\D/g, '').length !== 8) return
+    setCepLoading(true)
+    const r = await lookupCep(value)
+    if (r) { setStateProv(r.state); setCity(r.city); if (!country) setCountry('Brasil') }
+    setCepLoading(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,7 +39,7 @@ export default function RegisterPage() {
       return
     }
     try {
-      await register(email, username, password)
+      await register(email, username, password, { country, state: stateProv, city, location_public: locationPublic })
       navigate('/collection')
     } catch (err: any) {
       setError(err.response?.data?.detail || t('auth.registerError'))
@@ -54,6 +70,7 @@ export default function RegisterPage() {
             <div>
               <label className="text-xs text-vault-muted mb-1.5 block">{t('auth.username')}</label>
               <input className="input-field" placeholder="jogador123" value={username} onChange={e => setUsername(e.target.value)} required />
+              <p className="text-[11px] text-vault-muted mt-1.5">{t('auth.usernameHint')}</p>
             </div>
             <div>
               <label className="text-xs text-vault-muted mb-1.5 block">{t('auth.password')}</label>
@@ -66,6 +83,25 @@ export default function RegisterPage() {
                 <p className="text-[11px] text-red-400 mt-1.5">{t('auth.passwordMismatch')}</p>
               )}
             </div>
+
+            {/* Optional location */}
+            <div className="border-t border-vault-border/60 pt-4">
+              <p className="text-xs text-vault-muted mb-2">{t('auth.locationOptional')}</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="relative">
+                  <input className="input-field" placeholder={t('account.cep')} value={cep} onChange={e => tryCep(e.target.value)} />
+                  {cepLoading && <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />}
+                </div>
+                <input className="input-field" placeholder={t('account.state')} value={stateProv} onChange={e => setStateProv(e.target.value)} />
+                <input className="input-field" placeholder={t('account.city')} value={city} onChange={e => setCity(e.target.value)} />
+              </div>
+              <input className="input-field mt-2" placeholder={t('account.country')} value={country} onChange={e => setCountry(e.target.value)} />
+              <label className="flex items-center gap-2 mt-2 text-[11px] text-vault-text cursor-pointer">
+                <input type="checkbox" checked={locationPublic} onChange={e => setLocationPublic(e.target.checked)} />
+                {t('account.locationPublic')}
+              </label>
+            </div>
+
             <button type="submit" disabled={isLoading || (!!confirmPassword && password !== confirmPassword)} className="btn-primary w-full py-2.5 flex items-center justify-center gap-2 disabled:opacity-60">
               {isLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : t('auth.registerButton')}
             </button>

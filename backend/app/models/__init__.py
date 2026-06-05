@@ -44,6 +44,14 @@ class User(Base):
     unsubscribe_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, index=True)  # retention
     login_count: Mapped[int] = mapped_column(Integer, default=0)
+    # Location (optional). Shown on the public profile only if location_public.
+    country: Mapped[Optional[str]] = mapped_column(String(60), nullable=True)
+    state: Mapped[Optional[str]] = mapped_column(String(60), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    location_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Email confirmation (soft — never blocks usage).
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    email_verify_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
 
     collection_entries: Mapped[List["CollectionEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     binders: Mapped[List["Binder"]] = relationship(back_populates="user", cascade="all, delete-orphan")

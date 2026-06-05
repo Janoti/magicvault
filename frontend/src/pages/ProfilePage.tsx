@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye, ShoppingBag, Lock, Crown, ArrowLeftRight } from 'lucide-react'
+import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye, ShoppingBag, Lock, Crown, ArrowLeftRight, MapPin } from 'lucide-react'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import PublicPage from '@/components/PublicPage'
@@ -59,6 +59,9 @@ export default function ProfilePage() {
               <p className="text-sm text-vault-muted">@{data.username}</p>
               {data.member_since && (
                 <p className="text-xs text-vault-muted mt-1">{t('account.memberSince')} {new Date(data.member_since).toLocaleDateString()}</p>
+              )}
+              {data.location && (
+                <p className="text-xs text-vault-muted mt-0.5 flex items-center gap-1"><MapPin size={12} /> {data.location}</p>
               )}
             </div>
           </div>
