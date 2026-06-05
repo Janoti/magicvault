@@ -16,6 +16,13 @@ import PlaytestModal from '@/components/decks/PlaytestModal'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useTranslation } from 'react-i18next'
 
+// A card can be a commander if it's a legendary creature, or its text says so.
+function canBeCommander(card: any): boolean {
+  const tl = (card?.type_line || '').toLowerCase()
+  const ot = (card?.oracle_text || '').toLowerCase()
+  return (tl.includes('legendary') && tl.includes('creature')) || ot.includes('can be your commander')
+}
+
 const ROLE_STYLE: Record<string, string> = {
   ramp: 'bg-green-500/15 text-green-400',
   draw: 'bg-blue-500/15 text-blue-400',
@@ -119,6 +126,10 @@ export default function DeckDetailPage() {
 
   const addCardMutation = useMutation({
     mutationFn: (data: any) => decksApi.addCard(deckId, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['deck', deckId] }),
+  })
+  const commanderMutation = useMutation({
+    mutationFn: (p: { cardId: number; value: boolean }) => decksApi.setCommander(deckId, p.cardId, p.value),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['deck', deckId] }),
   })
 
@@ -593,7 +604,17 @@ export default function DeckDetailPage() {
                 <Crown size={14} /> {t('detail.commander')} ({commanders.length})
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {commanders.map((c: any) => <CardTile key={c.id} card={c.card} showActions={false} onClick={() => c.card && setInfoCard(c.card)} />)}
+                {commanders.map((c: any) => (
+                  <div key={c.id} className="relative group">
+                    <CardTile card={c.card} showActions={false} onClick={() => c.card && setInfoCard(c.card)} />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); commanderMutation.mutate({ cardId: c.id, value: false }) }}
+                      title={t('detail.unmakeCommander')}
+                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white p-1 rounded hover:text-red-400">
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
               </div>
             </section>
           )}
@@ -624,9 +645,17 @@ export default function DeckDetailPage() {
               ) : view === 'grid' ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {mainboard.map((entry: any) => (
-                    <div key={entry.id} className="relative">
+                    <div key={entry.id} className="relative group">
                       <CardTile card={entry.card} showActions={false} onClick={() => entry.card && setInfoCard(entry.card)} />
                       <span className="absolute top-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{entry.quantity}</span>
+                      {canBeCommander(entry.card) && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); commanderMutation.mutate({ cardId: entry.id, value: true }) }}
+                          title={t('detail.makeCommander')}
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-vault-gold p-1 rounded hover:bg-vault-gold/30">
+                          <Crown size={12} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -653,6 +682,14 @@ export default function DeckDetailPage() {
                               <p className="font-medium text-vault-text text-sm">{entry.card?.name}</p>
                               <p className="text-xs text-vault-muted">{entry.card?.mana_cost}</p>
                             </div>
+                            {canBeCommander(entry.card) && (
+                              <button
+                                onClick={() => commanderMutation.mutate({ cardId: entry.id, value: true })}
+                                title={t('detail.makeCommander')}
+                                className="ml-auto text-vault-muted hover:text-vault-gold p-1">
+                                <Crown size={14} />
+                              </button>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-2.5 text-center">

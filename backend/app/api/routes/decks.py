@@ -663,6 +663,41 @@ async def add_to_deck(deck_id: int, data: AddDeckCardRequest, current_user: User
     return {"id": dc.id, "quantity": dc.quantity}
 
 
+def _can_be_commander(card: dict) -> bool:
+    """A card may be a commander if it's a legendary creature, or its text says
+    it can be your commander (e.g. some planeswalkers, Backgrounds)."""
+    tl = (card.get("type_line") or "").lower()
+    ot = (card.get("oracle_text") or "").lower()
+    if "legendary" in tl and "creature" in tl:
+        return True
+    return "can be your commander" in ot
+
+
+@router.patch("/{deck_id}/cards/{deck_card_id}/commander")
+async def set_card_commander(deck_id: int, deck_card_id: int, value: bool = Query(True), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Mark/unmark an existing deck card as the commander. Only cards eligible to
+    be a commander can be marked."""
+    deck = (await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == current_user.id))).scalar_one_or_none()
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    dc = (await db.execute(select(DeckCard).where(DeckCard.id == deck_card_id, DeckCard.deck_id == deck_id))).scalar_one_or_none()
+    if not dc:
+        raise HTTPException(status_code=404, detail="Card not found")
+    if value:
+        try:
+            card = extract_card_summary(await get_card_by_id(dc.scryfall_id))
+        except Exception:
+            card = {}
+        if not _can_be_commander(card):
+            raise HTTPException(status_code=400, detail="Esta carta não pode ser comandante")
+        dc.is_commander = True
+        dc.is_sideboard = False
+    else:
+        dc.is_commander = False
+    await db.flush()
+    return {"id": dc.id, "is_commander": dc.is_commander}
+
+
 @router.delete("/{deck_id}", status_code=204)
 async def delete_deck(deck_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == current_user.id))

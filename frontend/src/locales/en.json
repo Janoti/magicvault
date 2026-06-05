@@ -911,6 +911,8 @@
     "mainCardsLabel": "Cards (main)",
     "sideboard": "Sideboard",
     "commander": "Commander",
+    "makeCommander": "Set as commander",
+    "unmakeCommander": "Remove as commander",
     "mainDeck": "Main Deck",
     "deckEmpty": "Empty deck — add cards to get started",
     "addToDeck": "Add to Deck",

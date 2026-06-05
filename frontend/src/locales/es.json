@@ -911,6 +911,8 @@
     "mainCardsLabel": "Cartas (main)",
     "sideboard": "Sideboard",
     "commander": "Comandante",
+    "makeCommander": "Definir como comandante",
+    "unmakeCommander": "Quitar comandante",
     "mainDeck": "Mazo Principal",
     "deckEmpty": "Mazo vacío — añade cartas para empezar",
     "addToDeck": "Añadir al Mazo",
