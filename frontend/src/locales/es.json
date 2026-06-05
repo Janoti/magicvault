@@ -995,7 +995,9 @@
     "cameraError": "No se pudo acceder a la cámara. Puedes subir una foto.",
     "uploadPhoto": "Subir una foto",
     "alignName": "Alinea el nombre de la carta aquí",
-    "cameraHint": "Acerca la carta hasta que el nombre llene el recuadro y captura.",
+    "cameraHint": "Encaja toda la carta en el contorno, con el nombre en el recuadro de arriba.",
+    "auto": "Auto",
+    "autoScanning": "Buscando la carta...",
     "reading": "Leyendo la carta...",
     "capture": "Capturar"
   },

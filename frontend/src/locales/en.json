@@ -995,7 +995,9 @@
     "cameraError": "Couldn't access the camera. You can upload a photo instead.",
     "uploadPhoto": "Upload a photo",
     "alignName": "Align the card name here",
-    "cameraHint": "Bring the card closer so the name fills the box, then capture.",
+    "cameraHint": "Fit the whole card in the frame, name inside the top box.",
+    "auto": "Auto",
+    "autoScanning": "Looking for the card...",
     "reading": "Reading the card...",
     "capture": "Capture"
   },

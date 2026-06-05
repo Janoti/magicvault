@@ -29,10 +29,22 @@ function cleanName(raw: string): string {
 export default function CameraScanModal({ onClose, onText }: { onClose: () => void; onText: (name: string) => void }) {
   const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const bandRef = useRef<HTMLDivElement>(null)      // the name band (what we OCR)
   const streamRef = useRef<MediaStream | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const busyRef = useRef(false)                      // prevents overlapping OCR runs
+  const autoRef = useRef(true)
+  const doneRef = useRef(false)
   const [status, setStatus] = useState<'starting' | 'live' | 'processing' | 'error'>('starting')
-  const [progress, setProgress] = useState(0)
+  const [auto, setAuto] = useState(true)
+
+  const finish = (name: string) => {
+    doneRef.current = true
+    autoRef.current = false
+    streamRef.current?.getTracks().forEach(tk => tk.stop())
+    onText(name)
+    onClose()
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -43,64 +55,82 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
         streamRef.current = stream
         if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play().catch(() => {}) }
         setStatus('live')
+        if (autoRef.current) setTimeout(() => autoLoop(), 800)
       } catch {
         setStatus('error')  // no camera / permission denied → offer file upload
       }
     })()
-    return () => { cancelled = true; streamRef.current?.getTracks().forEach(tk => tk.stop()) }
+    return () => { cancelled = true; autoRef.current = false; streamRef.current?.getTracks().forEach(tk => tk.stop()) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Crop the name band (top of the card) from a source, then OCR it.
-  const ocrFromCanvas = async (canvas: HTMLCanvasElement) => {
-    setStatus('processing'); setProgress(0)
-    try {
-      const T = await loadTesseract()
-      const { data } = await T.recognize(canvas, 'eng', {
-        logger: (m: any) => { if (m.status === 'recognizing text') setProgress(Math.round(m.progress * 100)) },
-      })
-      const name = cleanName(data?.text || '')
-      streamRef.current?.getTracks().forEach(tk => tk.stop())
-      onText(name)
-      onClose()
-    } catch {
-      setStatus('live')
-    }
-  }
-
-  const capture = () => {
-    const v = videoRef.current
-    if (!v || !v.videoWidth) return
-    // The video fills the screen with object-cover, so the source is scaled and
-    // centre-cropped. Map the on-screen guide band back to source coordinates so
-    // we OCR exactly what's inside the yellow box.
+  // Crop the name band from the live video (mapping screen coords → source,
+  // accounting for object-cover scaling), upscaled for sharper OCR.
+  const bandCanvas = (): HTMLCanvasElement | null => {
+    const v = videoRef.current, band = bandRef.current
+    if (!v || !v.videoWidth || !band) return null
+    const vr = v.getBoundingClientRect(), br = band.getBoundingClientRect()
     const cw = v.clientWidth, ch = v.clientHeight, vw = v.videoWidth, vh = v.videoHeight
     const scale = Math.max(cw / vw, ch / vh)
     const offX = (vw * scale - cw) / 2, offY = (vh * scale - ch) / 2
-    // Guide band (matches the overlay below): x 6%–94%, y 10%–22% of the screen.
-    const gx = 0.06 * cw, gw = 0.88 * cw, gy = 0.10 * ch, gh = 0.12 * ch
-    const sx = (gx + offX) / scale, sy = (gy + offY) / scale, sw = gw / scale, sh = gh / scale
-    // Upscale to ~1000px wide for sharper OCR of small text.
+    const bx = br.left - vr.left, by = br.top - vr.top
+    const sx = (bx + offX) / scale, sy = (by + offY) / scale
+    const sw = br.width / scale, sh = br.height / scale
+    if (sw <= 0 || sh <= 0) return null
     const outW = 1000, outH = Math.max(1, Math.round((sh / sw) * outW))
     const canvas = document.createElement('canvas')
     canvas.width = outW; canvas.height = outH
-    const ctx = canvas.getContext('2d')!
-    ctx.drawImage(v, sx, sy, sw, sh, 0, 0, outW, outH)
-    ocrFromCanvas(canvas)
+    canvas.getContext('2d')!.drawImage(v, sx, sy, sw, sh, 0, 0, outW, outH)
+    return canvas
   }
+
+  const recognize = async (canvas: HTMLCanvasElement): Promise<string> => {
+    const T = await loadTesseract()
+    const { data } = await T.recognize(canvas, 'eng')
+    return cleanName(data?.text || '')
+  }
+
+  // One OCR attempt. In auto mode, keep retrying until a name is read.
+  const attempt = async (isAuto: boolean) => {
+    if (busyRef.current || doneRef.current) return
+    const canvas = bandCanvas()
+    if (!canvas) { if (isAuto) scheduleAuto(); return }
+    busyRef.current = true
+    if (!isAuto) setStatus('processing')
+    try {
+      const name = await recognize(canvas)
+      if (name) { finish(name); return }
+    } catch { /* ignore, retry/return */ }
+    finally { busyRef.current = false }
+    if (isAuto) scheduleAuto()
+    else setStatus('live')
+  }
+
+  const scheduleAuto = () => {
+    if (!autoRef.current || doneRef.current) return
+    setTimeout(() => autoLoop(), 900)
+  }
+  const autoLoop = () => { if (autoRef.current && !doneRef.current) attempt(true) }
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; e.target.value = ''
     if (!file) return
+    autoRef.current = false; setAuto(false); setStatus('processing')
     const img = new Image()
-    img.onload = () => {
-      // Upload path: OCR the top ~22% of the photo (name area).
-      const sw = img.width, sh = img.height * 0.22
+    img.onload = async () => {
+      const sw = img.width, sh = img.height * 0.22  // top of the photo = name area
       const canvas = document.createElement('canvas')
       canvas.width = sw; canvas.height = sh
       canvas.getContext('2d')!.drawImage(img, 0, 0, sw, sh, 0, 0, sw, sh)
-      ocrFromCanvas(canvas)
+      try { finish(await recognize(canvas)) } catch { setStatus('error') }
     }
     img.src = URL.createObjectURL(file)
+  }
+
+  const toggleAuto = () => {
+    const next = !auto
+    setAuto(next); autoRef.current = next
+    if (next) autoLoop()
   }
 
   return createPortal(
@@ -121,36 +151,47 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
         ) : (
           <>
             <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-            {/* Name-alignment guide band (must match the crop in capture()) */}
-            {status === 'live' && (
-              <>
-                <div className="absolute inset-x-[6%] top-[10%] h-[12%] border-2 border-vault-gold rounded-lg pointer-events-none flex items-center justify-center">
+            {/* Card-shaped guide (vertical, 63:88) so it fits the whole card. */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="relative h-[78%] aspect-[63/88] border-2 border-vault-gold/70 rounded-xl">
+                {/* Name band at the top of the card — this is what gets OCR'd. */}
+                <div ref={bandRef} className="absolute inset-x-0 top-0 h-[16%] border-2 border-vault-gold rounded-t-xl bg-vault-gold/10 flex items-center justify-center">
                   <span className="text-[11px] text-vault-gold bg-black/70 px-2 py-0.5 rounded">{t('scan.alignName')}</span>
                 </div>
-                <p className="absolute inset-x-0 top-[24%] text-center text-white/80 text-xs pointer-events-none px-6">{t('scan.cameraHint')}</p>
-              </>
-            )}
+                {auto && status === 'live' && (
+                  <div className="absolute -bottom-7 inset-x-0 flex items-center justify-center gap-2 text-vault-gold text-xs">
+                    <RefreshCw size={13} className="animate-spin" /> {t('scan.autoScanning')}
+                  </div>
+                )}
+              </div>
+            </div>
             {status === 'processing' && (
-              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white gap-3">
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white gap-3">
                 <RefreshCw size={28} className="animate-spin" />
-                <p>{t('scan.reading')} {progress > 0 ? `${progress}%` : ''}</p>
+                <p>{t('scan.reading')}</p>
               </div>
             )}
+            <p className="absolute inset-x-0 bottom-24 text-center text-white/80 text-xs pointer-events-none px-6">{t('scan.cameraHint')}</p>
           </>
         )}
       </div>
 
-      <div className="px-4 py-5 flex items-center justify-center gap-4">
+      <div className="px-4 py-5 flex items-center justify-center gap-6">
         <button onClick={() => fileRef.current?.click()} className="text-white/80 hover:text-white p-3" title={t('scan.uploadPhoto')}>
           <Upload size={22} />
         </button>
         <button
-          onClick={capture}
+          onClick={() => attempt(false)}
           disabled={status !== 'live'}
           className="w-16 h-16 rounded-full bg-white disabled:opacity-40 border-4 border-white/40 active:scale-95 transition-transform"
           aria-label={t('scan.capture')}
         />
-        <div className="w-[46px]" />
+        <button
+          onClick={toggleAuto}
+          className={`px-3 py-2 rounded-lg text-xs font-medium border ${auto ? 'border-vault-gold bg-vault-gold/20 text-vault-gold' : 'border-white/30 text-white/80'}`}
+        >
+          {t('scan.auto')}
+        </button>
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFile} />
