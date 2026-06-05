@@ -193,7 +193,12 @@
     "fDescription": "Description",
     "public": "Public",
     "private": "Private",
-    "types": { "mesao": "Gathering", "trade": "Trade/Sell", "happening": "Hangout", "other": "Other" },
+    "types": {
+      "mesao": "Gathering",
+      "trade": "Trade/Sell",
+      "happening": "Hangout",
+      "other": "Other"
+    },
     "duration": "{{min}} min",
     "interested": "Interested ✓",
     "markInterested": "I'm interested",
@@ -233,7 +238,11 @@
           "Prices with a link to the official store (TCGplayer/Cardmarket)",
           "Import and export CSV (grimdeck-compatible)",
           "Themed binders with value and physical location (page/slot)",
-          "Wishlist with price alerts (up/down + target price)"
+          "Wishlist with price alerts (up/down + target price)",
+          "Bulk edit: condition, foil or delete many at once",
+          "Switch a card's edition (printing) or language (EN/PT/ES)",
+          "Card encyclopedia: click to see rules, price, year and legality",
+          "Collection value chart over time"
         ]
       },
       "decks": {
@@ -248,7 +257,9 @@
           "Playtest and pile (stack) view",
           "AI Deck Doctor: rating, weak spots and upgrade suggestions",
           "Card suggestions (EDHREC) flagging what you already own",
-          "Make a deck public and share it"
+          "Make a deck public and share it",
+          "Folders to organize decks — and share a whole folder",
+          "Browse community decks and copy them to your app in one click"
         ]
       },
       "search": {
@@ -288,7 +299,8 @@
           "In 3 languages: English, Portuguese and Spanish",
           "Password recovery by email or username",
           "Premium via Stripe — beta: free for the first 50",
-          "Own domain, secure and constantly evolving"
+          "Own domain, secure and constantly evolving",
+          "Install as an app on mobile (PWA) — add to home screen"
         ]
       }
     },
@@ -425,8 +437,16 @@
       "saveError": "Error saving campaign",
       "segment": "Audience",
       "willReach": "Will reach ~{{count}} people",
-      "segments": { "all": "All users", "inactive_14": "Inactive 14+ days", "inactive_30": "Inactive 30+ days" },
-      "status": { "draft": "draft", "sending": "sending", "sent": "sent" }
+      "segments": {
+        "all": "All users",
+        "inactive_14": "Inactive 14+ days",
+        "inactive_30": "Inactive 30+ days"
+      },
+      "status": {
+        "draft": "draft",
+        "sending": "sending",
+        "sent": "sent"
+      }
     },
     "stores": {
       "title": "Stores",
@@ -499,8 +519,22 @@
     "emptyMonth": "No events this month.",
     "pickDay": "Tap a day with events to see the details.",
     "seeStores": "See partner stores",
-    "wd": { "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun" },
-    "kind": { "fnm": "FNM", "tournament": "Tournament", "casual": "Casual", "prerelease": "Prerelease", "other": "Event" }
+    "wd": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "kind": {
+      "fnm": "FNM",
+      "tournament": "Tournament",
+      "casual": "Casual",
+      "prerelease": "Prerelease",
+      "other": "Event"
+    }
   },
   "stores": {
     "badge": "Directory",

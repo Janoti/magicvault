@@ -193,7 +193,12 @@
     "fDescription": "Descripción",
     "public": "Público",
     "private": "Privado",
-    "types": { "mesao": "Mesa", "trade": "Intercambio/Venta", "happening": "Quedada", "other": "Otro" },
+    "types": {
+      "mesao": "Mesa",
+      "trade": "Intercambio/Venta",
+      "happening": "Quedada",
+      "other": "Otro"
+    },
     "duration": "{{min}} min",
     "interested": "Me interesa ✓",
     "markInterested": "Me interesa",
@@ -233,7 +238,11 @@
           "Precios con enlace a la tienda oficial (TCGplayer/Cardmarket)",
           "Importa y exporta CSV (compatible con grimdeck)",
           "Carpetas temáticas con valor y ubicación física (página/slot)",
-          "Wishlist con alertas de precio (sube/baja + precio objetivo)"
+          "Wishlist con alertas de precio (sube/baja + precio objetivo)",
+          "Edición masiva: condición, foil o eliminar en lote",
+          "Cambia la edición (printing) o el idioma de la carta (EN/PT/ES)",
+          "Enciclopedia de la carta: haz clic y mira reglas, precio, año y legalidad",
+          "Gráfico del valor de la colección en el tiempo"
         ]
       },
       "decks": {
@@ -248,7 +257,9 @@
           "Playtest y vista en pilas",
           "Deck Doctor por IA: nota, puntos débiles y sugerencias de mejora",
           "Sugerencias de cartas (EDHREC) marcando lo que ya tienes",
-          "Haz público un mazo y compártelo"
+          "Haz público un mazo y compártelo",
+          "Carpetas para organizar mazos — y comparte la carpeta entera",
+          "Explora mazos de la comunidad y cópialos a tu app en un clic"
         ]
       },
       "search": {
@@ -288,7 +299,8 @@
           "En 3 idiomas: español, inglés y portugués",
           "Recuperación de contraseña por email o usuario",
           "Premium vía Stripe — beta: gratis para los primeros 50",
-          "Dominio propio, seguro y en constante evolución"
+          "Dominio propio, seguro y en constante evolución",
+          "Instálalo como app en el móvil (PWA) — añadir a la pantalla de inicio"
         ]
       }
     },
@@ -425,8 +437,16 @@
       "saveError": "Error al guardar la campaña",
       "segment": "Audiencia",
       "willReach": "Alcanzará ~{{count}} personas",
-      "segments": { "all": "Todos los usuarios", "inactive_14": "Inactivos 14+ días", "inactive_30": "Inactivos 30+ días" },
-      "status": { "draft": "borrador", "sending": "enviando", "sent": "enviada" }
+      "segments": {
+        "all": "Todos los usuarios",
+        "inactive_14": "Inactivos 14+ días",
+        "inactive_30": "Inactivos 30+ días"
+      },
+      "status": {
+        "draft": "borrador",
+        "sending": "enviando",
+        "sent": "enviada"
+      }
     },
     "stores": {
       "title": "Tiendas",
@@ -499,8 +519,22 @@
     "emptyMonth": "No hay eventos este mes.",
     "pickDay": "Toca un día con eventos para ver los detalles.",
     "seeStores": "Ver tiendas socias",
-    "wd": { "mon": "Lun", "tue": "Mar", "wed": "Mié", "thu": "Jue", "fri": "Vie", "sat": "Sáb", "sun": "Dom" },
-    "kind": { "fnm": "FNM", "tournament": "Torneo", "casual": "Casual", "prerelease": "Prerelease", "other": "Evento" }
+    "wd": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
+    },
+    "kind": {
+      "fnm": "FNM",
+      "tournament": "Torneo",
+      "casual": "Casual",
+      "prerelease": "Prerelease",
+      "other": "Evento"
+    }
   },
   "stores": {
     "badge": "Directorio",
