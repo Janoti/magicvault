@@ -70,13 +70,21 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
   const capture = () => {
     const v = videoRef.current
     if (!v || !v.videoWidth) return
-    // Crop the top band where the card name lives (matches the on-screen guide).
-    const sx = v.videoWidth * 0.06, sw = v.videoWidth * 0.88
-    const sy = v.videoHeight * 0.06, sh = v.videoHeight * 0.16
+    // The video fills the screen with object-cover, so the source is scaled and
+    // centre-cropped. Map the on-screen guide band back to source coordinates so
+    // we OCR exactly what's inside the yellow box.
+    const cw = v.clientWidth, ch = v.clientHeight, vw = v.videoWidth, vh = v.videoHeight
+    const scale = Math.max(cw / vw, ch / vh)
+    const offX = (vw * scale - cw) / 2, offY = (vh * scale - ch) / 2
+    // Guide band (matches the overlay below): x 6%–94%, y 10%–22% of the screen.
+    const gx = 0.06 * cw, gw = 0.88 * cw, gy = 0.10 * ch, gh = 0.12 * ch
+    const sx = (gx + offX) / scale, sy = (gy + offY) / scale, sw = gw / scale, sh = gh / scale
+    // Upscale to ~1000px wide for sharper OCR of small text.
+    const outW = 1000, outH = Math.max(1, Math.round((sh / sw) * outW))
     const canvas = document.createElement('canvas')
-    canvas.width = sw; canvas.height = sh
+    canvas.width = outW; canvas.height = outH
     const ctx = canvas.getContext('2d')!
-    ctx.drawImage(v, sx, sy, sw, sh, 0, 0, sw, sh)
+    ctx.drawImage(v, sx, sy, sw, sh, 0, 0, outW, outH)
     ocrFromCanvas(canvas)
   }
 
@@ -112,12 +120,15 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
           </div>
         ) : (
           <>
-            <video ref={videoRef} playsInline muted className="max-h-full max-w-full" />
-            {/* Name-alignment guide band */}
+            <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
+            {/* Name-alignment guide band (must match the crop in capture()) */}
             {status === 'live' && (
-              <div className="absolute inset-x-[6%] top-[6%] h-[16%] border-2 border-vault-gold/80 rounded-lg pointer-events-none flex items-start justify-center">
-                <span className="text-[11px] text-vault-gold bg-black/60 px-2 py-0.5 rounded-b">{t('scan.alignName')}</span>
-              </div>
+              <>
+                <div className="absolute inset-x-[6%] top-[10%] h-[12%] border-2 border-vault-gold rounded-lg pointer-events-none flex items-center justify-center">
+                  <span className="text-[11px] text-vault-gold bg-black/70 px-2 py-0.5 rounded">{t('scan.alignName')}</span>
+                </div>
+                <p className="absolute inset-x-0 top-[24%] text-center text-white/80 text-xs pointer-events-none px-6">{t('scan.cameraHint')}</p>
+              </>
             )}
             {status === 'processing' && (
               <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white gap-3">

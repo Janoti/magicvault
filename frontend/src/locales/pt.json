@@ -995,6 +995,7 @@
     "cameraError": "Não foi possível acessar a câmera. Você pode enviar uma foto.",
     "uploadPhoto": "Enviar uma foto",
     "alignName": "Alinhe o nome da carta aqui",
+    "cameraHint": "Aproxime a carta até o nome preencher a caixa e capture.",
     "reading": "Lendo a carta...",
     "capture": "Capturar"
   },
