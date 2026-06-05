@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, ChevronDown, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -93,7 +94,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
 
   const foilAvailable = canFoil(selected)
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <motion.div
@@ -290,6 +291,7 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

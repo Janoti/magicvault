@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -99,7 +100,7 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
   const ptText = card.power != null && card.toughness != null ? `${card.power}/${card.toughness}`
     : card.loyalty != null ? `${t('cardInfo.loyalty')} ${card.loyalty}` : null
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -225,7 +226,8 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }
 
