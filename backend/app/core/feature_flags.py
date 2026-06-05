@@ -9,6 +9,7 @@ KNOWN_FLAGS = {
     "cardRulings": "Rulings na carta",
     "setCompletion": "% de conclusão por set",
     "pnl": "Custo & Lucro/Prejuízo (P&L)",
+    "events": "Eventos (calendário + lojas)",
 }
 
 

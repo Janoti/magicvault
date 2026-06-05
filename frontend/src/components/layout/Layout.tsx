@@ -8,6 +8,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { collectionApi } from '@/lib/api'
+import { useFlags } from '@/lib/flags'
 import { useUsdBrl } from '@/components/cards/CardPrice'
 import LanguageSwitcher from './LanguageSwitcher'
 import EmberBackground from '@/components/EmberBackground'
@@ -39,7 +40,7 @@ const navGroups = [
       { to: '/friends', icon: Users, key: 'nav.friends' },
       { to: '/shared', icon: Share2, key: 'nav.shared' },
       { to: '/trades', icon: ArrowLeftRight, key: 'trades.nav' },
-      { to: '/eventos', icon: CalendarDays, key: 'nav.events' },
+      { to: '/eventos', icon: CalendarDays, key: 'nav.events', flag: 'events' as const },
     ],
   },
 ]
@@ -47,6 +48,7 @@ const navGroups = [
 export default function Layout({ children }: { children?: ReactNode }) {
   const { user, logout } = useAuthStore()
   const { t } = useTranslation()
+  const flags = useFlags()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -152,7 +154,7 @@ export default function Layout({ children }: { children?: ReactNode }) {
             <div key={group.label} className="mb-4">
               <p className="px-3 mb-1.5 text-[10px] uppercase tracking-wider font-bold text-vault-muted/60">{t(group.label)}</p>
               <div className="space-y-0.5">
-                {group.items.map(({ to, icon: Icon, key }) => (
+                {group.items.filter((it: any) => !it.flag || flags[it.flag as keyof typeof flags]).map(({ to, icon: Icon, key }) => (
                   <NavLink
                     key={to}
                     to={to}
