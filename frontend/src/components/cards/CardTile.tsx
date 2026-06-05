@@ -76,17 +76,19 @@ export default function CardTile({ card, onAdd, onWishlist, onClick, showActions
           </div>
         )}
 
-        {/* Hover overlay */}
-        {showActions && hovered && (
+        {/* Hover actions — a slim bar at the bottom so the art stays visible. */}
+        {showActions && hovered && (onAdd || onWishlist) && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2 p-3"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 pb-2 pt-8 bg-gradient-to-t from-black/90 via-black/55 to-transparent"
           >
             {onAdd && (
               <button
                 onClick={(e) => { e.stopPropagation(); onAdd(card) }}
-                className="flex items-center gap-2 bg-vault-accent hover:bg-vault-accent-hover text-white text-xs font-medium px-3 py-2 rounded-lg w-full justify-center transition-all"
+                title={t('common.add')}
+                className="flex-1 flex items-center gap-1.5 bg-vault-accent hover:bg-vault-accent-hover text-white text-xs font-medium px-2.5 py-1.5 rounded-lg justify-center shadow-lg transition-all"
               >
                 <Plus size={14} />
                 {t('common.add')}
@@ -95,10 +97,11 @@ export default function CardTile({ card, onAdd, onWishlist, onClick, showActions
             {onWishlist && (
               <button
                 onClick={(e) => { e.stopPropagation(); onWishlist(card) }}
-                className="flex items-center gap-2 border border-vault-gold/50 text-vault-gold text-xs font-medium px-3 py-2 rounded-lg w-full justify-center hover:bg-vault-gold/10 transition-all"
+                title={t('nav.wishlist')}
+                aria-label={t('nav.wishlist')}
+                className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg border border-vault-gold/60 bg-black/40 text-vault-gold hover:bg-vault-gold/20 shadow-lg transition-all"
               >
                 <Star size={14} />
-                {t('nav.wishlist')}
               </button>
             )}
           </motion.div>
