@@ -84,6 +84,20 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         for stmt in _COLUMN_MIGRATIONS:
             await conn.execute(text(stmt))
+        # One-time cleanup: merge any duplicate deck_cards rows (same printing +
+        # zone) into a single row with summed quantity. Idempotent — no-ops once
+        # there are no duplicates left.
+        await conn.execute(text(
+            "UPDATE deck_cards d SET quantity = s.total FROM ("
+            " SELECT MIN(id) AS keep_id, SUM(quantity) AS total FROM deck_cards"
+            " GROUP BY deck_id, scryfall_id, is_sideboard, is_commander HAVING COUNT(*) > 1"
+            ") s WHERE d.id = s.keep_id"
+        ))
+        await conn.execute(text(
+            "DELETE FROM deck_cards d USING ("
+            " SELECT id, ROW_NUMBER() OVER (PARTITION BY deck_id, scryfall_id, is_sideboard, is_commander ORDER BY id) AS rn FROM deck_cards"
+            ") t WHERE d.id = t.id AND t.rn > 1"
+        ))
         # Bootstrap: make the configured email an admin (so there's a first admin).
         if settings.admin_email:
             await conn.execute(

@@ -425,6 +425,7 @@ async def import_deck(data: ImportDeckRequest, current_user: User = Depends(get_
 
     section = "main"  # main | sideboard | commander
     resolved: dict = {}  # name_lower -> scryfall_id or None (cache lookups)
+    pending: dict = {}   # (sid, sideboard, commander) -> DeckCard, to merge dupes
     added = skipped = 0
     errors = []
 
@@ -465,11 +466,17 @@ async def import_deck(data: ImportDeckRequest, current_user: User = Depends(get_
             errors.append(f"Não encontrada: {name}")
             continue
 
-        db.add(DeckCard(
-            deck_id=deck.id, scryfall_id=sid, quantity=qty,
-            is_sideboard=(section == "sideboard"),
-            is_commander=(section == "commander"),
-        ))
+        mkey = (sid, section == "sideboard", section == "commander")
+        if mkey in pending:
+            pending[mkey].quantity = min(99, pending[mkey].quantity + qty)
+        else:
+            dc = DeckCard(
+                deck_id=deck.id, scryfall_id=sid, quantity=qty,
+                is_sideboard=(section == "sideboard"),
+                is_commander=(section == "commander"),
+            )
+            db.add(dc)
+            pending[mkey] = dc
         added += 1
 
     await db.flush()
@@ -592,10 +599,24 @@ async def add_to_deck(deck_id: int, data: AddDeckCardRequest, current_user: User
     result = await db.execute(select(Deck).where(Deck.id == deck_id, Deck.user_id == current_user.id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Deck not found")
+
+    # Merge with the same card already in this deck (same printing + zone) so
+    # quantities add up instead of creating duplicate ×1 rows.
+    existing = (await db.execute(select(DeckCard).where(
+        DeckCard.deck_id == deck_id,
+        DeckCard.scryfall_id == data.scryfall_id,
+        DeckCard.is_sideboard == data.is_sideboard,
+        DeckCard.is_commander == data.is_commander,
+    ))).scalar_one_or_none()
+    if existing:
+        existing.quantity = (existing.quantity or 0) + data.quantity
+        await db.flush()
+        return {"id": existing.id, "quantity": existing.quantity}
+
     dc = DeckCard(deck_id=deck_id, scryfall_id=data.scryfall_id, quantity=data.quantity, is_sideboard=data.is_sideboard, is_commander=data.is_commander)
     db.add(dc)
     await db.flush()
-    return {"id": dc.id}
+    return {"id": dc.id, "quantity": dc.quantity}
 
 
 @router.delete("/{deck_id}", status_code=204)
