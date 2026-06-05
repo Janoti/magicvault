@@ -10,16 +10,23 @@ from app.core.cache import cache_get, cache_set
 
 BASE = settings.scryfall_api_base
 
+# Scryfall now requires a descriptive User-Agent and an Accept header; requests
+# without them are rejected (403/400). Send them on every call.
+_HEADERS = {
+    "User-Agent": "VaultSpell/1.0 (+https://vaultspell.com)",
+    "Accept": "application/json;q=0.9,*/*;q=0.8",
+}
+
 
 async def _get(url: str, params: dict = None) -> Dict[str, Any]:
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with httpx.AsyncClient(timeout=10.0, headers=_HEADERS) as client:
         r = await client.get(url, params=params)
         r.raise_for_status()
         return r.json()
 
 
 async def _post(url: str, json_body: dict) -> Dict[str, Any]:
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=15.0, headers=_HEADERS) as client:
         r = await client.post(url, json=json_body)
         r.raise_for_status()
         return r.json()
