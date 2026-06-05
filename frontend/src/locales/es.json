@@ -988,7 +988,15 @@
     "placeholder": "Nombre de la carta...",
     "results": "{{count}} resultado(s)",
     "tip": "Escribe el nombre exacto o parcial de la carta.",
-    "addedSession": "Añadidas en esta sesión: {{count}} carta(s)"
+    "addedSession": "Añadidas en esta sesión: {{count}} carta(s)",
+    "scanWithCamera": "Escanear con la cámara",
+    "orTypeBelow": "o escribe el nombre abajo",
+    "cameraTitle": "Escanear una carta",
+    "cameraError": "No se pudo acceder a la cámara. Puedes subir una foto.",
+    "uploadPhoto": "Subir una foto",
+    "alignName": "Alinea el nombre de la carta aquí",
+    "reading": "Leyendo la carta...",
+    "capture": "Capturar"
   },
   "auth": {
     "loginTitle": "Bienvenido de nuevo",

@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cardsApi, collectionApi } from '@/lib/api'
 import { Camera, Search, Plus, CheckCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import AddCardModal from '@/components/collection/AddCardModal'
+import CameraScanModal from '@/components/scan/CameraScanModal'
 
 export default function CardScanPage() {
   const { t } = useTranslation()
@@ -12,10 +13,20 @@ export default function CardScanPage() {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedCard, setSelectedCard] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showCamera, setShowCamera] = useState(false)
+  const [pendingScan, setPendingScan] = useState('')   // OCR'd name awaiting a match
   const [recentlyAdded, setRecentlyAdded] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const timerRef = useRef<any>(null)
   const qc = useQueryClient()
+
+  // After a camera scan, search the OCR'd name and auto-open the add modal when
+  // a result clearly matches (so the card comes up pre-filled, ready to add).
+  const onScanned = (name: string) => {
+    if (!name) return
+    setShowCamera(false)
+    setQuery(name); setDebouncedQuery(name); setPendingScan(name.toLowerCase())
+  }
 
   const handleInput = (val: string) => {
     setQuery(val)
@@ -51,11 +62,33 @@ export default function CardScanPage() {
 
   const cards = searchData?.cards || []
 
+  useEffect(() => {
+    if (!pendingScan || !cards.length) return
+    // Prefer an exact name match, else the first result, then open it pre-filled.
+    const match = cards.find((c: any) => (c.name || '').toLowerCase() === pendingScan)
+      || cards.find((c: any) => (c.name || '').toLowerCase().includes(pendingScan))
+      || cards[0]
+    setPendingScan('')
+    if (match) { setSelectedCard(match); setShowModal(true) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchData, pendingScan])
+
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold text-vault-gold">{t('scan.title')}</h1>
         <p className="text-vault-muted text-sm mt-0.5">{t('scan.subtitle')}</p>
+      </div>
+
+      {/* Camera scan */}
+      <div className="max-w-2xl mx-auto mb-3">
+        <button
+          onClick={() => setShowCamera(true)}
+          className="w-full flex items-center justify-center gap-2 bg-vault-accent/15 border-2 border-vault-accent/40 hover:border-vault-accent text-vault-accent rounded-2xl py-3.5 font-medium transition-all"
+        >
+          <Camera size={20} /> {t('scan.scanWithCamera')}
+        </button>
+        <p className="text-center text-[11px] text-vault-muted mt-1.5">{t('scan.orTypeBelow')}</p>
       </div>
 
       {/* Search input — big and centered */}
@@ -64,7 +97,6 @@ export default function CardScanPage() {
           <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-vault-muted" />
           <input
             ref={inputRef}
-            autoFocus
             className="w-full bg-vault-card border-2 border-vault-border focus:border-vault-accent rounded-2xl px-5 py-4 pl-12 text-lg text-vault-text placeholder-vault-muted focus:outline-none transition-all"
             placeholder={t('scan.placeholder')}
             value={query}
@@ -174,6 +206,8 @@ export default function CardScanPage() {
           isLoading={addMutation.isPending}
         />
       )}
+
+      {showCamera && <CameraScanModal onClose={() => setShowCamera(false)} onText={onScanned} />}
     </div>
   )
 }

@@ -988,7 +988,15 @@
     "placeholder": "Card name...",
     "results": "{{count}} result(s)",
     "tip": "Type the exact or partial card name.",
-    "addedSession": "Added this session: {{count}} card(s)"
+    "addedSession": "Added this session: {{count}} card(s)",
+    "scanWithCamera": "Scan with camera",
+    "orTypeBelow": "or type the name below",
+    "cameraTitle": "Scan a card",
+    "cameraError": "Couldn't access the camera. You can upload a photo instead.",
+    "uploadPhoto": "Upload a photo",
+    "alignName": "Align the card name here",
+    "reading": "Reading the card...",
+    "capture": "Capture"
   },
   "auth": {
     "loginTitle": "Welcome back",
