@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import {
   Library, Search, BookOpen, Star, Package, LogOut, User, Swords, ScanLine, Users, Share2, ShieldCheck,
-  ChevronDown, Settings, ArrowLeftRight, Crown, CalendarDays, Layers
+  ChevronDown, Settings, ArrowLeftRight, Crown, CalendarDays, Layers, Menu, X
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -49,6 +49,7 @@ export default function Layout({ children }: { children?: ReactNode }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -74,10 +75,13 @@ export default function Layout({ children }: { children?: ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden bg-vault-bg">
       <EmberBackground />
-      {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 border-r border-vault-border bg-vault-surface/90 backdrop-blur-sm flex flex-col relative z-10">
+      {/* Mobile backdrop */}
+      {sidebarOpen && <div className="fixed inset-0 bg-black/60 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />}
+      {/* Sidebar (off-canvas drawer on mobile, static on md+) */}
+      <aside className={`w-60 flex-shrink-0 border-r border-vault-border bg-vault-surface/95 backdrop-blur-sm flex flex-col z-40 fixed inset-y-0 left-0 transform transition-transform duration-200 md:static md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <button onClick={() => setSidebarOpen(false)} aria-label="Fechar" className="md:hidden absolute top-4 right-3 z-10 text-vault-muted hover:text-vault-text"><X size={20} /></button>
         {/* Logo */}
-        <Link to="/" className="block p-5 border-b border-vault-border hover:bg-vault-card/30 transition-colors">
+        <Link to="/" onClick={() => setSidebarOpen(false)} className="block p-5 border-b border-vault-border hover:bg-vault-card/30 transition-colors">
           <h1 className="font-display text-xl font-bold text-vault-gold tracking-wider">
             📖 VaultSpell
           </h1>
@@ -143,7 +147,7 @@ export default function Layout({ children }: { children?: ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-3 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 overflow-y-auto" onClick={() => setSidebarOpen(false)}>
           {navGroups.map((group) => (
             <div key={group.label} className="mb-4">
               <p className="px-3 mb-1.5 text-[10px] uppercase tracking-wider font-bold text-vault-muted/60">{t(group.label)}</p>
@@ -224,6 +228,11 @@ export default function Layout({ children }: { children?: ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto bg-transparent relative z-10">
+        {/* Mobile top bar with hamburger */}
+        <div className="md:hidden sticky top-0 z-20 flex items-center gap-3 px-4 h-14 border-b border-vault-border bg-vault-surface/90 backdrop-blur">
+          <button onClick={() => setSidebarOpen(true)} aria-label="Menu" className="text-vault-text"><Menu size={22} /></button>
+          <Link to="/" className="font-display text-lg font-bold text-vault-gold tracking-wider">📖 VaultSpell</Link>
+        </div>
         {children ?? <Outlet />}
       </main>
 
