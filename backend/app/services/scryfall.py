@@ -140,8 +140,8 @@ async def get_card_lang_variant(scryfall_id: str, lang: str) -> Optional[Dict[st
     base = await get_card_by_id(scryfall_id)
     if not base:
         return None
-    if lang == "en" or base.get("lang") == lang:
-        return base
+    if base.get("lang") == lang:
+        return base  # already in the requested language (works even if base is PT/ES)
 
     cache_key = f"scryfall:langvar:{scryfall_id}:{lang}"
     cached = await cache_get(cache_key)
