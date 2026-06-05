@@ -120,6 +120,20 @@ export const eventsApi = {
   stores: (city?: string) => api.get('/api/stores', { params: city ? { city } : undefined }).then(r => r.data),
 }
 
+// User-created events
+export const userEventsApi = {
+  mine: () => api.get('/api/my-events').then(r => r.data),
+  create: (data: object) => api.post('/api/my-events', data).then(r => r.data),
+  update: (id: number, data: object) => api.patch(`/api/my-events/${id}`, data).then(r => r.data),
+  remove: (id: number) => api.delete(`/api/my-events/${id}`),
+  get: (id: number, token?: string) => api.get(`/api/events/u/${id}`, { params: token ? { token } : undefined }).then(r => r.data),
+  toggleInterest: (id: number, token?: string) => api.post(`/api/events/u/${id}/interest`, null, { params: token ? { token } : undefined }).then(r => r.data),
+  comments: (id: number, token?: string) => api.get(`/api/events/u/${id}/comments`, { params: token ? { token } : undefined }).then(r => r.data),
+  addComment: (id: number, body: string, token?: string) => api.post(`/api/events/u/${id}/comments`, { body }, { params: token ? { token } : undefined }).then(r => r.data),
+  deleteComment: (id: number, commentId: number) => api.delete(`/api/events/u/${id}/comments/${commentId}`),
+  icsUrl: (id: number, token?: string) => `${API_BASE_URL}/api/events/u/${id}/ics${token ? `?token=${token}` : ''}`,
+}
+
 // Community decks (proxied from Archidekt)
 export const communityApi = {
   formats: () => api.get('/api/community/formats').then(r => r.data),

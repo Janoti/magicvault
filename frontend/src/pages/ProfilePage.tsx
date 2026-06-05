@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Library, Swords, BookOpen, ExternalLink, MessageCircle } from 'lucide-react'
+import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays } from 'lucide-react'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
@@ -130,6 +130,32 @@ export default function ProfilePage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-vault-text truncate">{d.name}</p>
                       <p className="text-xs text-vault-muted">{d.format} · {t('common.cardsCount', { count: d.card_count })}</p>
+                    </div>
+                    <ExternalLink size={14} className="text-vault-muted" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.public_events?.length > 0 && (
+            <div className="surface p-5 mt-4">
+              <h2 className="font-display text-lg font-bold text-vault-gold mb-3 flex items-center gap-2">
+                <CalendarDays size={18} /> {t('pubprofile.events')}
+              </h2>
+              <div className="space-y-2">
+                {data.public_events.map((e: any) => (
+                  <Link key={e.id} to={`/e/${e.id}`}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-vault-border hover:border-vault-accent/40 transition-all">
+                    <span className="w-9 h-9 rounded-xl bg-vault-accent/15 border border-vault-accent/30 flex items-center justify-center">
+                      <CalendarDays size={16} className="text-vault-accent" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-vault-text truncate">{e.title}</p>
+                      <p className="text-xs text-vault-muted">
+                        {e.starts_at ? new Date(e.starts_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                        {e.location ? ` · ${e.location}` : ''}
+                      </p>
                     </div>
                     <ExternalLink size={14} className="text-vault-muted" />
                   </Link>

@@ -299,6 +299,47 @@ class Event(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class UserEvent(Base):
+    """An event created by a user (mesão, trade/sell, happening). Public events
+    show on the organizer's profile; private ones are link-only."""
+    __tablename__ = "user_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)  # organizer
+    title: Mapped[str] = mapped_column(String(255))
+    type: Mapped[str] = mapped_column(String(16), default="happening")   # mesao | trade | happening | other
+    visibility: Mapped[str] = mapped_column(String(10), default="public")  # public | private
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    location: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    starts_at: Mapped[datetime] = mapped_column(DateTime)
+    duration_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    public_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)  # private link
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class EventInterest(Base):
+    """A user marked interest in a UserEvent (gets emailed on changes)."""
+    __tablename__ = "user_event_interests"
+    __table_args__ = (UniqueConstraint("event_id", "user_id", name="uq_event_interest"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[int] = mapped_column(Integer, ForeignKey("user_events.id"), index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class EventComment(Base):
+    """A comment on a UserEvent's page."""
+    __tablename__ = "user_event_comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[int] = mapped_column(Integer, ForeignKey("user_events.id"), index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class Share(Base):
     """A share is either with a specific friend (friend_id set) or a public link
     (public_token set). resource_id is null for the whole collection."""
