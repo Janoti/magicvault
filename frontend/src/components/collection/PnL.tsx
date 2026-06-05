@@ -17,25 +17,36 @@ export default function PnL() {
   const up = pnl >= 0
   const fmt = (usd: number) => `$${usd.toFixed(2)}${rate ? ` (R$${(usd * rate).toFixed(2).replace('.', ',')})` : ''}`
 
+  const noMarket = value <= 0  // we don't have a current price for the costed cards
+
   return (
     <div className="surface p-4 mb-4">
-      <h3 className="text-sm font-semibold text-vault-text mb-3">{t('col.pnlTitle')}</h3>
+      <h3 className="text-sm font-semibold text-vault-text">{t('col.pnlTitle')}</h3>
+      <p className="text-[11px] text-vault-muted mb-3">{t('col.pnlSubtitle')}</p>
       <div className="grid grid-cols-3 gap-3 text-center">
         <div>
           <p className="text-[11px] text-vault-muted">{t('col.pnlCost')}</p>
           <p className="font-mono text-sm text-vault-text">{fmt(cost)}</p>
+          <p className="text-[10px] text-vault-muted/70">{t('col.pnlCostSub')}</p>
         </div>
         <div>
           <p className="text-[11px] text-vault-muted">{t('col.pnlValue')}</p>
-          <p className="font-mono text-sm text-green-400">{fmt(value)}</p>
+          <p className="font-mono text-sm text-green-400">{noMarket ? '—' : fmt(value)}</p>
+          <p className="text-[10px] text-vault-muted/70">{t('col.pnlValueSub')}</p>
         </div>
         <div>
           <p className="text-[11px] text-vault-muted">{t('col.pnlResult')}</p>
-          <p className={`font-mono text-sm flex items-center justify-center gap-1 ${up ? 'text-green-400' : 'text-red-400'}`}>
-            {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}{up ? '+' : ''}{fmt(pnl)} ({pct >= 0 ? '+' : ''}{pct.toFixed(0)}%)
-          </p>
+          {noMarket ? (
+            <p className="font-mono text-sm text-vault-muted">—</p>
+          ) : (
+            <p className={`font-mono text-sm flex items-center justify-center gap-1 ${up ? 'text-green-400' : 'text-red-400'}`}>
+              {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}{up ? '+' : ''}{fmt(pnl)} ({pct >= 0 ? '+' : ''}{pct.toFixed(0)}%)
+            </p>
+          )}
+          <p className="text-[10px] text-vault-muted/70">{t('col.pnlResultSub')}</p>
         </div>
       </div>
+      {noMarket && <p className="text-[11px] text-amber-400/80 mt-3">{t('col.pnlNoMarket')}</p>}
     </div>
   )
 }
