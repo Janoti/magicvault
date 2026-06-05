@@ -4,7 +4,7 @@ import { cardsApi, collectionApi, wishlistApi } from '@/lib/api'
 import CardTile from '@/components/cards/CardTile'
 import AddCardModal from '@/components/collection/AddCardModal'
 import CardInfoModal from '@/components/cards/CardInfoModal'
-import { Search, Filter, ChevronLeft, ChevronRight, Star } from 'lucide-react'
+import { Search, Filter, ChevronLeft, ChevronRight, Star, Crown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debounce } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
@@ -21,6 +21,7 @@ type Mode = 'name' | 'effect'
 export default function SearchPage() {
   const { t } = useTranslation()
   const [mode, setMode] = useState<Mode>('name')
+  const [commanderOnly, setCommanderOnly] = useState(false)
   const [query, setQuery] = useState('')        // final Scryfall query that gets sent
   const [searchInput, setSearchInput] = useState('')
   const [page, setPage] = useState(1)
@@ -30,8 +31,19 @@ export default function SearchPage() {
   const qc = useQueryClient()
 
   // Turn the raw input into a Scryfall query depending on the chosen mode.
-  const buildQuery = (input: string, m: Mode) =>
-    m === 'effect' ? `oracle:"${input.replace(/"/g, '')}"` : input
+  // When commanderOnly is on, restrict to cards that can be a commander.
+  const buildQuery = (input: string, m: Mode, cmd = commanderOnly) => {
+    const base = m === 'effect' ? `oracle:"${input.replace(/"/g, '')}"` : input
+    return (cmd ? `${base} is:commander` : base).trim()
+  }
+
+  const toggleCommander = () => {
+    const next = !commanderOnly
+    setCommanderOnly(next)
+    const input = searchInput.trim()
+    // A commander filter is a valid search on its own (no text needed).
+    if (input.length >= 2 || next) { setQuery(buildQuery(input, mode, next)); setPage(1) }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['card-search', query, page],
@@ -75,7 +87,7 @@ export default function SearchPage() {
     setSearchInput(label)
     // oracle: (mentions it anywhere) is broader than keyword: (only cards that
     // intrinsically have the ability) — e.g. Hexproof 321 vs 93.
-    setQuery(`oracle:"${label}"`)
+    setQuery(buildQuery(label, 'effect'))
     setPage(1)
   }
 
@@ -96,16 +108,26 @@ export default function SearchPage() {
       </div>
 
       {/* Mode toggle: search by name, or by ability/effect text */}
-      <div className="flex gap-1 mb-3 bg-vault-card/50 p-1 rounded-lg w-fit">
-        {(['name', 'effect'] as Mode[]).map(m => (
-          <button
-            key={m}
-            onClick={() => { setMode(m); if (searchInput.trim().length >= 2) { setQuery(buildQuery(searchInput.trim(), m)); setPage(1) } }}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === m ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}
-          >
-            {m === 'name' ? t('search.modeName') : t('search.modeEffect')}
-          </button>
-        ))}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex gap-1 bg-vault-card/50 p-1 rounded-lg w-fit">
+          {(['name', 'effect'] as Mode[]).map(m => (
+            <button
+              key={m}
+              onClick={() => { setMode(m); if (searchInput.trim().length >= 2) { setQuery(buildQuery(searchInput.trim(), m)); setPage(1) } }}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === m ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`}
+            >
+              {m === 'name' ? t('search.modeName') : t('search.modeEffect')}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={toggleCommander}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+            commanderOnly ? 'border-vault-gold/50 bg-vault-gold/15 text-vault-gold' : 'border-vault-border text-vault-muted hover:text-vault-text'
+          }`}
+        >
+          <Crown size={13} /> {t('search.commandersOnly')}
+        </button>
       </div>
 
       {/* Search form */}

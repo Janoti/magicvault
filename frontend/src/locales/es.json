@@ -942,6 +942,7 @@
     "addedCollection": "¡Añadida a la colección!",
     "modeName": "Por nombre",
     "modeEffect": "Por efecto/habilidad",
+    "commandersOnly": "Comandantes",
     "effectHint": "¿No sabes el nombre? Describe en inglés lo que hace la carta (ej: \"draw a card\", \"gain life\").",
     "effectPlaceholder": "En inglés — ej: destroy target creature, draw a card...",
     "abilities": "Habilidades",

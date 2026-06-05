@@ -942,6 +942,7 @@
     "addedCollection": "Added to collection!",
     "modeName": "By name",
     "modeEffect": "By effect/ability",
+    "commandersOnly": "Commanders",
     "effectHint": "Don't know the name? Describe what the card does (e.g. \"draw a card\", \"gain life\").",
     "effectPlaceholder": "e.g. destroy target creature, draw a card...",
     "abilities": "Abilities",
