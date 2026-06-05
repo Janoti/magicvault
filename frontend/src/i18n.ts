@@ -23,6 +23,10 @@ i18n
     },
     fallbackLng: 'pt',
     supportedLngs: ['pt', 'en', 'es'],
+    // Map region variants to the base language (en-US -> en, es-419 -> es) so a
+    // browser set to English/Spanish doesn't fall back to Portuguese.
+    load: 'languageOnly',
+    nonExplicitSupportedLngs: true,
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
