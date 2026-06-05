@@ -382,6 +382,54 @@ async def update_entry(
     return {"message": "Updated"}
 
 
+class BulkRequest(BaseModel):
+    ids: List[int]
+    action: str                      # delete | condition | foil
+    condition: Optional[str] = None
+    foil: Optional[bool] = None
+
+
+@router.post("/bulk")
+async def bulk_update(data: BulkRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Apply an action to many collection entries at once."""
+    if not data.ids:
+        return {"affected": 0}
+    entries = (await db.execute(
+        select(CollectionEntry).where(CollectionEntry.id.in_(data.ids), CollectionEntry.user_id == current_user.id)
+    )).scalars().all()
+
+    if data.action == "delete":
+        for e in entries:
+            await db.delete(e)
+        return {"affected": len(entries), "action": "delete"}
+
+    affected = 0
+    deleted_ids: set[int] = set()
+    for e in entries:
+        new_cond = data.condition if (data.action == "condition" and data.condition) else e.condition
+        new_foil = data.foil if (data.action == "foil" and data.foil is not None) else e.foil
+        if (new_cond, new_foil) == (e.condition, e.foil):
+            continue
+        dup = (await db.execute(
+            select(CollectionEntry).where(
+                CollectionEntry.user_id == current_user.id,
+                CollectionEntry.scryfall_id == e.scryfall_id,
+                CollectionEntry.condition == new_cond,
+                CollectionEntry.foil == new_foil,
+                CollectionEntry.id != e.id,
+            )
+        )).scalar_one_or_none()
+        if dup and dup.id not in deleted_ids:
+            dup.quantity += e.quantity
+            await db.delete(e)
+            deleted_ids.add(e.id)
+        else:
+            e.condition = new_cond
+            e.foil = new_foil
+        affected += 1
+    return {"affected": affected, "action": data.action}
+
+
 @router.delete("/{entry_id}", status_code=204)
 async def remove_entry(
     entry_id: int,

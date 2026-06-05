@@ -38,6 +38,8 @@ export default function CollectionPage() {
   const [view, setView] = useState<'list' | 'grid'>(() => (localStorage.getItem('col.view') as 'list' | 'grid') || 'list')
   const [editEntry, setEditEntry] = useState<any>(null)
   const [infoCard, setInfoCard] = useState<any>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [bulkCond, setBulkCond] = useState('NM')
   const [binderEntry, setBinderEntry] = useState<any>(null)
   const [deckEntry, setDeckEntry] = useState<any>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -76,6 +78,16 @@ export default function CollectionPage() {
       qc.invalidateQueries({ queryKey: ['collection-stats'] })
     },
   })
+
+  const bulkMutation = useMutation({
+    mutationFn: (data: { ids: number[]; action: string; condition?: string; foil?: boolean }) => collectionApi.bulk(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['collection'] })
+      qc.invalidateQueries({ queryKey: ['collection-stats'] })
+      setSelectedIds(new Set())
+    },
+  })
+  const toggleSel = (id: number) => setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
 
   const updateMutation = useMutation({
     mutationFn: (vars: { id: number; data: any }) => collectionApi.update(vars.id, vars.data),
@@ -318,6 +330,19 @@ export default function CollectionPage() {
         </div>
       ) : (
         <>
+          {selectedIds.size > 0 && (
+            <div className="surface p-3 mb-3 flex flex-wrap items-center gap-3 border-vault-accent/30">
+              <span className="text-sm text-vault-text font-medium">{t('col.bulkSelected', { count: selectedIds.size })}</span>
+              <select className="input-field !w-auto !py-1.5 text-sm" value={bulkCond} onChange={(e) => setBulkCond(e.target.value)}>
+                {['M', 'NM', 'LP', 'MP', 'HP', 'DMG'].map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <button onClick={() => bulkMutation.mutate({ ids: [...selectedIds], action: 'condition', condition: bulkCond })} className="btn-ghost !py-1.5 text-xs">{t('col.bulkSetCond')}</button>
+              <button onClick={() => bulkMutation.mutate({ ids: [...selectedIds], action: 'foil', foil: true })} className="btn-ghost !py-1.5 text-xs">{t('col.bulkFoil')}</button>
+              <button onClick={() => { if (confirm(t('col.bulkDeleteConfirm', { count: selectedIds.size }))) bulkMutation.mutate({ ids: [...selectedIds], action: 'delete' }) }}
+                className="!py-1.5 text-xs px-3 rounded border border-red-500/40 text-red-400 hover:bg-red-500/10">{t('col.bulkDelete')}</button>
+              <button onClick={() => setSelectedIds(new Set())} className="text-xs text-vault-muted hover:text-vault-text ml-auto">{t('col.bulkClear')}</button>
+            </div>
+          )}
           {view === 'grid' ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {data?.items?.map((entry: any) => {
@@ -342,6 +367,11 @@ export default function CollectionPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-vault-border bg-vault-surface">
+                  <th className="px-3 py-3 w-8">
+                    <input type="checkbox"
+                      checked={(data?.items?.length ?? 0) > 0 && data.items.every((i: any) => selectedIds.has(i.id))}
+                      onChange={(e) => setSelectedIds(e.target.checked ? new Set(data.items.map((i: any) => i.id)) : new Set())} />
+                  </th>
                   <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thCard')}</th>
                   <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thSet')}</th>
                   <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('col.thQty')}</th>
@@ -361,8 +391,9 @@ export default function CollectionPage() {
                       key={entry.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="border-b border-vault-border/50 hover:bg-vault-card/30 transition-colors"
+                      className={`border-b border-vault-border/50 hover:bg-vault-card/30 transition-colors ${selectedIds.has(entry.id) ? 'bg-vault-accent/10' : ''}`}
                     >
+                      <td className="px-3"><input type="checkbox" checked={selectedIds.has(entry.id)} onChange={() => toggleSel(entry.id)} /></td>
                       <td className="px-4 py-3">
                         <div
                           className="flex items-center gap-3"

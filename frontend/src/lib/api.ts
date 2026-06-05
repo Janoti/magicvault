@@ -162,6 +162,7 @@ export const collectionApi = {
   add: (data: object) => api.post('/api/collection', data).then(r => r.data),
   update: (id: number, data: object) => api.patch(`/api/collection/${id}`, data).then(r => r.data),
   remove: (id: number) => api.delete(`/api/collection/${id}`),
+  bulk: (data: { ids: number[]; action: string; condition?: string; foil?: boolean }) => api.post('/api/collection/bulk', data).then(r => r.data),
   exportCsv: () => api.get('/api/collection/export', { responseType: 'blob' }).then(r => r.data),
   importCsv: (file: File) => {
     const form = new FormData()
