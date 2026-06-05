@@ -122,26 +122,27 @@ export default function DecksPage() {
           {visibleDecks.map((deck: any, i: number) => (
             <motion.div key={deck.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link to={`/decks/${deck.id}`}
-                className="block surface p-5 hover:border-vault-accent/40 transition-all group relative overflow-hidden min-h-[130px]">
-                {/* Faded card-art cover */}
-                {deck.cover ? (
-                  <>
-                    <img src={deck.cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.13] group-hover:opacity-20 transition-opacity pointer-events-none" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-vault-surface via-vault-surface/80 to-transparent pointer-events-none" />
-                  </>
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-vault-accent/5 to-transparent pointer-events-none" />
-                )}
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-display font-bold text-vault-text">{deck.name}</h3>
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirm(t('pages.confirmDeleteDeck', { name: deck.name }))) deleteMutation.mutate(deck.id) }}
-                      className="opacity-0 group-hover:opacity-100 text-vault-muted hover:text-red-400 transition-all p-1.5 rounded-lg hover:bg-red-400/10"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                className="block surface overflow-hidden hover:border-vault-accent/40 transition-all group relative">
+                {/* Sharp card-art cover banner with the title overlaid */}
+                <div className="relative h-28 bg-vault-card overflow-hidden">
+                  {deck.cover ? (
+                    <img src={deck.cover} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none" />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-vault-accent/25 to-vault-card flex items-center justify-center">
+                      <Swords size={32} className="text-vault-accent/50" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-vault-surface via-vault-surface/30 to-black/20 pointer-events-none" />
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirm(t('pages.confirmDeleteDeck', { name: deck.name }))) deleteMutation.mutate(deck.id) }}
+                    className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 text-white/80 hover:text-red-400 bg-black/40 transition-all p-1.5 rounded-lg"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                  <h3 className="absolute bottom-2 left-3 right-3 font-display font-bold text-white drop-shadow-lg truncate">{deck.name}</h3>
+                </div>
+                {/* Body */}
+                <div className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-vault-accent/20 text-vault-accent">
                       {deck.format}
