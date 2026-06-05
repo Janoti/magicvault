@@ -42,6 +42,8 @@ class User(Base):
     links: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array of {label, url}
     email_opt_out: Mapped[bool] = mapped_column(Boolean, default=False)  # opted out of campaign emails
     unsubscribe_token: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, index=True)  # retention
+    login_count: Mapped[int] = mapped_column(Integer, default=0)
 
     collection_entries: Mapped[List["CollectionEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     binders: Mapped[List["Binder"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -247,6 +249,7 @@ class EmailCampaign(Base):
     cta_text: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
     cta_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(12), default="draft")     # draft | sending | sent
+    segment: Mapped[str] = mapped_column(String(20), default="all")      # all | inactive_14 | inactive_30
     total_recipients: Mapped[int] = mapped_column(Integer, default=0)
     sent_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

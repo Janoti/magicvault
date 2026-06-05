@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,8 +35,15 @@ async def admin_stats(_: User = Depends(get_current_admin), db: AsyncSession = D
     cards = (await db.execute(select(func.coalesce(func.sum(CollectionEntry.quantity), 0)))).scalar()
     decks = (await db.execute(select(func.count(Deck.id)))).scalar()
     binders = (await db.execute(select(func.count(Binder.id)))).scalar()
+    now = datetime.utcnow()
+    active_7d = (await db.execute(select(func.count(User.id)).where(User.last_login_at >= now - timedelta(days=7)))).scalar()
+    active_30d = (await db.execute(select(func.count(User.id)).where(User.last_login_at >= now - timedelta(days=30)))).scalar()
+    inactive_30d = (await db.execute(select(func.count(User.id)).where(
+        or_(User.last_login_at < now - timedelta(days=30), User.last_login_at.is_(None))
+    ))).scalar()
     return {"users": users or 0, "premium": premium or 0, "cards": cards or 0,
-            "decks": decks or 0, "binders": binders or 0}
+            "decks": decks or 0, "binders": binders or 0,
+            "active_7d": active_7d or 0, "active_30d": active_30d or 0, "inactive_30d": inactive_30d or 0}
 
 
 @router.get("/users")
@@ -47,6 +54,8 @@ async def list_users(_: User = Depends(get_current_admin), db: AsyncSession = De
         "display_name": u.display_name, "avatar": u.avatar,
         "is_active": bool(u.is_active), "is_admin": bool(u.is_admin), "is_premium": bool(u.is_premium),
         "created_at": u.created_at.isoformat() if u.created_at else None,
+        "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None,
+        "login_count": u.login_count or 0,
     } for u in rows]
 
 
@@ -150,16 +159,28 @@ class CampaignIn(BaseModel):
     image_url: Optional[str] = None
     cta_text: Optional[str] = None
     cta_url: Optional[str] = None
+    segment: str = "all"   # all | inactive_14 | inactive_30
 
 
 def _campaign_out(c: EmailCampaign) -> dict:
     return {
         "id": c.id, "subject": c.subject, "title": c.title, "body": c.body,
         "image_url": c.image_url, "cta_text": c.cta_text, "cta_url": c.cta_url,
+        "segment": getattr(c, "segment", "all") or "all",
         "status": c.status, "total_recipients": c.total_recipients, "sent_count": c.sent_count,
         "created_at": c.created_at.isoformat() if c.created_at else None,
         "sent_at": c.sent_at.isoformat() if c.sent_at else None,
     }
+
+
+def _segment_conditions(segment: str):
+    """Recipient filter for a campaign segment (active, opted-in, + inactivity)."""
+    conds = [User.is_active == True, User.email_opt_out == False]  # noqa: E712
+    days = {"inactive_14": 14, "inactive_30": 30}.get(segment)
+    if days:
+        cutoff = datetime.utcnow() - timedelta(days=days)
+        conds.append(or_(User.last_login_at < cutoff, User.last_login_at.is_(None)))
+    return conds
 
 
 async def _unsubscribe_url(user: User, db: AsyncSession) -> str:
@@ -173,11 +194,17 @@ async def _unsubscribe_url(user: User, db: AsyncSession) -> str:
 @router.get("/campaigns")
 async def list_campaigns(_: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
     rows = (await db.execute(select(EmailCampaign).order_by(desc(EmailCampaign.created_at)))).scalars().all()
-    # Audience size = active users who haven't opted out.
+    # Default audience (segment 'all'); composer fetches per-segment via /campaigns/audience.
     audience = (await db.execute(
-        select(func.count(User.id)).where(User.is_active == True, User.email_opt_out == False)  # noqa: E712
+        select(func.count(User.id)).where(*_segment_conditions("all"))
     )).scalar() or 0
     return {"campaigns": [_campaign_out(c) for c in rows], "audience": audience}
+
+
+@router.get("/campaigns/audience")
+async def campaign_audience(segment: str = "all", _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    count = (await db.execute(select(func.count(User.id)).where(*_segment_conditions(segment)))).scalar() or 0
+    return {"segment": segment, "count": count}
 
 
 @router.post("/campaigns", status_code=201)
@@ -187,7 +214,7 @@ async def create_campaign(data: CampaignIn, _: User = Depends(get_current_admin)
     c = EmailCampaign(
         subject=data.subject.strip(), title=data.title.strip(), body=data.body,
         image_url=(data.image_url or None), cta_text=(data.cta_text or None),
-        cta_url=(data.cta_url or None),
+        cta_url=(data.cta_url or None), segment=(data.segment or "all"),
     )
     db.add(c)
     await db.flush()
@@ -203,6 +230,7 @@ async def update_campaign(cid: int, data: CampaignIn, _: User = Depends(get_curr
         raise HTTPException(status_code=400, detail="Só é possível editar rascunhos")
     c.subject, c.title, c.body = data.subject.strip(), data.title.strip(), data.body
     c.image_url, c.cta_text, c.cta_url = (data.image_url or None), (data.cta_text or None), (data.cta_url or None)
+    c.segment = data.segment or "all"
     return _campaign_out(c)
 
 
@@ -238,7 +266,7 @@ async def send_campaign(cid: int, _: User = Depends(get_current_admin), db: Asyn
         raise HTTPException(status_code=400, detail="Esta campanha já foi enviada")
 
     recipients = (await db.execute(
-        select(User).where(User.is_active == True, User.email_opt_out == False)  # noqa: E712
+        select(User).where(*_segment_conditions(getattr(c, "segment", "all") or "all"))
     )).scalars().all()
 
     c.status = "sending"

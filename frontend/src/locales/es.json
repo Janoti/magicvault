@@ -366,6 +366,12 @@
     "active": "Activo",
     "isAdmin": "Admin",
     "joined": "Registro",
+    "lastLogin": "Último acceso",
+    "never": "nunca",
+    "today": "hoy",
+    "daysAgo": "hace {{count}}d",
+    "active30": "Activos 30d",
+    "inactive30": "Inactivos 30d",
     "actions": "Acciones",
     "editEmail": "Editar email",
     "deleteUser": "Eliminar cuenta",
@@ -397,6 +403,9 @@
       "sentResult": "Enviada: {{sent}} de {{total}}.",
       "sentInfo": "Enviada a {{sent}}/{{total}} el {{date}}",
       "saveError": "Error al guardar la campaña",
+      "segment": "Audiencia",
+      "willReach": "Alcanzará ~{{count}} personas",
+      "segments": { "all": "Todos los usuarios", "inactive_14": "Inactivos 14+ días", "inactive_30": "Inactivos 30+ días" },
       "status": { "draft": "borrador", "sending": "enviando", "sent": "enviada" }
     },
     "stores": {

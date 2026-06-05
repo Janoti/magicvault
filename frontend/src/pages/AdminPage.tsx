@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X, Store as StoreIcon, CalendarDays } from 'lucide-react'
+import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X, Store as StoreIcon, CalendarDays, Activity, Moon } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
@@ -278,7 +278,8 @@ function EventsSection() {
   )
 }
 
-const EMPTY_CAMPAIGN = { id: null as number | null, subject: '', title: '', body: '', image_url: '', cta_text: '', cta_url: '' }
+const EMPTY_CAMPAIGN = { id: null as number | null, subject: '', title: '', body: '', image_url: '', cta_text: '', cta_url: '', segment: 'all' }
+const SEGMENTS = ['all', 'inactive_14', 'inactive_30']
 
 function CampaignsSection() {
   const { t } = useTranslation()
@@ -314,7 +315,8 @@ function CampaignsSection() {
   })
 
   const startNew = () => { setForm(EMPTY_CAMPAIGN); setOpen(true) }
-  const startEdit = (c: any) => { setForm({ id: c.id, subject: c.subject, title: c.title || '', body: c.body || '', image_url: c.image_url || '', cta_text: c.cta_text || '', cta_url: c.cta_url || '' }); setOpen(true) }
+  const startEdit = (c: any) => { setForm({ id: c.id, subject: c.subject, title: c.title || '', body: c.body || '', image_url: c.image_url || '', cta_text: c.cta_text || '', cta_url: c.cta_url || '', segment: c.segment || 'all' }); setOpen(true) }
+  const { data: segAudience } = useQuery({ queryKey: ['campaign-audience', form.segment], queryFn: () => adminApi.campaignAudience(form.segment), enabled: open })
 
   const badge = (status: string) => {
     const map: Record<string, string> = {
@@ -347,6 +349,9 @@ function CampaignsSection() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {badge(c.status)}
+                    {c.segment && c.segment !== 'all' && (
+                      <span className="text-[10px] uppercase tracking-wide bg-vault-gold/10 text-vault-gold border border-vault-gold/30 rounded-full px-2 py-0.5">{t(`admin.campaigns.segments.${c.segment}`)}</span>
+                    )}
                     <span className="font-medium text-vault-text truncate">{c.subject}</span>
                   </div>
                   <p className="text-xs text-vault-muted">
@@ -387,6 +392,13 @@ function CampaignsSection() {
               <div>
                 <label className="text-xs text-vault-muted">{t('admin.campaigns.subject')}</label>
                 <input className="input-field w-full" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} maxLength={255} />
+              </div>
+              <div>
+                <label className="text-xs text-vault-muted">{t('admin.campaigns.segment')}</label>
+                <select className="input-field w-full" value={form.segment} onChange={(e) => setForm({ ...form, segment: e.target.value })}>
+                  {SEGMENTS.map((s) => <option key={s} value={s}>{t(`admin.campaigns.segments.${s}`)}</option>)}
+                </select>
+                <p className="text-[11px] text-vault-muted mt-1">{t('admin.campaigns.willReach', { count: segAudience?.count ?? '…' })}</p>
               </div>
               <div>
                 <label className="text-xs text-vault-muted">{t('admin.campaigns.heading')}</label>
@@ -470,6 +482,8 @@ export default function AdminPage() {
   const statCards = [
     { icon: Users, label: t('admin.users'), value: stats?.users },
     { icon: Crown, label: t('admin.premium'), value: stats?.premium },
+    { icon: Activity, label: t('admin.active30'), value: stats?.active_30d },
+    { icon: Moon, label: t('admin.inactive30'), value: stats?.inactive_30d },
     { icon: Library, label: t('admin.cards'), value: stats?.cards },
     { icon: Swords, label: t('admin.decks'), value: stats?.decks },
     { icon: BookOpen, label: t('admin.binders'), value: stats?.binders },
@@ -485,7 +499,7 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
         {statCards.map((s, i) => (
           <div key={i} className="surface p-4 text-center">
             <s.icon size={18} className="mx-auto text-vault-accent mb-1" />
@@ -504,12 +518,13 @@ export default function AdminPage() {
               <th className="text-center px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.isAdmin')}</th>
               <th className="text-center px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.premium')}</th>
               <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.joined')}</th>
+              <th className="text-left px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.lastLogin')}</th>
               <th className="text-right px-4 py-3 text-xs text-vault-muted font-medium">{t('admin.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={6} className="text-center py-10"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin mx-auto" /></td></tr>
+              <tr><td colSpan={7} className="text-center py-10"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin mx-auto" /></td></tr>
             ) : users.map((u: any) => {
               const self = u.id === me?.id
               return (
@@ -527,6 +542,15 @@ export default function AdminPage() {
                   <td className="px-4 py-3 text-center"><div className="flex justify-center"><Toggle on={u.is_admin} disabled={self} onClick={() => mutation.mutate({ id: u.id, data: { is_admin: !u.is_admin } })} /></div></td>
                   <td className="px-4 py-3 text-center"><div className="flex justify-center"><Toggle on={u.is_premium} onClick={() => mutation.mutate({ id: u.id, data: { is_premium: !u.is_premium } })} /></div></td>
                   <td className="px-4 py-3 text-xs text-vault-muted">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {(() => {
+                      if (!u.last_login_at) return <span className="text-red-400">{t('admin.never')}</span>
+                      const days = Math.floor((Date.now() - new Date(u.last_login_at).getTime()) / 86400000)
+                      const cls = days >= 30 ? 'text-red-400' : days >= 14 ? 'text-amber-400' : 'text-vault-muted'
+                      const label = days === 0 ? t('admin.today') : t('admin.daysAgo', { count: days })
+                      return <span className={cls} title={new Date(u.last_login_at).toLocaleString()}>{label}</span>
+                    })()}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => { setEditEmailFor(u); setEmailValue(u.email) }} title={t('admin.editEmail')} className="text-vault-muted hover:text-vault-accent"><Pencil size={14} /></button>

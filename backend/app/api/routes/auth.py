@@ -122,6 +122,8 @@ async def register(request: Request, data: UserRegister, db: AsyncSession = Depe
         hashed_password=hash_password(data.password),
         is_premium=beta,
         is_beta=beta,
+        last_login_at=datetime.utcnow(),
+        login_count=1,
     )
     db.add(user)
     await db.flush()
@@ -164,6 +166,10 @@ async def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), d
             detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Retention: record this login.
+    user.last_login_at = datetime.utcnow()
+    user.login_count = (user.login_count or 0) + 1
 
     token = create_access_token({"sub": str(user.id)})
     return Token(access_token=token, token_type="bearer", user=to_user_out(user))

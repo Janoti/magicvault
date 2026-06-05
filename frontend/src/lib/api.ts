@@ -101,6 +101,7 @@ export const adminApi = {
   deleteCampaign: (id: number) => api.delete(`/api/admin/campaigns/${id}`).then(r => r.data),
   testCampaign: (id: number) => api.post(`/api/admin/campaigns/${id}/test`).then(r => r.data),
   sendCampaign: (id: number) => api.post(`/api/admin/campaigns/${id}/send`).then(r => r.data),
+  campaignAudience: (segment: string) => api.get('/api/admin/campaigns/audience', { params: { segment } }).then(r => r.data),
   // Stores + events management
   stores: () => api.get('/api/admin/stores').then(r => r.data),
   createStore: (data: object) => api.post('/api/admin/stores', data).then(r => r.data),
