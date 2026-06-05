@@ -80,8 +80,10 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
 
   const year = (card.released_at || '').slice(0, 4)
   const image = card.image_large || card.image_normal || card.image_small
-  const usd = card.price_usd || 0
-  const usdFoil = card.price_usd_foil || 0
+  // Prices are language-independent; localized printings often have none on
+  // Scryfall, so fall back to the original card's price.
+  const usd = card.price_usd || initialCard.price_usd || 0
+  const usdFoil = card.price_usd_foil || initialCard.price_usd_foil || 0
   const brl = (v: number) => (rate ? `R$${(v * rate).toFixed(2).replace('.', ',')}` : '')
   const goMarket = () => navigate(`/trades?q=${encodeURIComponent(card.name)}`)
 
