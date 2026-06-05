@@ -1,18 +1,21 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { decksApi, collectionApi } from '@/lib/api'
+import { decksApi, collectionApi, bindersApi } from '@/lib/api'
 import SharedResourceView from '@/components/sharing/SharedResourceView'
 import PublicPage from '@/components/PublicPage'
 
-// Renders a public deck (/d/:id) or a public collection (/c/:username).
-export default function PublicEntityPage({ kind }: { kind: 'deck' | 'collection' }) {
+// Renders a public deck (/d/:id), collection (/c/:username) or binder (/b/:id).
+export default function PublicEntityPage({ kind }: { kind: 'deck' | 'collection' | 'binder' }) {
   const { t } = useTranslation()
   const { id, username } = useParams()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['public-entity', kind, id, username],
-    queryFn: () => (kind === 'deck' ? decksApi.publicView(Number(id)) : collectionApi.publicView(username as string)),
+    queryFn: () =>
+      kind === 'deck' ? decksApi.publicView(Number(id))
+      : kind === 'binder' ? bindersApi.publicView(Number(id))
+      : collectionApi.publicView(username as string),
     retry: false,
   })
 

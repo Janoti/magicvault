@@ -183,7 +183,18 @@
     "subtitle": "Colección y mazos que esta persona hizo públicos.",
     "collection": "Ver la colección completa",
     "events": "Próximos eventos",
-    "revealContact": "Mostrar contacto (clic para revelar)"
+    "revealContact": "Mostrar contacto (clic para revelar)",
+    "market": {
+      "title": "Mercado",
+      "subtitle": "{{count}} carta(s) a la venta o para intercambio.",
+      "loginPrompt": "Inicia sesión para ver las cartas que esta persona vende.",
+      "loginCta": "Iniciar sesión",
+      "premiumPrompt": "El mercado es una función premium.",
+      "premiumCta": "Desbloquear el mercado",
+      "forTrade": "Para intercambio",
+      "viewAll": "Abrir en el mercado",
+      "empty": "No hay ofertas activas por ahora."
+    }
   },
   "userEvents": {
     "title": "Mis eventos",

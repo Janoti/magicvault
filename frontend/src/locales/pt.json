@@ -183,7 +183,18 @@
     "subtitle": "Coleção e decks que esta pessoa deixou públicos.",
     "collection": "Ver a coleção completa",
     "events": "Próximos eventos",
-    "revealContact": "Mostrar contato (clique para revelar)"
+    "revealContact": "Mostrar contato (clique para revelar)",
+    "market": {
+      "title": "Mercado",
+      "subtitle": "{{count}} carta(s) à venda ou para troca.",
+      "loginPrompt": "Entre para ver as cartas que esta pessoa está vendendo.",
+      "loginCta": "Entrar",
+      "premiumPrompt": "O mercado é um recurso premium.",
+      "premiumCta": "Liberar o mercado",
+      "forTrade": "Para troca",
+      "viewAll": "Abrir no mercado",
+      "empty": "Nenhuma oferta ativa no momento."
+    }
   },
   "userEvents": {
     "title": "Meus eventos",

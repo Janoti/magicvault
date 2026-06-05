@@ -183,7 +183,18 @@
     "subtitle": "Collection and decks this person chose to make public.",
     "collection": "View the full collection",
     "events": "Upcoming events",
-    "revealContact": "Show contact (click to reveal)"
+    "revealContact": "Show contact (click to reveal)",
+    "market": {
+      "title": "Marketplace",
+      "subtitle": "{{count}} card(s) listed for sale or trade.",
+      "loginPrompt": "Log in to see the cards this person is selling.",
+      "loginCta": "Log in",
+      "premiumPrompt": "The marketplace is a premium feature.",
+      "premiumCta": "Unlock the marketplace",
+      "forTrade": "For trade",
+      "viewAll": "Open in the marketplace",
+      "empty": "No active listings right now."
+    }
   },
   "userEvents": {
     "title": "My events",

@@ -8,8 +8,18 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User, Binder, BinderCard, CollectionEntry
 from app.services.scryfall import get_card_by_id, extract_card_summary
+from app.services.sharing import build_resource_view
 
 router = APIRouter()
+
+
+@router.get("/{binder_id}/public")
+async def public_binder(binder_id: int, db: AsyncSession = Depends(get_db)):
+    """Read-only view of a binder the owner chose to expose (no auth)."""
+    binder = (await db.execute(select(Binder).where(Binder.id == binder_id))).scalar_one_or_none()
+    if not binder or not binder.is_public:
+        raise HTTPException(status_code=404, detail="Binder não encontrado")
+    return await build_resource_view(db, binder.user_id, "binder", binder.id)
 
 
 class CreateBinderRequest(BaseModel):

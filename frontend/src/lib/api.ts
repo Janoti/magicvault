@@ -54,6 +54,7 @@ export const authApi = {
 export const usersApi = {
   profile: (username: string) => api.get(`/api/users/${username}`).then(r => r.data),
   contact: (username: string) => api.get(`/api/users/${username}/contact`).then(r => r.data),
+  listings: (username: string) => api.get(`/api/users/${username}/listings`).then(r => r.data),
 }
 
 // Billing (Stripe premium)
@@ -186,6 +187,7 @@ export const bindersApi = {
   list: () => api.get('/api/binders').then(r => r.data),
   create: (data: object) => api.post('/api/binders', data).then(r => r.data),
   get: (id: number) => api.get(`/api/binders/${id}`).then(r => r.data),
+  publicView: (id: number) => api.get(`/api/binders/${id}/public`).then(r => r.data),
   update: (id: number, data: object) => api.patch(`/api/binders/${id}`, data).then(r => r.data),
   delete: (id: number) => api.delete(`/api/binders/${id}`),
   addCard: (binderId: number, data: object) => api.post(`/api/binders/${binderId}/cards`, data).then(r => r.data),

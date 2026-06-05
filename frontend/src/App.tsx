@@ -81,6 +81,7 @@ export default function App() {
         <Route path="/u/:username" element={<ProfilePage />} />
         <Route path="/d/:id" element={<PublicEntityPage kind="deck" />} />
         <Route path="/c/:username" element={<PublicEntityPage kind="collection" />} />
+        <Route path="/b/:id" element={<PublicEntityPage kind="binder" />} />
 
         {/* Authenticated app */}
         <Route

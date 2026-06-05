@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye } from 'lucide-react'
+import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye, ShoppingBag, Lock, Crown, ArrowLeftRight } from 'lucide-react'
 import { usersApi } from '@/lib/api'
+import { useAuthStore } from '@/store/auth'
 import PublicPage from '@/components/PublicPage'
 import Avatar from '@/components/Avatar'
 
@@ -124,8 +125,8 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Public collection & decks the owner chose to show off */}
-          {(data.collection_public || data.public_decks?.length > 0) && (
+          {/* Public collection, decks & binders the owner chose to show off */}
+          {(data.collection_public || data.public_decks?.length > 0 || data.public_binders?.length > 0) && (
             <div className="surface p-5">
               <h2 className="font-display text-lg font-bold text-vault-gold mb-1">{t('pubprofile.title', { name: data.display_name || data.username })}</h2>
               <p className="text-xs text-vault-muted mb-4">{t('pubprofile.subtitle')}</p>
@@ -156,8 +157,28 @@ export default function ProfilePage() {
                     <ExternalLink size={14} className="text-vault-muted" />
                   </Link>
                 ))}
+                {data.public_binders?.map((b: any) => (
+                  <Link key={b.id} to={`/b/${b.id}`}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-vault-border hover:border-vault-accent/40 transition-all">
+                    <span className="w-9 h-9 rounded-xl flex items-center justify-center border"
+                      style={{ backgroundColor: `${b.color}22`, borderColor: `${b.color}55` }}>
+                      <BookOpen size={16} style={{ color: b.color || '#6366f1' }} />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-vault-text truncate">{b.name}</p>
+                      <p className="text-xs text-vault-muted">{t('common.cardsCount', { count: b.card_count })}</p>
+                    </div>
+                    <ExternalLink size={14} className="text-vault-muted" />
+                  </Link>
+                ))}
               </div>
             </div>
+          )}
+
+          {/* Marketplace — cards this user is currently selling/trading.
+              Visitors must log in; logged-in users need the marketplace (premium). */}
+          {data.listings_count > 0 && (
+            <MarketSection username={username} count={data.listings_count} />
           )}
 
           {data.public_events?.length > 0 && (
@@ -192,4 +213,96 @@ export default function ProfilePage() {
 
   // Logged-in users get the app Layout (sidebar); visitors get the public header.
   return <PublicPage>{body}</PublicPage>
+}
+
+// Marketplace listings on a public profile. Anonymous visitors get a "log in"
+// call to action; logged-in users without the marketplace (premium) get an
+// upgrade prompt; premium users see the actual cards on sale/trade.
+function MarketSection({ username, count }: { username: string; count: number }) {
+  const { t } = useTranslation()
+  const { user } = useAuthStore()
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['profile-listings', username],
+    queryFn: () => usersApi.listings(username),
+    enabled: !!user,        // don't auto-redirect anonymous visitors to /login
+    retry: false,
+  })
+
+  const header = (
+    <h2 className="font-display text-lg font-bold text-vault-gold mb-1 flex items-center gap-2">
+      <ShoppingBag size={18} /> {t('pubprofile.market.title')}
+    </h2>
+  )
+  const subtitle = <p className="text-xs text-vault-muted mb-4">{t('pubprofile.market.subtitle', { count })}</p>
+
+  // Not logged in → must log in.
+  if (!user) {
+    return (
+      <div className="surface p-5 mt-4">
+        {header}{subtitle}
+        <Link to="/login" className="flex items-center gap-3 p-4 rounded-lg border border-vault-accent/30 bg-vault-accent/5 hover:border-vault-accent/50 transition-all">
+          <Lock size={18} className="text-vault-accent" />
+          <span className="text-sm text-vault-text flex-1">{t('pubprofile.market.loginPrompt')}</span>
+          <span className="text-xs font-medium text-vault-accent">{t('pubprofile.market.loginCta')} →</span>
+        </Link>
+      </div>
+    )
+  }
+
+  // Logged in but not premium → upgrade prompt (backend returns 403).
+  const premiumRequired = (error as any)?.response?.status === 403
+  if (premiumRequired) {
+    return (
+      <div className="surface p-5 mt-4">
+        {header}{subtitle}
+        <Link to="/premium" className="flex items-center gap-3 p-4 rounded-lg border border-vault-gold/30 bg-vault-gold/5 hover:border-vault-gold/50 transition-all">
+          <Crown size={18} className="text-vault-gold" />
+          <span className="text-sm text-vault-text flex-1">{t('pubprofile.market.premiumPrompt')}</span>
+          <span className="text-xs font-medium text-vault-gold">{t('pubprofile.market.premiumCta')} →</span>
+        </Link>
+      </div>
+    )
+  }
+
+  const items: any[] = data?.items || []
+
+  return (
+    <div className="surface p-5 mt-4">
+      {header}{subtitle}
+      {isLoading ? (
+        <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" /></div>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-vault-muted py-4 text-center">{t('pubprofile.market.empty')}</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {items.map((l) => {
+              const img = l.photo || l.card?.image_normal || l.card?.image_small
+              const forTrade = !!l.wanted
+              return (
+                <Link key={l.id} to="/trades" className="group rounded-xl overflow-hidden border border-vault-border hover:border-vault-accent/50 transition-all bg-vault-card/40">
+                  <div className="aspect-[63/88] bg-vault-card relative">
+                    {img && <img src={img} alt={l.card?.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform" />}
+                    <span className="absolute bottom-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">{l.condition}{l.foil ? ' ⚡' : ''}</span>
+                  </div>
+                  <div className="p-2">
+                    <p className="text-xs font-medium text-vault-text truncate">{l.card?.name}</p>
+                    {l.price != null ? (
+                      <p className="text-xs font-mono font-bold text-green-400">${l.price.toFixed(2)}</p>
+                    ) : forTrade ? (
+                      <p className="text-[11px] text-vault-gold flex items-center gap-1"><ArrowLeftRight size={11} /> {t('pubprofile.market.forTrade')}</p>
+                    ) : null}
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+          <Link to="/trades" className="mt-4 inline-flex items-center gap-1.5 text-sm text-vault-accent hover:underline">
+            {t('pubprofile.market.viewAll')} <ExternalLink size={14} />
+          </Link>
+        </>
+      )}
+    </div>
+  )
 }
