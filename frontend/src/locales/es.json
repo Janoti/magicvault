@@ -174,7 +174,8 @@
     "title": "Vitrina de {{name}}",
     "subtitle": "Colección y mazos que esta persona hizo públicos.",
     "collection": "Ver la colección completa",
-    "events": "Próximos eventos"
+    "events": "Próximos eventos",
+    "revealContact": "Mostrar contacto (clic para revelar)"
   },
   "userEvents": {
     "title": "Mis eventos",

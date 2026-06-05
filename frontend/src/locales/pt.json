@@ -174,7 +174,8 @@
     "title": "Vitrine de {{name}}",
     "subtitle": "Coleção e decks que esta pessoa deixou públicos.",
     "collection": "Ver a coleção completa",
-    "events": "Próximos eventos"
+    "events": "Próximos eventos",
+    "revealContact": "Mostrar contato (clique para revelar)"
   },
   "userEvents": {
     "title": "Meus eventos",

@@ -53,6 +53,7 @@ export const authApi = {
 // Public user profiles
 export const usersApi = {
   profile: (username: string) => api.get(`/api/users/${username}`).then(r => r.data),
+  contact: (username: string) => api.get(`/api/users/${username}/contact`).then(r => r.data),
 }
 
 // Billing (Stripe premium)

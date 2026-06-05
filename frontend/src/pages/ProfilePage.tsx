@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays } from 'lucide-react'
+import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye } from 'lucide-react'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
@@ -25,6 +26,13 @@ export default function ProfilePage() {
   const { username = '' } = useParams()
   const { t } = useTranslation()
   const isAuth = useAuthStore((s) => s.isAuthenticated())
+  const [contact, setContact] = useState<string | null>(null)
+  const [revealing, setRevealing] = useState(false)
+  const revealContact = async () => {
+    setRevealing(true)
+    try { const r = await usersApi.contact(username); setContact(r.contact) } catch { /* gone */ }
+    setRevealing(false)
+  }
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['profile', username],
@@ -75,19 +83,34 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {data.contact && (
-            <a
-              href={contactHref(data.contact)} target="_blank" rel="noreferrer"
-              className="surface p-4 flex items-center gap-3 hover:border-vault-accent/40 transition-all"
-            >
-              <span className="w-9 h-9 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center justify-center">
-                <MessageCircle size={16} className="text-green-400" />
-              </span>
-              <div>
-                <p className="text-xs text-vault-muted">{t('account.contact')}</p>
-                <p className="text-sm text-vault-text">{data.contact}</p>
-              </div>
-            </a>
+          {data.has_contact && (
+            contact ? (
+              <a
+                href={contactHref(contact)} target="_blank" rel="noreferrer"
+                className="surface p-4 flex items-center gap-3 hover:border-vault-accent/40 transition-all"
+              >
+                <span className="w-9 h-9 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center justify-center">
+                  <MessageCircle size={16} className="text-green-400" />
+                </span>
+                <div>
+                  <p className="text-xs text-vault-muted">{t('account.contact')}</p>
+                  <p className="text-sm text-vault-text">{contact}</p>
+                </div>
+              </a>
+            ) : (
+              <button
+                onClick={revealContact} disabled={revealing}
+                className="surface p-4 w-full flex items-center gap-3 hover:border-vault-accent/40 transition-all text-left disabled:opacity-60"
+              >
+                <span className="w-9 h-9 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center justify-center">
+                  {revealing ? <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" /> : <Eye size={16} className="text-green-400" />}
+                </span>
+                <div>
+                  <p className="text-xs text-vault-muted">{t('account.contact')}</p>
+                  <p className="text-sm text-vault-accent">{t('pubprofile.revealContact')}</p>
+                </div>
+              </button>
+            )
           )}
 
           {data.links?.length > 0 && (

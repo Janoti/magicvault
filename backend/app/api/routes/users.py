@@ -1,10 +1,11 @@
 import json
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.core.database import get_db
+from app.core.ratelimit import limiter
 from app.models.user import User, CollectionEntry, Deck, DeckCard, Binder, UserEvent
 
 router = APIRouter()
@@ -62,10 +63,23 @@ async def public_profile(username: str, db: AsyncSession = Depends(get_db)):
         "avatar": user.avatar,
         "bio": user.bio,
         "links": json.loads(user.links) if user.links else [],
-        "contact": user.contact if user.contact_public else None,
+        # Don't expose the raw contact here (anti-scraper). Only a flag; the
+        # number is fetched on demand via /{username}/contact (click to reveal).
+        "has_contact": bool(user.contact_public and user.contact),
         "member_since": user.created_at.isoformat() if user.created_at else None,
         "stats": {"cards": cards or 0, "decks": decks or 0, "binders": binders or 0},
         "public_decks": public_decks,
         "public_events": public_events,
         "collection_public": bool(user.collection_public),
     }
+
+
+@router.get("/{username}/contact")
+@limiter.limit("10/minute")
+async def reveal_contact(request: Request, username: str, db: AsyncSession = Depends(get_db)):
+    """Reveal a user's public contact only on explicit request (click-to-reveal),
+    rate-limited, so it isn't harvested from the page/API by scrapers."""
+    user = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
+    if not user or not user.contact_public or not user.contact:
+        raise HTTPException(status_code=404, detail="Sem contato")
+    return {"contact": user.contact}

@@ -174,7 +174,8 @@
     "title": "{{name}}'s showcase",
     "subtitle": "Collection and decks this person chose to make public.",
     "collection": "View the full collection",
-    "events": "Upcoming events"
+    "events": "Upcoming events",
+    "revealContact": "Show contact (click to reveal)"
   },
   "userEvents": {
     "title": "My events",
