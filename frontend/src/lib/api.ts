@@ -159,6 +159,7 @@ export const collectionApi = {
   stats: () => api.get('/api/collection/stats').then(r => r.data),
   sets: () => api.get('/api/collection/sets').then(r => r.data),
   cardContext: (scryfallId: string) => api.get(`/api/collection/card-context/${scryfallId}`).then(r => r.data),
+  valueHistory: () => api.get('/api/collection/value-history').then(r => r.data),
   add: (data: object) => api.post('/api/collection', data).then(r => r.data),
   update: (id: number, data: object) => api.patch(`/api/collection/${id}`, data).then(r => r.data),
   remove: (id: number) => api.delete(`/api/collection/${id}`),

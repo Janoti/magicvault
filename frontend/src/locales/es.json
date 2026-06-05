@@ -85,6 +85,7 @@
     "bulkDelete": "Eliminar",
     "bulkDeleteConfirm": "¿Eliminar {{count}} carta(s) de la colección?",
     "bulkClear": "Limpiar selección",
+    "valueOverTime": "Valor de la colección en el tiempo",
     "perUnit": "{{price}} c/u",
     "totalCards": "{{count}} cartas en total",
     "onThisPage": "en esta página",

@@ -302,6 +302,19 @@ class Event(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class CollectionSnapshot(Base):
+    """A daily snapshot of a user's collection total value (for the value-over-time chart)."""
+    __tablename__ = "collection_snapshots"
+    __table_args__ = (UniqueConstraint("user_id", "date", name="uq_snapshot_day"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    date: Mapped[Date] = mapped_column(Date, index=True)
+    total_value: Mapped[float] = mapped_column(Float, default=0.0)   # USD
+    total_cards: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class UserEvent(Base):
     """An event created by a user (mesão, trade/sell, happening). Public events
     show on the organizer's profile; private ones are link-only."""

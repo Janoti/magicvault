@@ -5,13 +5,13 @@ from sqlalchemy import select, func, desc
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
 import csv
 import io
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.user import User, CollectionEntry, Binder, BinderCard, Listing
+from app.models.user import User, CollectionEntry, Binder, BinderCard, Listing, CollectionSnapshot
 from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk
 from app.services.sharing import build_resource_view
 
@@ -111,11 +111,33 @@ async def stats(
             unit = summary["price_usd_foil"] if e.foil else summary["price_usd"]
             total_value += (unit or 0) * e.quantity
 
+    # Record (or refresh) today's value snapshot for the value-over-time chart.
+    today = date.today()
+    snap = (await db.execute(
+        select(CollectionSnapshot).where(CollectionSnapshot.user_id == current_user.id, CollectionSnapshot.date == today)
+    )).scalar_one_or_none()
+    if snap:
+        snap.total_value = round(total_value, 2)
+        snap.total_cards = int(row.total_cards or 0)
+    else:
+        db.add(CollectionSnapshot(user_id=current_user.id, date=today,
+                                  total_value=round(total_value, 2), total_cards=int(row.total_cards or 0)))
+
     return {
         "unique_cards": row.unique_cards or 0,
         "total_cards": row.total_cards or 0,
         "total_value": round(total_value, 2),
     }
+
+
+@router.get("/value-history")
+async def value_history(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Daily collection-value snapshots (oldest→newest) for the chart."""
+    rows = (await db.execute(
+        select(CollectionSnapshot).where(CollectionSnapshot.user_id == current_user.id)
+        .order_by(CollectionSnapshot.date).limit(180)
+    )).scalars().all()
+    return [{"date": s.date.isoformat(), "value": s.total_value, "cards": s.total_cards} for s in rows]
 
 
 @router.get("/card-context/{scryfall_id}")

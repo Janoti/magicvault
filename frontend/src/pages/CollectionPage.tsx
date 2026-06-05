@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import CardTile from '@/components/cards/CardTile'
 import CardInfoModal from '@/components/cards/CardInfoModal'
+import ValueChart from '@/components/collection/ValueChart'
 import RoleTag from '@/components/cards/RoleTag'
 import { cardRole } from '@/lib/cardRole'
 import EditCardModal from '@/components/collection/EditCardModal'
@@ -330,6 +331,7 @@ export default function CollectionPage() {
         </div>
       ) : (
         <>
+          <ValueChart />
           {selectedIds.size > 0 && (
             <div className="surface p-3 mb-3 flex flex-wrap items-center gap-3 border-vault-accent/30">
               <span className="text-sm text-vault-text font-medium">{t('col.bulkSelected', { count: selectedIds.size })}</span>
