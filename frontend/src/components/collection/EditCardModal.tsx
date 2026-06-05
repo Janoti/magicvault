@@ -1,7 +1,14 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, ChevronDown, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
+import { cardsApi } from '@/lib/api'
+
+const rarityDot: Record<string, string> = {
+  common: 'bg-vault-muted', uncommon: 'bg-slate-300', rare: 'bg-vault-gold',
+  mythic: 'bg-orange-500', special: 'bg-purple-400', bonus: 'bg-pink-400',
+}
 
 interface EditCardModalProps {
   entry: any
@@ -26,9 +33,18 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
   const [condition, setCondition] = useState<string>(entry.condition ?? 'NM')
   const [foil, setFoil] = useState<boolean>(!!entry.foil)
   const [notes, setNotes] = useState<string>(entry.notes ?? '')
+  const [selected, setSelected] = useState<any>(card || { id: entry.scryfall_id })
+  const [editionOpen, setEditionOpen] = useState(false)
+
+  const { data: printsData, isLoading: loadingPrints } = useQuery({
+    queryKey: ['card-prints', entry.scryfall_id],
+    queryFn: () => cardsApi.prints(entry.scryfall_id),
+    staleTime: 1000 * 60 * 60,
+  })
+  const prints: any[] = printsData?.prints || []
 
   const handleSubmit = () => {
-    onConfirm({ quantity, condition, foil, notes: notes || null })
+    onConfirm({ quantity, condition, foil, notes: notes || null, scryfall_id: selected.id })
   }
 
   return (
@@ -49,14 +65,12 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
         >
           <div className="flex items-start justify-between mb-4">
             <div className="flex gap-3">
-              {card?.image_small && (
-                <img src={card.image_small} alt={card.name} className="w-14 rounded-lg shadow-lg" />
+              {(selected.image_small || card?.image_small) && (
+                <img src={selected.image_small || card?.image_small} alt={card?.name} className="w-14 rounded-lg shadow-lg" />
               )}
               <div>
                 <h3 className="font-display font-bold text-vault-gold">{card?.name || t('modal.editCard')}</h3>
-                {card && (
-                  <p className="text-xs text-vault-muted">{card.set?.toUpperCase()} • #{card.collector_number}</p>
-                )}
+                <p className="text-xs text-vault-muted">{(selected.set || card?.set)?.toUpperCase()} • #{selected.collector_number || card?.collector_number}</p>
               </div>
             </div>
             <button onClick={onClose} className="text-vault-muted hover:text-vault-text transition-colors">
@@ -65,6 +79,46 @@ export default function EditCardModal({ entry, card, onClose, onConfirm, isLoadi
           </div>
 
           <div className="space-y-4">
+            {(loadingPrints || prints.length > 1) && (
+              <div>
+                <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.edition')}</label>
+                {loadingPrints ? (
+                  <div className="input-field flex items-center gap-2 text-vault-muted text-sm">
+                    <div className="w-4 h-4 border-2 border-vault-muted border-t-transparent rounded-full animate-spin" />
+                    {t('modal.loadingPrintings')}
+                  </div>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => setEditionOpen(o => !o)}
+                      className="input-field w-full flex items-center justify-between gap-2 text-left">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${rarityDot[selected.rarity] || 'bg-vault-muted'}`} />
+                        <span className="truncate text-sm">{selected.set_name || card?.set_name} <span className="text-vault-muted">#{selected.collector_number || card?.collector_number}</span></span>
+                      </span>
+                      <ChevronDown size={16} className={`shrink-0 text-vault-muted transition-transform ${editionOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {editionOpen && (
+                      <div className="mt-1.5 max-h-60 overflow-y-auto rounded-lg border border-vault-border bg-vault-card divide-y divide-vault-border">
+                        {prints.map((p) => (
+                          <button key={p.id} type="button" onClick={() => { setSelected(p); setEditionOpen(false) }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-vault-surface text-left transition-colors">
+                            {p.image_small ? <img src={p.image_small} alt="" loading="lazy" className="w-7 rounded shadow shrink-0" /> : <span className="w-7 h-10 rounded bg-vault-surface shrink-0" />}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-vault-text truncate">{p.set_name}</div>
+                              <div className="text-[11px] text-vault-muted flex items-center gap-1.5">
+                                <span className={`w-1.5 h-1.5 rounded-full ${rarityDot[p.rarity] || 'bg-vault-muted'}`} /> #{p.collector_number}
+                              </div>
+                            </div>
+                            {selected.id === p.id && <Check size={15} className="text-vault-accent shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-[11px] text-vault-muted mt-1">{prints.length} {t('modal.printingsAvailable')}</p>
+                  </>
+                )}
+              </div>
+            )}
             <div>
               <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.quantity')}</label>
               <div className="flex items-center gap-3">

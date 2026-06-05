@@ -70,6 +70,7 @@ class UpdateCardRequest(BaseModel):
     condition: Optional[str] = None
     foil: Optional[bool] = None
     notes: Optional[str] = None
+    scryfall_id: Optional[str] = None  # change the printing/edition in place
 
 
 @router.get("/public/{username}")
@@ -347,15 +348,16 @@ async def update_entry(
 
     new_condition = data.condition if data.condition is not None else entry.condition
     new_foil = data.foil if data.foil is not None else entry.foil
+    new_scryfall_id = data.scryfall_id if data.scryfall_id else entry.scryfall_id
 
     # The unique constraint is (user_id, scryfall_id, condition, foil). If the
-    # edit changes condition/foil to match another existing entry, merge into it
-    # instead of letting the DB raise a unique-violation (500).
-    if (new_condition, new_foil) != (entry.condition, entry.foil):
+    # edit changes printing/condition/foil to match another existing entry, merge
+    # into it instead of letting the DB raise a unique-violation (500).
+    if (new_scryfall_id, new_condition, new_foil) != (entry.scryfall_id, entry.condition, entry.foil):
         dup_result = await db.execute(
             select(CollectionEntry).where(
                 CollectionEntry.user_id == current_user.id,
-                CollectionEntry.scryfall_id == entry.scryfall_id,
+                CollectionEntry.scryfall_id == new_scryfall_id,
                 CollectionEntry.condition == new_condition,
                 CollectionEntry.foil == new_foil,
                 CollectionEntry.id != entry.id,
@@ -373,6 +375,7 @@ async def update_entry(
         entry.quantity = data.quantity
     entry.condition = new_condition
     entry.foil = new_foil
+    entry.scryfall_id = new_scryfall_id
     if data.notes is not None:
         entry.notes = data.notes
 
