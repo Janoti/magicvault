@@ -31,12 +31,17 @@ async def public_profile(username: str, db: AsyncSession = Depends(get_db)):
     )).scalar()
 
     # Public decks the owner chose to share on their profile.
-    public_decks = []
-    for d in (await db.execute(
+    pub = (await db.execute(
         select(Deck).where(Deck.user_id == user.id, Deck.is_public == True).order_by(Deck.updated_at.desc())  # noqa: E712
-    )).scalars().all():
-        cnt = (await db.execute(select(func.sum(DeckCard.quantity)).where(DeckCard.deck_id == d.id))).scalar() or 0
-        public_decks.append({"id": d.id, "name": d.name, "format": d.format, "card_count": cnt})
+    )).scalars().all()
+    pub_ids = [d.id for d in pub]
+    deck_counts: dict = {}
+    if pub_ids:
+        for did, total in (await db.execute(
+            select(DeckCard.deck_id, func.sum(DeckCard.quantity)).where(DeckCard.deck_id.in_(pub_ids)).group_by(DeckCard.deck_id)
+        )).all():
+            deck_counts[did] = total or 0
+    public_decks = [{"id": d.id, "name": d.name, "format": d.format, "card_count": deck_counts.get(d.id, 0)} for d in pub]
 
     # Upcoming public events the user is organizing.
     public_events = [{

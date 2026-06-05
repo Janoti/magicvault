@@ -123,18 +123,16 @@ async def delete_user(user_id: int, admin: User = Depends(get_current_admin), db
 @router.get("/feedback")
 async def list_feedback(_: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
     rows = (await db.execute(select(Feedback).order_by(desc(Feedback.created_at)))).scalars().all()
-    out = []
-    for f in rows:
-        username = None
-        if f.user_id:
-            u = (await db.execute(select(User).where(User.id == f.user_id))).scalar_one_or_none()
-            username = u.username if u else None
-        out.append({
-            "id": f.id, "type": f.type, "message": f.message, "email": f.email,
-            "page": f.page, "status": f.status, "username": username,
-            "created_at": f.created_at.isoformat() if f.created_at else None,
-        })
-    return out
+    # Resolve usernames in one query instead of one per feedback row.
+    uids = {f.user_id for f in rows if f.user_id}
+    usernames = {u.id: u.username for u in (await db.execute(
+        select(User).where(User.id.in_(uids or [-1]))
+    )).scalars().all()}
+    return [{
+        "id": f.id, "type": f.type, "message": f.message, "email": f.email,
+        "page": f.page, "status": f.status, "username": usernames.get(f.user_id),
+        "created_at": f.created_at.isoformat() if f.created_at else None,
+    } for f in rows]
 
 
 class UpdateFeedback(BaseModel):

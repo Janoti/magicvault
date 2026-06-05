@@ -292,26 +292,34 @@ async def list_decks(current_user: User = Depends(get_current_user), db: AsyncSe
         select(Deck).where(Deck.user_id == current_user.id).order_by(Deck.updated_at.desc())
     )
     decks = result.scalars().all()
+    ids = [d.id for d in decks]
 
-    # A representative card art for each deck (used as a faded cover background).
+    # Card counts per deck — one grouped query instead of one per deck.
+    counts: dict = {}
+    if ids:
+        for did, total in (await db.execute(
+            select(DeckCard.deck_id, func.sum(DeckCard.quantity)).where(DeckCard.deck_id.in_(ids)).group_by(DeckCard.deck_id)
+        )).all():
+            counts[did] = total or 0
+
+    # A representative card art per deck (cover) — one query, pick first per deck.
     first_card: dict = {}
-    for d in decks:
-        dc = (await db.execute(
-            select(DeckCard).where(DeckCard.deck_id == d.id).order_by(DeckCard.is_commander.desc(), DeckCard.id).limit(1)
-        )).scalar_one_or_none()
-        if dc:
-            first_card[d.id] = dc.scryfall_id
+    if ids:
+        for did, sid in (await db.execute(
+            select(DeckCard.deck_id, DeckCard.scryfall_id).where(DeckCard.deck_id.in_(ids))
+            .order_by(DeckCard.is_commander.desc(), DeckCard.id)
+        )).all():
+            first_card.setdefault(did, sid)
     covers = await get_cards_bulk(list(set(first_card.values()))) if first_card else {}
 
     items = []
     for d in decks:
-        count_r = await db.execute(select(func.sum(DeckCard.quantity)).where(DeckCard.deck_id == d.id))
         raw = covers.get(first_card.get(d.id))
         items.append({
             "id": d.id, "name": d.name, "format": d.format,
             "description": d.description, "is_public": d.is_public,
             "folder_id": d.folder_id,
-            "card_count": count_r.scalar() or 0,
+            "card_count": counts.get(d.id, 0),
             "cover": _art_crop(raw) if raw else None,
             "created_at": d.created_at.isoformat(),
         })
@@ -387,10 +395,14 @@ async def public_folder(token: str, db: AsyncSession = Depends(get_db)):
     decks = (await db.execute(
         select(Deck).where(Deck.folder_id == f.id, Deck.is_public == True).order_by(Deck.updated_at.desc())  # noqa: E712
     )).scalars().all()
-    out = []
-    for d in decks:
-        cnt = (await db.execute(select(func.sum(DeckCard.quantity)).where(DeckCard.deck_id == d.id))).scalar() or 0
-        out.append({"id": d.id, "name": d.name, "format": d.format, "card_count": cnt})
+    ids = [d.id for d in decks]
+    counts: dict = {}
+    if ids:
+        for did, total in (await db.execute(
+            select(DeckCard.deck_id, func.sum(DeckCard.quantity)).where(DeckCard.deck_id.in_(ids)).group_by(DeckCard.deck_id)
+        )).all():
+            counts[did] = total or 0
+    out = [{"id": d.id, "name": d.name, "format": d.format, "card_count": counts.get(d.id, 0)} for d in decks]
     return {"name": f.name, "color": f.color, "decks": out}
 
 
