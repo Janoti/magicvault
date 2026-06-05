@@ -132,6 +132,32 @@ async def get_set_cards(set_code: str) -> List[Dict[str, Any]]:
     return all_cards
 
 
+async def get_card_lang_variant(scryfall_id: str, lang: str) -> Optional[Dict[str, Any]]:
+    """The same printing (set + collector number) in another language, or None if
+    that language doesn't exist for this card. English returns the base card."""
+    base = await get_card_by_id(scryfall_id)
+    if not base:
+        return None
+    if lang == "en" or base.get("lang") == lang:
+        return base
+    set_code = base.get("set")
+    cn = base.get("collector_number")
+    if not set_code or not cn:
+        return None
+    cache_key = f"scryfall:langvar:{set_code}:{cn}:{lang}"
+    cached = await cache_get(cache_key)
+    if cached is not None:
+        return cached or None  # cached False means "doesn't exist"
+    try:
+        data = await _get(f"{BASE}/cards/{set_code}/{cn}/{lang}")
+        await cache_set(f"scryfall:card:{data['id']}", data)
+        await cache_set(cache_key, data)
+        return data
+    except Exception:
+        await cache_set(cache_key, False, ttl=86400)  # remember the miss for a day
+        return None
+
+
 async def get_card_prints(scryfall_id: str) -> List[Dict[str, Any]]:
     """All printings of a card (matched by oracle id), newest first."""
     cache_key = f"scryfall:prints:{scryfall_id}"

@@ -21,7 +21,8 @@ const conditions = [
   { value: 'DMG', label: 'Damaged (DMG)' },
 ]
 
-const languages = ['en', 'pt', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'ru', 'zh']
+const LANGS = [{ code: 'en', label: 'EN' }, { code: 'pt', label: 'PT' }, { code: 'es', label: 'ES' }]
+const LANG_LABEL: Record<string, string> = { en: 'Inglês', pt: 'Português', es: 'Espanhol' }
 
 const rarityDot: Record<string, string> = {
   common: 'bg-vault-muted',
@@ -56,14 +57,31 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
   })
   const prints: any[] = printsData?.prints || []
 
+  const [langNote, setLangNote] = useState('')
+  const [langLoading, setLangLoading] = useState(false)
+
   const pickPrint = (p: any) => {
     setSelected(p)
     setEditionOpen(false)
+    setLanguage('en')
+    setLangNote('')
     if (foil && !canFoil(p)) setFoil(false)
   }
 
+  // Switch to the localized printing of the current edition, or fall back to EN.
+  const chooseLang = async (l: string) => {
+    if (l === (selected.lang || 'en')) { setLanguage(l); setLangNote(''); return }
+    setLangLoading(true); setLangNote('')
+    try {
+      const r = await cardsApi.langVariant(selected.id, l)
+      if (r.found) { setSelected(r.card); setLanguage(l) }
+      else { setLanguage('en'); setLangNote(t('modal.langUnavailable', { lang: LANG_LABEL[l] })) }
+    } catch { /* keep current */ }
+    setLangLoading(false)
+  }
+
   const handleSubmit = () => {
-    onConfirm({ scryfall_id: selected.id, quantity, condition, foil, language })
+    onConfirm({ scryfall_id: selected.id, quantity, condition, foil, language: selected.lang || language })
   }
 
   const foilAvailable = canFoil(selected)
@@ -196,16 +214,21 @@ export default function AddCardModal({ card, onClose, onConfirm, isLoading }: Ad
             </div>
 
             <div>
-              <label className="text-xs text-vault-muted mb-1.5 block font-medium">{t('modal.language')}</label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="input-field"
-              >
-                {languages.map(l => (
-                  <option key={l} value={l}>{l.toUpperCase()}</option>
+              <label className="text-xs text-vault-muted mb-1.5 block font-medium">
+                {t('modal.language')}
+                {langLoading && <span className="ml-2 inline-block w-3 h-3 border-2 border-vault-accent border-t-transparent rounded-full animate-spin align-middle" />}
+              </label>
+              <div className="flex gap-2">
+                {LANGS.map(l => (
+                  <button key={l.code} type="button" onClick={() => chooseLang(l.code)} disabled={langLoading}
+                    className={`flex-1 py-1.5 rounded-lg border text-sm transition-all disabled:opacity-50 ${
+                      language === l.code ? 'border-vault-accent bg-vault-accent/15 text-vault-accent' : 'border-vault-border text-vault-muted hover:text-vault-text'
+                    }`}>
+                    {l.label}
+                  </button>
                 ))}
-              </select>
+              </div>
+              {langNote && <p className="text-[11px] text-amber-400 mt-1">{langNote}</p>}
             </div>
 
             <div className="flex items-center gap-3">

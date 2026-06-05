@@ -1,11 +1,15 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingCart, ExternalLink, Plus, Library } from 'lucide-react'
-import { collectionApi } from '@/lib/api'
+import { collectionApi, cardsApi } from '@/lib/api'
 import { useUsdBrl } from '@/components/cards/CardPrice'
 import { useAuthStore } from '@/store/auth'
+
+const LANGS = [{ code: 'en', label: 'EN' }, { code: 'pt', label: 'PT' }, { code: 'es', label: 'ES' }]
+const LANG_LABEL: Record<string, string> = { en: 'Inglês', pt: 'Português', es: 'Espanhol' }
 
 const MANA_HEX: Record<string, string> = { W: '#f4e6b8', U: '#3b82c4', B: '#5b5563', R: '#d6584f', G: '#4ca766', C: '#b8b8b8' }
 const RARITY_COLOR: Record<string, string> = {
@@ -33,20 +37,42 @@ function ManaCost({ cost }: { cost?: string }) {
   )
 }
 
-export default function CardInfoModal({ card, onClose, onAddToCollection }: {
+export default function CardInfoModal({ card: initialCard, onClose, onAddToCollection, entryId }: {
   card: any
   onClose: () => void
   onAddToCollection?: (card: any) => void
+  entryId?: number   // when set (collection), switching language persists the printing
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const rate = useUsdBrl()
+  const qc = useQueryClient()
+
+  const [card, setCard] = useState<any>(initialCard)
+  const [lang, setLang] = useState<string>(initialCard.lang || 'en')
+  const [langNote, setLangNote] = useState('')
+  const [langLoading, setLangLoading] = useState(false)
+
+  const chooseLang = async (l: string) => {
+    if (l === (card.lang || 'en')) { setLang(l); setLangNote(''); return }
+    setLangLoading(true); setLangNote('')
+    try {
+      const r = await cardsApi.langVariant(initialCard.id, l)
+      if (r.found) {
+        setCard(r.card); setLang(l)
+        if (entryId) { await collectionApi.update(entryId, { scryfall_id: r.card.id }); qc.invalidateQueries({ queryKey: ['collection'] }) }
+      } else {
+        setLang('en'); setCard(initialCard); setLangNote(t('cardInfo.langUnavailable', { lang: LANG_LABEL[l] }))
+      }
+    } catch { /* keep current */ }
+    setLangLoading(false)
+  }
 
   const { data: ctx } = useQuery({
-    queryKey: ['card-context', card?.id],
-    queryFn: () => collectionApi.cardContext(card.id),
-    enabled: !!card?.id && !!user,
+    queryKey: ['card-context', initialCard?.id],
+    queryFn: () => collectionApi.cardContext(initialCard.id),
+    enabled: !!initialCard?.id && !!user,
     staleTime: 60_000,
   })
   const owned = ctx?.owned ?? 0
@@ -88,6 +114,19 @@ export default function CardInfoModal({ card, onClose, onAddToCollection }: {
                   {rate > 0 && usd > 0 && <div className="text-[11px] text-vault-muted">≈ {brl(usd)}</div>}
                 </div>
               )}
+
+              {/* Language (view / persist for owned cards) */}
+              <div className="flex gap-1.5">
+                {LANGS.map((l) => (
+                  <button key={l.code} onClick={() => chooseLang(l.code)} disabled={langLoading}
+                    className={`flex-1 py-1 rounded-lg border text-xs transition-all disabled:opacity-50 ${
+                      lang === l.code ? 'border-vault-accent bg-vault-accent/15 text-vault-accent' : 'border-vault-border text-vault-muted hover:text-vault-text'
+                    }`}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+              {langNote && <p className="text-[11px] text-amber-400">{langNote}</p>}
 
               {/* Our marketplace (replaces external buy link) */}
               <button onClick={goMarket}

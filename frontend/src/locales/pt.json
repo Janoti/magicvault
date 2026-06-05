@@ -527,7 +527,8 @@
     "year": "Ano",
     "rarity": "Raridade",
     "artist": "Artista",
-    "loyalty": "Lealdade"
+    "loyalty": "Lealdade",
+    "langUnavailable": "Indisponível em {{lang}} — usando inglês"
   },
   "unsubscribe": {
     "invalid": "Link inválido ou expirado.",
@@ -568,6 +569,7 @@
     "quantity": "Quantidade",
     "condition": "Condição",
     "language": "Idioma",
+    "langUnavailable": "Indisponível em {{lang}} — usando inglês",
     "notes": "Notas",
     "optional": "Opcional",
     "foil": "Foil",

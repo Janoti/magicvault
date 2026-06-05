@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from app.services.scryfall import (
     search_cards, get_card_by_id, get_card_by_name,
-    autocomplete_cards, extract_card_summary, get_card_prints
+    autocomplete_cards, extract_card_summary, get_card_prints, get_card_lang_variant
 )
 from app.services.fx import get_usd_brl
 
@@ -59,6 +59,20 @@ async def card_prints(scryfall_id: str):
         return {"prints": [extract_card_summary(c) for c in prints]}
     except Exception:
         raise HTTPException(status_code=404, detail="Card not found")
+
+
+@router.get("/{scryfall_id}/lang/{lang}")
+async def card_lang(scryfall_id: str, lang: str):
+    """Same printing in another language (EN/PT/ES). found=false -> use English."""
+    if lang not in ("en", "pt", "es"):
+        raise HTTPException(status_code=400, detail="Idioma não suportado")
+    variant = await get_card_lang_variant(scryfall_id, lang)
+    if variant:
+        return {"found": True, "card": extract_card_summary(variant)}
+    base = await get_card_by_id(scryfall_id)
+    if not base:
+        raise HTTPException(status_code=404, detail="Card not found")
+    return {"found": False, "card": extract_card_summary(base)}
 
 
 @router.get("/named/{name}")
