@@ -79,6 +79,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
   const doneRef = useRef(false)
   const [status, setStatus] = useState<'starting' | 'live' | 'processing' | 'error'>('starting')
   const [auto, setAuto] = useState(true)
+  const [info, setInfo] = useState('')
   const [frame, setFrame] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
 
   // Size the card guide in pixels (fits within both screen dimensions, 63:88).
@@ -94,11 +95,11 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
-  const finish = (name: string, source: string) => {
+  const finish = (name: string, source: string, note?: string) => {
     doneRef.current = true
     autoRef.current = false
     streamRef.current?.getTracks().forEach(tk => tk.stop())
-    onText(name, source)
+    onText(name, note ? `${source} · ${note}` : source)
     onClose()
   }
 
@@ -151,22 +152,28 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
 
   // Cloud OCR reads the whole card (very tolerant of framing); the free Tesseract
   // fallback reads just the name band (top of the card).
-  const recognize = async (): Promise<{ name: string; source: string }> => {
+  const recognize = async (): Promise<{ name: string; source: string; note?: string }> => {
     const fr = sourceRect(frameRef.current)
     if (!fr) return { name: '', source: 'local' }
+    let note: string | undefined
     if (serverOcr) {
       try {
         const c = cropCanvas(fr, 1600)
         const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.92))
         if (r?.name) return { name: r.name, source: r.source || 'vision' }
-      } catch { /* fall back to local OCR */ }
+        note = r?.error ? `nuvem: ${r.error}` : 'nuvem sem correspondência'
+      } catch (e: any) {
+        note = `nuvem falhou (${e?.response?.status || '?'})${e?.response?.data?.detail ? ': ' + e.response.data.detail : ''}`
+      }
+    } else {
+      note = 'nuvem desligada (flag/premium não efetivos)'
     }
     const band = { sx: fr.sx, sy: fr.sy, sw: fr.sw, sh: fr.sh * 0.15 }
     const c2 = cropCanvas(band, 1300)
     preprocess(c2)
     const worker = await getWorker()
     const { data } = await worker.recognize(c2)
-    return { name: cleanName(data?.text || ''), source: 'local' }
+    return { name: cleanName(data?.text || ''), source: 'local', note }
   }
 
   // One OCR attempt. In auto mode, keep retrying until a name is read.
@@ -176,8 +183,9 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     busyRef.current = true
     if (!isAuto) setStatus('processing')
     try {
-      const { name, source } = await recognize()
-      if (name) { finish(name, source); return }
+      const { name, source, note } = await recognize()
+      if (name) { finish(name, source, note); return }
+      if (!isAuto && note) setInfo(note)  // manual: tell the user why it didn't read
     } catch { /* ignore, retry/return */ }
     finally { busyRef.current = false }
     if (isAuto) scheduleAuto()
@@ -267,6 +275,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
               </div>
             )}
             <p className="absolute inset-x-0 bottom-24 text-center text-white/80 text-xs pointer-events-none px-6">{t('scan.cameraHint')}</p>
+            {info && <p className="absolute inset-x-0 bottom-16 text-center text-amber-400 text-[11px] px-6">{info}</p>}
           </>
         )}
       </div>
