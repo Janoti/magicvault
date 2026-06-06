@@ -204,7 +204,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
             <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
             {/* Card-shaped guide (vertical, 63:88) so it fits the whole card. */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative h-[78%] aspect-[63/88] border-2 border-vault-gold/70 rounded-xl">
+              <div className="relative h-[58%] max-h-[58%] max-w-[78%] aspect-[63/88] border-2 border-vault-gold/70 rounded-xl">
                 {/* Name band at the top of the card — this is what gets OCR'd. */}
                 <div ref={bandRef} className="absolute inset-x-0 top-0 h-[16%] border-2 border-vault-gold rounded-t-xl bg-vault-gold/10 flex items-center justify-center">
                   <span className="text-[11px] text-vault-gold bg-black/70 px-2 py-0.5 rounded">{t('scan.alignName')}</span>
