@@ -68,7 +68,7 @@ function cleanName(raw: string): string {
   return ''
 }
 
-export default function CameraScanModal({ onClose, onText, serverOcr = false }: { onClose: () => void; onText: (name: string) => void; serverOcr?: boolean }) {
+export default function CameraScanModal({ onClose, onText, serverOcr = false }: { onClose: () => void; onText: (name: string, source: 'vision' | 'local') => void; serverOcr?: boolean }) {
   const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)     // the card guide (what we OCR)
@@ -94,11 +94,11 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
-  const finish = (name: string) => {
+  const finish = (name: string, source: 'vision' | 'local') => {
     doneRef.current = true
     autoRef.current = false
     streamRef.current?.getTracks().forEach(tk => tk.stop())
-    onText(name)
+    onText(name, source)
     onClose()
   }
 
@@ -144,14 +144,14 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
 
   // Cloud OCR reads the whole card (very tolerant of framing); the free Tesseract
   // fallback reads just the name band (top of the card).
-  const recognize = async (): Promise<string> => {
+  const recognize = async (): Promise<{ name: string; source: 'vision' | 'local' }> => {
     const fr = sourceRect(frameRef.current)
-    if (!fr) return ''
+    if (!fr) return { name: '', source: 'local' }
     if (serverOcr) {
       try {
         const c = cropCanvas(fr, 1200)
         const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.85))
-        if (r?.name) return r.name
+        if (r?.name) return { name: r.name, source: 'vision' }
       } catch { /* fall back to local OCR */ }
     }
     const band = { sx: fr.sx, sy: fr.sy, sw: fr.sw, sh: fr.sh * 0.15 }
@@ -159,7 +159,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     preprocess(c2)
     const worker = await getWorker()
     const { data } = await worker.recognize(c2)
-    return cleanName(data?.text || '')
+    return { name: cleanName(data?.text || ''), source: 'local' }
   }
 
   // One OCR attempt. In auto mode, keep retrying until a name is read.
@@ -169,8 +169,8 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     busyRef.current = true
     if (!isAuto) setStatus('processing')
     try {
-      const name = await recognize()
-      if (name) { finish(name); return }
+      const { name, source } = await recognize()
+      if (name) { finish(name, source); return }
     } catch { /* ignore, retry/return */ }
     finally { busyRef.current = false }
     if (isAuto) scheduleAuto()
@@ -197,7 +197,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
           c.width = img.width; c.height = img.height
           c.getContext('2d')!.drawImage(img, 0, 0)
           const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.85))
-          if (r?.name) { finish(r.name); return }
+          if (r?.name) { finish(r.name, 'vision'); return }
         }
         // Tesseract on the top of the photo (name area).
         const sw = img.width, sh = img.height * 0.22
@@ -207,7 +207,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
         preprocess(c2)
         const worker = await getWorker()
         const { data } = await worker.recognize(c2)
-        finish(cleanName(data?.text || ''))
+        finish(cleanName(data?.text || ''), 'local')
       } catch { setStatus('error') }
     }
     img.src = URL.createObjectURL(file)

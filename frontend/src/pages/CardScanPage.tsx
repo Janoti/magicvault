@@ -16,6 +16,7 @@ export default function CardScanPage() {
   const [showModal, setShowModal] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const [pendingScan, setPendingScan] = useState('')   // OCR'd name awaiting a match
+  const [scanNote, setScanNote] = useState('')         // diagnostic: which engine read it
   const [recentlyAdded, setRecentlyAdded] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const timerRef = useRef<any>(null)
@@ -24,9 +25,10 @@ export default function CardScanPage() {
 
   // After a camera scan, search the OCR'd name and auto-open the add modal when
   // a result clearly matches (so the card comes up pre-filled, ready to add).
-  const onScanned = (name: string) => {
-    if (!name) return
+  const onScanned = (name: string, source: 'vision' | 'local') => {
     setShowCamera(false)
+    setScanNote(`${source === 'vision' ? '☁️ Google Vision' : '📷 leitura local'} → "${name || '—'}"`)
+    if (!name) return
     setQuery(name); setDebouncedQuery(name); setPendingScan(name.toLowerCase())
   }
 
@@ -91,6 +93,7 @@ export default function CardScanPage() {
           <Camera size={20} /> {t('scan.scanWithCamera')}
         </button>
         <p className="text-center text-[11px] text-vault-muted mt-1.5">{t('scan.orTypeBelow')}</p>
+        {scanNote && <p className="text-center text-[11px] text-vault-accent mt-1">{scanNote}</p>}
       </div>
 
       {/* Search input — big and centered */}
