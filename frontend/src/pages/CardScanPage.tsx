@@ -30,8 +30,10 @@ export default function CardScanPage() {
   // a result clearly matches (so the card comes up pre-filled, ready to add).
   const onScanned = (name: string, source: string) => {
     setShowCamera(false)
-    const label = source === 'ximilar' ? '🃏 Ximilar' : source === 'vision' ? '☁️ Google Vision' : '📷 leitura local'
-    setScanNote(`${label} → "${name || '—'}"`)
+    const [base, ...rest] = source.split(' · ')
+    const label = base === 'ximilar' ? '🃏 Ximilar' : base === 'vision' ? '☁️ Google Vision' : '📷 leitura local'
+    const note = rest.join(' · ')
+    setScanNote(`${label} → "${name || '—'}"${note ? ` (${note})` : ''}`)
     if (!name) return
     setQuery(name); setDebouncedQuery(name); setPendingScan(name.toLowerCase())
   }
