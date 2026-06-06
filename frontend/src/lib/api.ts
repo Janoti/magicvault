@@ -236,6 +236,12 @@ export const decksApi = {
   publicFolder: (token: string) => api.get(`/api/decks/folder/${token}/public`).then(r => r.data),
 }
 
+// Cloud OCR for the card scanner (premium + scanOCR flag)
+export const scanApi = {
+  ocr: (image: string) => api.post('/api/cards/scan-ocr', { image }).then(r => r.data),
+  status: () => api.get('/api/cards/scan-ocr/status').then(r => r.data),
+}
+
 // Wishlist
 export const wishlistApi = {
   list: () => api.get('/api/wishlist').then(r => r.data),

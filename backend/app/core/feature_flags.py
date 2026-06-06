@@ -12,6 +12,7 @@ KNOWN_FLAGS = {
     "events": "Eventos (calendário + lojas)",
     "aiDoctor": "IA: Deck Doctor (custo de IA)",
     "aiPrimer": "IA: Gerar primer (custo de IA)",
+    "scanOCR": "Scan: OCR na nuvem (Google Vision)",
 }
 
 

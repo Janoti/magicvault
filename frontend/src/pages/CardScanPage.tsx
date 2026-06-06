@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import AddCardModal from '@/components/collection/AddCardModal'
 import CameraScanModal from '@/components/scan/CameraScanModal'
+import { useFlags } from '@/lib/flags'
 
 export default function CardScanPage() {
   const { t } = useTranslation()
@@ -19,6 +20,7 @@ export default function CardScanPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const timerRef = useRef<any>(null)
   const qc = useQueryClient()
+  const flags = useFlags()
 
   // After a camera scan, search the OCR'd name and auto-open the add modal when
   // a result clearly matches (so the card comes up pre-filled, ready to add).
@@ -207,7 +209,7 @@ export default function CardScanPage() {
         />
       )}
 
-      {showCamera && <CameraScanModal onClose={() => setShowCamera(false)} onText={onScanned} />}
+      {showCamera && <CameraScanModal onClose={() => setShowCamera(false)} onText={onScanned} serverOcr={flags.scanOCR} />}
     </div>
   )
 }

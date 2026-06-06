@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { X, Camera, Upload, RefreshCw } from 'lucide-react'
+import { scanApi } from '@/lib/api'
 
 // Lazily load Tesseract.js from a CDN so it isn't bundled (OCR is rarely used).
 function loadTesseract(): Promise<any> {
@@ -67,17 +68,17 @@ function cleanName(raw: string): string {
   return ''
 }
 
-export default function CameraScanModal({ onClose, onText }: { onClose: () => void; onText: (name: string) => void }) {
+export default function CameraScanModal({ onClose, onText, serverOcr = false }: { onClose: () => void; onText: (name: string) => void; serverOcr?: boolean }) {
   const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement>(null)
   const bandRef = useRef<HTMLDivElement>(null)      // the name band (what we OCR)
   const streamRef = useRef<MediaStream | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const busyRef = useRef(false)                      // prevents overlapping OCR runs
-  const autoRef = useRef(true)
+  const autoRef = useRef(!serverOcr)                  // cloud OCR → manual tap (cost); else free auto-loop
   const doneRef = useRef(false)
   const [status, setStatus] = useState<'starting' | 'live' | 'processing' | 'error'>('starting')
-  const [auto, setAuto] = useState(true)
+  const [auto, setAuto] = useState(!serverOcr)
 
   const finish = (name: string) => {
     doneRef.current = true
@@ -125,7 +126,15 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
     return canvas
   }
 
-  const recognize = async (canvas: HTMLCanvasElement): Promise<string> => {
+  // allowServer: use the cloud OCR (premium, costs money) — only on manual taps,
+  // so the free Tesseract auto-loop doesn't rack up API calls.
+  const recognize = async (canvas: HTMLCanvasElement, allowServer: boolean): Promise<string> => {
+    if (allowServer && serverOcr) {
+      try {
+        const r = await scanApi.ocr(canvas.toDataURL('image/jpeg', 0.85))
+        if (r?.name) return r.name
+      } catch { /* fall back to local OCR below */ }
+    }
     preprocess(canvas)
     const worker = await getWorker()
     const { data } = await worker.recognize(canvas)
@@ -140,7 +149,7 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
     busyRef.current = true
     if (!isAuto) setStatus('processing')
     try {
-      const name = await recognize(canvas)
+      const name = await recognize(canvas, !isAuto)
       if (name) { finish(name); return }
     } catch { /* ignore, retry/return */ }
     finally { busyRef.current = false }
@@ -164,7 +173,7 @@ export default function CameraScanModal({ onClose, onText }: { onClose: () => vo
       const canvas = document.createElement('canvas')
       canvas.width = sw; canvas.height = sh
       canvas.getContext('2d')!.drawImage(img, 0, 0, sw, sh, 0, 0, sw, sh)
-      try { finish(await recognize(canvas)) } catch { setStatus('error') }
+      try { finish(await recognize(canvas, true)) } catch { setStatus('error') }
     }
     img.src = URL.createObjectURL(file)
   }
