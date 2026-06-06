@@ -71,7 +71,7 @@ function cleanName(raw: string): string {
 export default function CameraScanModal({ onClose, onText, serverOcr = false }: { onClose: () => void; onText: (name: string) => void; serverOcr?: boolean }) {
   const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement>(null)
-  const bandRef = useRef<HTMLDivElement>(null)      // the name band (what we OCR)
+  const frameRef = useRef<HTMLDivElement>(null)     // the card guide (what we OCR)
   const streamRef = useRef<MediaStream | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const busyRef = useRef(false)                      // prevents overlapping OCR runs
@@ -120,50 +120,56 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Crop the name band from the live video (mapping screen coords → source,
-  // accounting for object-cover scaling), upscaled for sharper OCR.
-  const bandCanvas = (): HTMLCanvasElement | null => {
-    const v = videoRef.current, band = bandRef.current
-    if (!v || !v.videoWidth || !band) return null
-    const vr = v.getBoundingClientRect(), br = band.getBoundingClientRect()
+  // Map an on-screen element's rect to source-video coordinates (the video uses
+  // object-cover, so the source is scaled and centre-cropped).
+  const sourceRect = (el: HTMLElement | null) => {
+    const v = videoRef.current
+    if (!v || !v.videoWidth || !el) return null
+    const vr = v.getBoundingClientRect(), er = el.getBoundingClientRect()
     const cw = v.clientWidth, ch = v.clientHeight, vw = v.videoWidth, vh = v.videoHeight
     const scale = Math.max(cw / vw, ch / vh)
     const offX = (vw * scale - cw) / 2, offY = (vh * scale - ch) / 2
-    const bx = br.left - vr.left, by = br.top - vr.top
-    const sx = (bx + offX) / scale, sy = (by + offY) / scale
-    const sw = br.width / scale, sh = br.height / scale
-    if (sw <= 0 || sh <= 0) return null
-    const outW = 1000, outH = Math.max(1, Math.round((sh / sw) * outW))
-    const canvas = document.createElement('canvas')
-    canvas.width = outW; canvas.height = outH
-    canvas.getContext('2d')!.drawImage(v, sx, sy, sw, sh, 0, 0, outW, outH)
-    return canvas
+    const sx = (er.left - vr.left + offX) / scale, sy = (er.top - vr.top + offY) / scale
+    const sw = er.width / scale, sh = er.height / scale
+    return sw > 0 && sh > 0 ? { sx, sy, sw, sh } : null
+  }
+  const cropCanvas = (r: { sx: number; sy: number; sw: number; sh: number }, outW: number) => {
+    const v = videoRef.current!
+    const outH = Math.max(1, Math.round((r.sh / r.sw) * outW))
+    const c = document.createElement('canvas')
+    c.width = outW; c.height = outH
+    c.getContext('2d')!.drawImage(v, r.sx, r.sy, r.sw, r.sh, 0, 0, outW, outH)
+    return c
   }
 
-  // allowServer: use the cloud OCR (premium, costs money) — only on manual taps,
-  // so the free Tesseract auto-loop doesn't rack up API calls.
-  const recognize = async (canvas: HTMLCanvasElement, allowServer: boolean): Promise<string> => {
-    if (allowServer && serverOcr) {
+  // Cloud OCR reads the whole card (very tolerant of framing); the free Tesseract
+  // fallback reads just the name band (top of the card).
+  const recognize = async (): Promise<string> => {
+    const fr = sourceRect(frameRef.current)
+    if (!fr) return ''
+    if (serverOcr) {
       try {
-        const r = await scanApi.ocr(canvas.toDataURL('image/jpeg', 0.85))
+        const c = cropCanvas(fr, 1200)
+        const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.85))
         if (r?.name) return r.name
-      } catch { /* fall back to local OCR below */ }
+      } catch { /* fall back to local OCR */ }
     }
-    preprocess(canvas)
+    const band = { sx: fr.sx, sy: fr.sy, sw: fr.sw, sh: fr.sh * 0.15 }
+    const c2 = cropCanvas(band, 1000)
+    preprocess(c2)
     const worker = await getWorker()
-    const { data } = await worker.recognize(canvas)
+    const { data } = await worker.recognize(c2)
     return cleanName(data?.text || '')
   }
 
   // One OCR attempt. In auto mode, keep retrying until a name is read.
   const attempt = async (isAuto: boolean) => {
     if (busyRef.current || doneRef.current) return
-    const canvas = bandCanvas()
-    if (!canvas) { if (isAuto) scheduleAuto(); return }
+    if (!frameRef.current || !videoRef.current?.videoWidth) { if (isAuto) scheduleAuto(); return }
     busyRef.current = true
     if (!isAuto) setStatus('processing')
     try {
-      const name = await recognize(canvas, true)
+      const name = await recognize()
       if (name) { finish(name); return }
     } catch { /* ignore, retry/return */ }
     finally { busyRef.current = false }
@@ -184,11 +190,25 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     autoRef.current = false; setAuto(false); setStatus('processing')
     const img = new Image()
     img.onload = async () => {
-      const sw = img.width, sh = img.height * 0.22  // top of the photo = name area
-      const canvas = document.createElement('canvas')
-      canvas.width = sw; canvas.height = sh
-      canvas.getContext('2d')!.drawImage(img, 0, 0, sw, sh, 0, 0, sw, sh)
-      try { finish(await recognize(canvas, true)) } catch { setStatus('error') }
+      try {
+        if (serverOcr) {
+          // Vision reads the whole photo and returns the name.
+          const c = document.createElement('canvas')
+          c.width = img.width; c.height = img.height
+          c.getContext('2d')!.drawImage(img, 0, 0)
+          const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.85))
+          if (r?.name) { finish(r.name); return }
+        }
+        // Tesseract on the top of the photo (name area).
+        const sw = img.width, sh = img.height * 0.22
+        const c2 = document.createElement('canvas')
+        c2.width = sw; c2.height = sh
+        c2.getContext('2d')!.drawImage(img, 0, 0, sw, sh, 0, 0, sw, sh)
+        preprocess(c2)
+        const worker = await getWorker()
+        const { data } = await worker.recognize(c2)
+        finish(cleanName(data?.text || ''))
+      } catch { setStatus('error') }
     }
     img.src = URL.createObjectURL(file)
   }
@@ -216,13 +236,13 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
           </div>
         ) : (
           <>
-            <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
+            <video ref={videoRef} playsInline muted onLoadedMetadata={measure} onPlaying={measure} className="absolute inset-0 w-full h-full object-cover" />
             {/* Card-shaped guide (vertical, 63:88) so it fits the whole card. */}
             {frame.h > 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="relative border-2 border-vault-gold/70 rounded-xl" style={{ width: `${frame.w}px`, height: `${frame.h}px` }}>
-                  {/* Name band at the top of the card — this is what gets OCR'd. */}
-                  <div ref={bandRef} className="absolute inset-x-0 top-0 h-[15%] border-2 border-vault-gold rounded-t-xl bg-vault-gold/10 flex items-center justify-center">
+                <div ref={frameRef} className="relative border-2 border-vault-gold/70 rounded-xl" style={{ width: `${frame.w}px`, height: `${frame.h}px` }}>
+                  {/* Name band hint (top of the card). The whole frame is read. */}
+                  <div className="absolute inset-x-0 top-0 h-[15%] border-b-2 border-vault-gold/60 bg-vault-gold/10 flex items-center justify-center">
                     <span className="text-[11px] text-vault-gold bg-black/70 px-2 py-0.5 rounded">{t('scan.alignName')}</span>
                   </div>
                   {auto && status === 'live' && (
