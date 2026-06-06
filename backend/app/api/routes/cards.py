@@ -103,25 +103,27 @@ async def scan_ocr(data: ScanOcrRequest, viewer: User = Depends(get_premium_user
     if not content:
         raise HTTPException(status_code=400, detail="Imagem vazia")
 
-    last_err = ""
+    errs = []
     # 1) Ximilar — image-based, also returns the set.
     if settings.ximilar_api_token:
         try:
             card = await _ximilar_card(content)
             if card.get("name"):
                 return {"name": card["name"], "set": card.get("set"), "source": "ximilar"}
+            errs.append("ximilar: sem correspondência")
         except Exception as e:
-            last_err = str(e)[:160]
+            errs.append(f"ximilar: {str(e)[:140]}")
     # 2) Google Vision — OCR of the name.
     if settings.google_vision_api_key:
         try:
             name = await _vision_name(content)
             if name:
                 return {"name": name, "source": "vision"}
+            errs.append("vision: sem texto")
         except Exception as e:
-            last_err = str(e)[:160]
+            errs.append(f"vision: {str(e)[:140]}")
     # Nothing matched; let the client fall back to local OCR.
-    return {"name": "", "source": "none", "error": last_err or None}
+    return {"name": "", "source": "none", "error": "; ".join(errs) or None}
 
 
 @router.get("/search")
