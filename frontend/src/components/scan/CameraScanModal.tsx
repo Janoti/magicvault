@@ -106,7 +106,14 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     let cancelled = false
     ;(async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 }, height: { ideal: 1080 },
+            // @ts-expect-error advanced focus hints aren't in the TS lib types
+            advanced: [{ focusMode: 'continuous' }],
+          },
+        })
         if (cancelled) { stream.getTracks().forEach(tk => tk.stop()); return }
         streamRef.current = stream
         if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play().catch(() => {}) }
@@ -149,13 +156,13 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     if (!fr) return { name: '', source: 'local' }
     if (serverOcr) {
       try {
-        const c = cropCanvas(fr, 1200)
-        const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.85))
+        const c = cropCanvas(fr, 1600)
+        const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.92))
         if (r?.name) return { name: r.name, source: 'vision' }
       } catch { /* fall back to local OCR */ }
     }
     const band = { sx: fr.sx, sy: fr.sy, sw: fr.sw, sh: fr.sh * 0.15 }
-    const c2 = cropCanvas(band, 1000)
+    const c2 = cropCanvas(band, 1300)
     preprocess(c2)
     const worker = await getWorker()
     const { data } = await worker.recognize(c2)
@@ -196,7 +203,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
           const c = document.createElement('canvas')
           c.width = img.width; c.height = img.height
           c.getContext('2d')!.drawImage(img, 0, 0)
-          const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.85))
+          const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.92))
           if (r?.name) { finish(r.name, 'vision'); return }
         }
         // Tesseract on the top of the photo (name area).
