@@ -75,10 +75,24 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
   const streamRef = useRef<MediaStream | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const busyRef = useRef(false)                      // prevents overlapping OCR runs
-  const autoRef = useRef(!serverOcr)                  // cloud OCR → manual tap (cost); else free auto-loop
+  const autoRef = useRef(true)
   const doneRef = useRef(false)
   const [status, setStatus] = useState<'starting' | 'live' | 'processing' | 'error'>('starting')
-  const [auto, setAuto] = useState(!serverOcr)
+  const [auto, setAuto] = useState(true)
+  const [frame, setFrame] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
+
+  // Size the card guide in pixels (fits within both screen dimensions, 63:88).
+  const measure = () => {
+    const v = videoRef.current
+    if (!v || !v.clientHeight) return
+    const h = Math.min(v.clientHeight * 0.6, v.clientWidth * 0.82 * 88 / 63)
+    setFrame({ h, w: h * 63 / 88 })
+  }
+  useEffect(() => {
+    measure(); window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
 
   const finish = (name: string) => {
     doneRef.current = true
@@ -149,7 +163,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     busyRef.current = true
     if (!isAuto) setStatus('processing')
     try {
-      const name = await recognize(canvas, !isAuto)
+      const name = await recognize(canvas, true)
       if (name) { finish(name); return }
     } catch { /* ignore, retry/return */ }
     finally { busyRef.current = false }
@@ -159,7 +173,8 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
 
   const scheduleAuto = () => {
     if (!autoRef.current || doneRef.current) return
-    setTimeout(() => autoLoop(), 900)
+    // Pace the cloud OCR loop a bit slower to bound API calls.
+    setTimeout(() => autoLoop(), serverOcr ? 1600 : 900)
   }
   const autoLoop = () => { if (autoRef.current && !doneRef.current) attempt(true) }
 
@@ -203,19 +218,21 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
           <>
             <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
             {/* Card-shaped guide (vertical, 63:88) so it fits the whole card. */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative h-[58%] max-h-[58%] max-w-[78%] aspect-[63/88] border-2 border-vault-gold/70 rounded-xl">
-                {/* Name band at the top of the card — this is what gets OCR'd. */}
-                <div ref={bandRef} className="absolute inset-x-0 top-0 h-[16%] border-2 border-vault-gold rounded-t-xl bg-vault-gold/10 flex items-center justify-center">
-                  <span className="text-[11px] text-vault-gold bg-black/70 px-2 py-0.5 rounded">{t('scan.alignName')}</span>
-                </div>
-                {auto && status === 'live' && (
-                  <div className="absolute -bottom-7 inset-x-0 flex items-center justify-center gap-2 text-vault-gold text-xs">
-                    <RefreshCw size={13} className="animate-spin" /> {t('scan.autoScanning')}
+            {frame.h > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="relative border-2 border-vault-gold/70 rounded-xl" style={{ width: `${frame.w}px`, height: `${frame.h}px` }}>
+                  {/* Name band at the top of the card — this is what gets OCR'd. */}
+                  <div ref={bandRef} className="absolute inset-x-0 top-0 h-[15%] border-2 border-vault-gold rounded-t-xl bg-vault-gold/10 flex items-center justify-center">
+                    <span className="text-[11px] text-vault-gold bg-black/70 px-2 py-0.5 rounded">{t('scan.alignName')}</span>
                   </div>
-                )}
+                  {auto && status === 'live' && (
+                    <div className="absolute -bottom-7 inset-x-0 flex items-center justify-center gap-2 text-vault-gold text-xs">
+                      <RefreshCw size={13} className="animate-spin" /> {t('scan.autoScanning')}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
             {status === 'processing' && (
               <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white gap-3">
                 <RefreshCw size={28} className="animate-spin" />
