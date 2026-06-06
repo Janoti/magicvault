@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
 import { collectionApi } from '@/lib/api'
 import { useUsdBrl } from '@/components/cards/CardPrice'
 
@@ -34,9 +35,9 @@ export default function ValueChart() {
   const fmtDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })
 
   return (
-    <div className="surface p-4 mb-4">
+    <Link to="/collection/value" className="block surface p-4 mb-4 hover:border-vault-accent/40 transition-all group">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-vault-text">{t('col.valueOverTime')}</h3>
+        <h3 className="text-sm font-semibold text-vault-text flex items-center gap-1">{t('col.valueOverTime')} <ChevronRight size={14} className="text-vault-muted group-hover:text-vault-accent transition-colors" /></h3>
         <div className="flex items-center gap-3 text-xs">
           <span className={`flex items-center gap-1 ${weekUp ? 'text-green-400' : 'text-red-400'}`} title={t('col.last7d')}>
             {t('col.last7d')}: {weekPct >= 0 ? '+' : ''}{weekPct.toFixed(1)}%
@@ -61,6 +62,6 @@ export default function ValueChart() {
         <span className="font-mono text-green-400">${last.toFixed(2)}{brl(last)}</span>
         <span>{fmtDate(history[n - 1].date)}</span>
       </div>
-    </div>
+    </Link>
   )
 }

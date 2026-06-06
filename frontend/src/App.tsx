@@ -25,6 +25,8 @@ const PublicFolderPage = lazy(() => import('@/pages/PublicFolderPage'))
 const CollectionPage = lazy(() => import('@/pages/CollectionPage'))
 const SearchPage = lazy(() => import('@/pages/SearchPage'))
 const CardScanPage = lazy(() => import('@/pages/CardScanPage'))
+const ValuePage = lazy(() => import('@/pages/ValuePage'))
+const PnLPage = lazy(() => import('@/pages/PnLPage'))
 const BindersPage = lazy(() => import('@/pages/BindersPage'))
 const BinderDetailPage = lazy(() => import('@/pages/BinderDetailPage'))
 const DecksPage = lazy(() => import('@/pages/DecksPage'))
@@ -110,6 +112,8 @@ export default function App() {
           }
         >
           <Route path="/collection" element={<CollectionPage />} />
+          <Route path="/collection/value" element={<ValuePage />} />
+          <Route path="/collection/pnl" element={<PnLPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/scan" element={<CardScanPage />} />
           <Route path="/binders" element={<BindersPage />} />

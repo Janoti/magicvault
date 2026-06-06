@@ -156,6 +156,44 @@ async def value_history(current_user: User = Depends(get_current_user), db: Asyn
     return [{"date": s.date.isoformat(), "value": s.total_value, "cards": s.total_cards} for s in rows]
 
 
+@router.get("/pnl")
+async def pnl_breakdown(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Per-card cost vs current value, for cards where a cost was recorded.
+    Flags cards with no current market price (so the result can't be computed)."""
+    entries = (await db.execute(
+        select(CollectionEntry).where(CollectionEntry.user_id == current_user.id)
+    )).scalars().all()
+    entries = [e for e in entries if e.acquired_price]
+    rate = await get_usd_brl() or 0
+    cards = await get_cards_bulk([e.scryfall_id for e in entries]) if entries else {}
+    items = []
+    tot_cost = tot_val = 0.0
+    for e in entries:
+        raw = cards.get(e.scryfall_id)
+        summary = extract_card_summary(raw) if raw else {"name": "?", "set": "", "collector_number": "", "image_small": "", "price_usd": 0, "price_usd_foil": 0}
+        unit = (summary.get("price_usd_foil") if e.foil else summary.get("price_usd")) or 0
+        cost = e.acquired_price
+        cost_usd = cost / rate if ((e.acquired_currency or "USD") == "BRL" and rate) else cost
+        cost_total = cost_usd * e.quantity
+        cur_total = (unit or 0) * e.quantity
+        has_market = (unit or 0) > 0
+        tot_cost += cost_total
+        if has_market:
+            tot_val += cur_total
+        items.append({
+            "id": e.scryfall_id, "name": summary.get("name", "?"),
+            "set": summary.get("set", ""), "collector_number": summary.get("collector_number", ""),
+            "image_small": summary.get("image_small", ""),
+            "quantity": e.quantity, "foil": e.foil,
+            "acquired_price": e.acquired_price, "acquired_currency": e.acquired_currency or "USD",
+            "cost_usd": round(cost_total, 2), "current_usd": round(cur_total, 2),
+            "has_market": has_market,
+        })
+    # Biggest movers first; cards without a market price go last.
+    items.sort(key=lambda i: (i["has_market"], i["current_usd"] - i["cost_usd"]), reverse=True)
+    return {"items": items, "cost_usd": round(tot_cost, 2), "costed_value_usd": round(tot_val, 2), "rate": rate}
+
+
 @router.get("/card-context/{scryfall_id}")
 async def card_context(
     scryfall_id: str,

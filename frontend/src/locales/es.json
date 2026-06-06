@@ -202,6 +202,23 @@
       "empty": "No hay ofertas activas por ahora."
     }
   },
+  "valuePage": {
+    "subtitle": "Cómo varió el valor total de tu colección con el tiempo.",
+    "current": "Valor actual",
+    "d7": "7 días",
+    "d30": "30 días",
+    "points": "{{count}} registros",
+    "needMore": "Vuelve en unos días — el gráfico se forma a medida que usas la app."
+  },
+  "pnlPage": {
+    "empty": "Aún no hay cartas con costo registrado. Agrega cuánto pagaste por una carta para seguir ganancia/pérdida.",
+    "noMarketNote": "{{count}} carta(s) aún sin precio de mercado, así que quedan fuera del resultado.",
+    "noPrice": "sin precio",
+    "thCard": "Carta",
+    "thPaid": "Pagado",
+    "thNow": "Ahora",
+    "thResult": "Resultado"
+  },
   "guide": {
     "badge": "Primeros pasos",
     "title": "Cómo funciona VaultSpell",

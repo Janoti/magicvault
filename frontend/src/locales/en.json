@@ -202,6 +202,23 @@
       "empty": "No active listings right now."
     }
   },
+  "valuePage": {
+    "subtitle": "How your collection's total value has moved over time.",
+    "current": "Current value",
+    "d7": "7 days",
+    "d30": "30 days",
+    "points": "{{count}} snapshots",
+    "needMore": "Come back after a few days — the chart builds up as you use the app."
+  },
+  "pnlPage": {
+    "empty": "No cards with a recorded cost yet. Add what you paid on a card to track profit/loss.",
+    "noMarketNote": "{{count}} card(s) have no current market price yet, so they're excluded from the result.",
+    "noPrice": "no price",
+    "thCard": "Card",
+    "thPaid": "Paid",
+    "thNow": "Now",
+    "thResult": "Result"
+  },
   "guide": {
     "badge": "Getting started",
     "title": "How VaultSpell works",

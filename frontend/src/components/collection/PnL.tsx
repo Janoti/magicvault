@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
 import { collectionApi } from '@/lib/api'
 import { useUsdBrl } from '@/components/cards/CardPrice'
 
@@ -20,8 +21,8 @@ export default function PnL() {
   const noMarket = value <= 0  // we don't have a current price for the costed cards
 
   return (
-    <div className="surface p-4 mb-4">
-      <h3 className="text-sm font-semibold text-vault-text">{t('col.pnlTitle')}</h3>
+    <Link to="/collection/pnl" className="block surface p-4 mb-4 hover:border-vault-accent/40 transition-all group">
+      <h3 className="text-sm font-semibold text-vault-text flex items-center gap-1">{t('col.pnlTitle')} <ChevronRight size={14} className="text-vault-muted group-hover:text-vault-accent transition-colors" /></h3>
       <p className="text-[11px] text-vault-muted mb-3">{t('col.pnlSubtitle')}</p>
       <div className="grid grid-cols-3 gap-3 text-center">
         <div>
@@ -47,6 +48,6 @@ export default function PnL() {
         </div>
       </div>
       {noMarket && <p className="text-[11px] text-amber-400/80 mt-3">{t('col.pnlNoMarket')}</p>}
-    </div>
+    </Link>
   )
 }
