@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import AddCardModal from '@/components/collection/AddCardModal'
 import CameraScanModal from '@/components/scan/CameraScanModal'
 import { useFlags } from '@/lib/flags'
+import { useAuthStore } from '@/store/auth'
 
 export default function CardScanPage() {
   const { t } = useTranslation()
@@ -22,12 +23,15 @@ export default function CardScanPage() {
   const timerRef = useRef<any>(null)
   const qc = useQueryClient()
   const flags = useFlags()
+  const user = useAuthStore((s) => s.user)
+  const isPremium = !!(user?.is_premium || user?.is_admin)
 
   // After a camera scan, search the OCR'd name and auto-open the add modal when
   // a result clearly matches (so the card comes up pre-filled, ready to add).
-  const onScanned = (name: string, source: 'vision' | 'local') => {
+  const onScanned = (name: string, source: string) => {
     setShowCamera(false)
-    setScanNote(`${source === 'vision' ? '☁️ Google Vision' : '📷 leitura local'} → "${name || '—'}"`)
+    const label = source === 'ximilar' ? '🃏 Ximilar' : source === 'vision' ? '☁️ Google Vision' : '📷 leitura local'
+    setScanNote(`${label} → "${name || '—'}"`)
     if (!name) return
     setQuery(name); setDebouncedQuery(name); setPendingScan(name.toLowerCase())
   }
@@ -212,7 +216,7 @@ export default function CardScanPage() {
         />
       )}
 
-      {showCamera && <CameraScanModal onClose={() => setShowCamera(false)} onText={onScanned} serverOcr={flags.scanOCR} />}
+      {showCamera && <CameraScanModal onClose={() => setShowCamera(false)} onText={onScanned} serverOcr={flags.scanOCR && isPremium} />}
     </div>
   )
 }

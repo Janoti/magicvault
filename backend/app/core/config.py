@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     xai_api_key: str = ""
     xai_model: str = "grok-3"
     google_vision_api_key: str = ""  # cloud OCR for the card scanner
+    ximilar_api_token: str = ""      # image-based card recognition (name + set)
 
     class Config:
         env_file = ".env"

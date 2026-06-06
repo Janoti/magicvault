@@ -68,7 +68,7 @@ function cleanName(raw: string): string {
   return ''
 }
 
-export default function CameraScanModal({ onClose, onText, serverOcr = false }: { onClose: () => void; onText: (name: string, source: 'vision' | 'local') => void; serverOcr?: boolean }) {
+export default function CameraScanModal({ onClose, onText, serverOcr = false }: { onClose: () => void; onText: (name: string, source: string) => void; serverOcr?: boolean }) {
   const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)     // the card guide (what we OCR)
@@ -94,7 +94,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
-  const finish = (name: string, source: 'vision' | 'local') => {
+  const finish = (name: string, source: string) => {
     doneRef.current = true
     autoRef.current = false
     streamRef.current?.getTracks().forEach(tk => tk.stop())
@@ -151,14 +151,14 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
 
   // Cloud OCR reads the whole card (very tolerant of framing); the free Tesseract
   // fallback reads just the name band (top of the card).
-  const recognize = async (): Promise<{ name: string; source: 'vision' | 'local' }> => {
+  const recognize = async (): Promise<{ name: string; source: string }> => {
     const fr = sourceRect(frameRef.current)
     if (!fr) return { name: '', source: 'local' }
     if (serverOcr) {
       try {
         const c = cropCanvas(fr, 1600)
         const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.92))
-        if (r?.name) return { name: r.name, source: 'vision' }
+        if (r?.name) return { name: r.name, source: r.source || 'vision' }
       } catch { /* fall back to local OCR */ }
     }
     const band = { sx: fr.sx, sy: fr.sy, sw: fr.sw, sh: fr.sh * 0.15 }
@@ -204,7 +204,7 @@ export default function CameraScanModal({ onClose, onText, serverOcr = false }: 
           c.width = img.width; c.height = img.height
           c.getContext('2d')!.drawImage(img, 0, 0)
           const r = await scanApi.ocr(c.toDataURL('image/jpeg', 0.92))
-          if (r?.name) { finish(r.name, 'vision'); return }
+          if (r?.name) { finish(r.name, r.source || 'vision'); return }
         }
         // Tesseract on the top of the photo (name area).
         const sw = img.width, sh = img.height * 0.22

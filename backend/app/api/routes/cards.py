@@ -26,42 +26,102 @@ class ScanOcrRequest(BaseModel):
 
 @router.get("/scan-ocr/status")
 async def scan_ocr_status():
-    """Whether cloud OCR is configured (so the UI can prefer it)."""
-    return {"configured": bool(settings.google_vision_api_key)}
+    """Which recognition providers are configured (so the UI can prefer them)."""
+    return {
+        "configured": bool(settings.google_vision_api_key or settings.ximilar_api_token),
+        "vision": bool(settings.google_vision_api_key),
+        "ximilar": bool(settings.ximilar_api_token),
+    }
+
+
+def _clean_line(text: str) -> str:
+    """First substantial line of OCR text = the card name."""
+    for line in (text or "").splitlines():
+        cleaned = re.sub(r"[^A-Za-zÀ-ÿ',\- ]", "", line).strip()
+        if len(re.sub(r"[^A-Za-z]", "", cleaned)) >= 3:
+            return cleaned
+    return ""
+
+
+def _dig_best_match(node) -> dict:
+    """Find the first {'best_match': {...}} anywhere in Ximilar's response."""
+    if isinstance(node, dict):
+        bm = node.get("best_match")
+        if isinstance(bm, dict) and bm:
+            return bm
+        for v in node.values():
+            found = _dig_best_match(v)
+            if found:
+                return found
+    elif isinstance(node, list):
+        for v in node:
+            found = _dig_best_match(v)
+            if found:
+                return found
+    return {}
+
+
+async def _ximilar_card(content: str) -> dict:
+    """Identify a card (name + set) by image via Ximilar. Returns {} on no match."""
+    async with httpx.AsyncClient(timeout=25.0) as client:
+        r = await client.post(
+            "https://api.ximilar.com/collectibles/v2/process",
+            headers={"Authorization": f"Token {settings.ximilar_api_token}"},
+            json={"records": [{"_base64": content}]},
+        )
+    if r.status_code >= 400:
+        raise RuntimeError(r.text[:200])
+    bm = _dig_best_match(r.json())
+    name = bm.get("full_name") or bm.get("name") or bm.get("title") or ""
+    return {"name": _clean_line(name) or name.strip(),
+            "set": bm.get("set") or bm.get("set_name") or bm.get("set_code")}
+
+
+async def _vision_name(content: str) -> str:
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        r = await client.post(
+            f"https://vision.googleapis.com/v1/images:annotate?key={settings.google_vision_api_key}",
+            json={"requests": [{"image": {"content": content}, "features": [{"type": "TEXT_DETECTION"}]}]},
+        )
+    if r.status_code >= 400:
+        raise RuntimeError(r.text[:200])
+    resp = (r.json().get("responses") or [{}])[0]
+    text = (resp.get("textAnnotations") or [{}])[0].get("description", "") or \
+        resp.get("fullTextAnnotation", {}).get("text", "")
+    return _clean_line(text)
 
 
 @router.post("/scan-ocr")
 async def scan_ocr(data: ScanOcrRequest, viewer: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
-    """Premium + scanOCR flag: read a card name from an image via Google Vision."""
-    if not settings.google_vision_api_key:
-        raise HTTPException(status_code=503, detail="OCR na nuvem não configurado")
+    """Premium + scanOCR flag: identify a card by image. Tries Ximilar (name+set),
+    then Google Vision (name), so the client can fall back to local OCR."""
+    if not (settings.ximilar_api_token or settings.google_vision_api_key):
+        raise HTTPException(status_code=503, detail="Reconhecimento na nuvem não configurado")
     if not await flag_on_for(db, "scanOCR", viewer):
         raise HTTPException(status_code=403, detail="Recurso desativado")
     content = re.sub(r"^data:image/[^;]+;base64,", "", data.image or "")
     if not content:
         raise HTTPException(status_code=400, detail="Imagem vazia")
-    try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            r = await client.post(
-                f"https://vision.googleapis.com/v1/images:annotate?key={settings.google_vision_api_key}",
-                json={"requests": [{"image": {"content": content},
-                                    "features": [{"type": "TEXT_DETECTION", "maxResults": 1}]}]},
-            )
-        if r.status_code >= 400:
-            raise RuntimeError(r.text[:200])
-        resp = (r.json().get("responses") or [{}])[0]
-        text = (resp.get("textAnnotations") or [{}])[0].get("description", "") or \
-            resp.get("fullTextAnnotation", {}).get("text", "")
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Erro no OCR — {str(e)[:160]}")
-    # Keep the first line (the card name) and strip to readable characters.
-    name = ""
-    for line in (text or "").splitlines():
-        cleaned = re.sub(r"[^A-Za-zÀ-ÿ',\- ]", "", line).strip()
-        if len(re.sub(r"[^A-Za-z]", "", cleaned)) >= 3:
-            name = cleaned
-            break
-    return {"name": name}
+
+    last_err = ""
+    # 1) Ximilar — image-based, also returns the set.
+    if settings.ximilar_api_token:
+        try:
+            card = await _ximilar_card(content)
+            if card.get("name"):
+                return {"name": card["name"], "set": card.get("set"), "source": "ximilar"}
+        except Exception as e:
+            last_err = str(e)[:160]
+    # 2) Google Vision — OCR of the name.
+    if settings.google_vision_api_key:
+        try:
+            name = await _vision_name(content)
+            if name:
+                return {"name": name, "source": "vision"}
+        except Exception as e:
+            last_err = str(e)[:160]
+    # Nothing matched; let the client fall back to local OCR.
+    return {"name": "", "source": "none", "error": last_err or None}
 
 
 @router.get("/search")
