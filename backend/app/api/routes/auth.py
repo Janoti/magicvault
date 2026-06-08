@@ -11,6 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, func
 from pydantic import BaseModel, EmailStr
 
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
+
 from app.core.config import settings
 from app.core.ratelimit import limiter
 from app.core.database import get_db
@@ -113,6 +116,7 @@ class UserOut(BaseModel):
     city: Optional[str] = None
     location_public: bool = False
     email_verified: bool = False
+    has_password: bool = True
 
 
 def to_user_out(u: User) -> UserOut:
@@ -127,6 +131,7 @@ def to_user_out(u: User) -> UserOut:
         country=u.country, state=u.state, city=u.city,
         location_public=bool(u.location_public),
         email_verified=bool(u.email_verified),
+        has_password=bool(u.hashed_password),
     )
 
 
@@ -271,6 +276,86 @@ async def me(current_user: User = Depends(get_current_user), db: AsyncSession = 
     return to_user_out(current_user)
 
 
+def _slugify(name: str) -> str:
+    """Turn a display name or email prefix into a valid username candidate."""
+    slug = re.sub(r"[^a-zA-Z0-9_.-]", "", name.replace(" ", ".").replace("@", ""))
+    return slug[:30] or "user"
+
+
+async def _unique_username(base: str, db: AsyncSession) -> str:
+    candidate = _slugify(base)[:28]
+    for attempt in range(10):
+        suffix = str(attempt) if attempt else ""
+        uname = candidate + suffix
+        exists = (await db.execute(
+            select(User).where(func.lower(User.username) == uname.lower())
+        )).scalar_one_or_none()
+        if not exists:
+            return uname
+    return _slugify(base)[:20] + secrets.token_hex(4)
+
+
+class GoogleLoginRequest(BaseModel):
+    credential: str
+
+
+@router.post("/google-login", response_model=Token)
+@limiter.limit("10/minute")
+async def google_login(request: Request, data: GoogleLoginRequest, db: AsyncSession = Depends(get_db)):
+    if not settings.google_client_id:
+        raise HTTPException(status_code=503, detail="Google login not configured")
+
+    try:
+        payload = google_id_token.verify_oauth2_token(
+            data.credential, google_requests.Request(), settings.google_client_id
+        )
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid Google token")
+
+    google_id = payload["sub"]
+    email = payload.get("email", "")
+    name = payload.get("name") or payload.get("given_name") or email.split("@")[0]
+    picture = payload.get("picture")
+
+    # 1. Find by google_id (returning user)
+    user = (await db.execute(select(User).where(User.google_id == google_id))).scalar_one_or_none()
+
+    if user is None:
+        # 2. Find by email (auto-link existing account)
+        user = (await db.execute(
+            select(User).where(func.lower(User.email) == email.lower())
+        )).scalar_one_or_none()
+        if user:
+            user.google_id = google_id
+            if not user.avatar and picture:
+                user.avatar = picture
+        else:
+            # 3. New user — auto-generate username
+            total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0
+            beta = total_users < settings.beta_premium_limit
+            username = await _unique_username(name, db)
+            user = User(
+                email=email,
+                username=username,
+                hashed_password=None,
+                google_id=google_id,
+                avatar=picture,
+                display_name=name,
+                email_verified=True,
+                is_premium=beta,
+                is_beta=beta,
+                last_login_at=datetime.utcnow(),
+                login_count=1,
+            )
+            db.add(user)
+            await db.flush()
+
+    user.last_login_at = datetime.utcnow()
+    user.login_count = (user.login_count or 0) + 1
+    token = create_access_token({"sub": str(user.id)})
+    return Token(access_token=token, token_type="bearer", user=to_user_out(user))
+
+
 class UpdateMeRequest(BaseModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = None
@@ -285,6 +370,7 @@ class UpdateMeRequest(BaseModel):
     state: Optional[str] = None
     city: Optional[str] = None
     location_public: Optional[bool] = None
+    new_password: Optional[str] = None
 
 
 @router.patch("/me", response_model=UserOut)
@@ -329,6 +415,10 @@ async def update_me(
         current_user.city = _clean_loc(data.city, 80)
     if data.location_public is not None:
         current_user.location_public = data.location_public
+    if data.new_password is not None:
+        if len(data.new_password) < MIN_PASSWORD_LEN:
+            raise HTTPException(status_code=400, detail=f"Senha muito curta (mínimo {MIN_PASSWORD_LEN})")
+        current_user.hashed_password = hash_password(data.new_password)
 
     await db.flush()
     return to_user_out(current_user)

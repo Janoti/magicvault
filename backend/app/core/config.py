@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-haiku-4-5-20251001"
     xai_api_key: str = ""
     xai_model: str = "grok-3"
+    google_client_id: str = ""        # OAuth 2.0 client ID for "Sign in with Google"
     google_vision_api_key: str = ""  # cloud OCR for the card scanner
     ximilar_api_token: str = ""      # image-based card recognition (name + set)
 
