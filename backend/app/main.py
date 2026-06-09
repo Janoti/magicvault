@@ -21,7 +21,7 @@ from app.services.calendar_sync import sync_all_stores
 
 setup_logging()
 logger = logging.getLogger("vaultspell.request")
-from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing, events, community, user_events, flags
+from app.api.routes import auth, cards, collection, binders, decks, wishlist, sets, friends, shares, users, admin, feedback, listings, billing, events, community, user_events, flags, oauth
 
 # In production the frontend is built and copied next to the backend (see the
 # root Dockerfile). When present, the API also serves the SPA on the same origin.
@@ -180,6 +180,7 @@ async def security_headers(request: Request, call_next):
     return response
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(oauth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(cards.router, prefix="/api/cards", tags=["cards"])
 app.include_router(collection.router, prefix="/api/collection", tags=["collection"])
 app.include_router(binders.router, prefix="/api/binders", tags=["binders"])

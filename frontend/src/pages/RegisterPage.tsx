@@ -5,6 +5,7 @@ import { lookupCep } from '@/lib/api'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import AuthLayout from '@/components/auth/AuthLayout'
+import SocialButtons from '@/components/auth/SocialButtons'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -106,6 +107,8 @@ export default function RegisterPage() {
               {isLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : t('auth.registerButton')}
             </button>
           </form>
+
+          <SocialButtons label="ou cadastre-se com" />
 
           <p className="text-center text-sm text-vault-muted mt-5">
             {t('auth.haveAccount')}{' '}

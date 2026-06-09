@@ -46,6 +46,20 @@ class Settings(BaseSettings):
     google_vision_api_key: str = ""  # cloud OCR for the card scanner
     ximilar_api_token: str = ""      # image-based card recognition (name + set)
 
+    # Social login (OAuth). Each provider is enabled only when its id/secret are
+    # set, so leaving these empty simply hides that button. The provider's
+    # redirect URI must be "<oauth_redirect_base>/api/auth/oauth/<provider>/callback".
+    oauth_redirect_base: str = ""    # defaults to app_url when empty
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    facebook_client_id: str = ""
+    facebook_client_secret: str = ""
+    apple_client_id: str = ""        # Services ID, e.g. com.vaultspell.web
+    apple_team_id: str = ""
+    apple_key_id: str = ""
+    apple_private_key: str = ""      # the .p8 PEM contents (literal \n are normalized)
+    steam_api_key: str = ""          # Steam Web API key (OpenID gives no email)
+
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -65,6 +79,11 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> List[str]:
         return [o.strip() for o in self.cors_origins_raw.split(",") if o.strip()]
+
+    @property
+    def oauth_base(self) -> str:
+        """Origin used to build OAuth redirect URIs. Falls back to app_url."""
+        return (self.oauth_redirect_base or self.app_url).rstrip("/")
 
 
 settings = Settings()

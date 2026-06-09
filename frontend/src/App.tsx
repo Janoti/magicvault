@@ -16,6 +16,7 @@ const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'))
 const UnsubscribePage = lazy(() => import('@/pages/UnsubscribePage'))
 const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'))
+const OAuthCallbackPage = lazy(() => import('@/pages/OAuthCallbackPage'))
 const EventsPage = lazy(() => import('@/pages/EventsPage'))
 const StoresPage = lazy(() => import('@/pages/StoresPage'))
 const CommunityDecksPage = lazy(() => import('@/pages/CommunityDecksPage'))
@@ -96,6 +97,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
         <Route path="/p/:token" element={<PublicViewPage />} />
         <Route path="/p/:username/:slug" element={<PublicViewPage />} />
         <Route path="/u/:username" element={<ProfilePage />} />

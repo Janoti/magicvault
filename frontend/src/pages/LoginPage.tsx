@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/auth'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import AuthLayout from '@/components/auth/AuthLayout'
+import SocialButtons from '@/components/auth/SocialButtons'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -79,6 +80,8 @@ export default function LoginPage() {
               ) : t('auth.loginButton')}
             </button>
           </form>
+
+          <SocialButtons />
 
           <div className="text-center mt-4">
             <Link to="/forgot-password" className="text-xs text-vault-muted hover:text-vault-accent hover:underline">

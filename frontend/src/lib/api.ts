@@ -3,10 +3,14 @@ import axios from 'axios'
 // In production the SPA is served by the API on the same origin, so we build
 // with VITE_API_URL="" and make requests relative (e.g. "/api/..."). Only fall
 // back to the local dev backend when the variable is not defined at all.
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_URL === undefined
     ? 'http://localhost:8000'
     : import.meta.env.VITE_API_URL
+
+// Full-page navigation target that kicks off a social-login flow.
+export const oauthStartUrl = (provider: string) =>
+  `${API_BASE_URL}/api/auth/oauth/${provider}/start`
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -50,6 +54,8 @@ export const authApi = {
   resubscribe: (token: string) => api.post('/api/auth/resubscribe', { token }).then(r => r.data),
   sendVerification: () => api.post('/api/auth/send-verification').then(r => r.data),
   verifyEmail: (token: string) => api.post('/api/auth/verify-email', { token }).then(r => r.data),
+  oauthProviders: (): Promise<{ providers: string[] }> =>
+    api.get('/api/auth/oauth/providers').then(r => r.data),
 }
 
 // CEP lookup (Brazil) via the free public ViaCEP API. Returns { state, city } or null.

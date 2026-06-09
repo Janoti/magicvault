@@ -19,6 +19,7 @@ interface AuthState {
   token: string | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithToken: (token: string) => Promise<void>
   register: (email: string, username: string, password: string, extra?: RegisterExtra) => Promise<void>
   logout: () => void
   setUser: (user: User) => void
@@ -38,6 +39,21 @@ export const useAuthStore = create<AuthState>()(
           const data = await authApi.login(email, password)
           localStorage.setItem('token', data.access_token)
           set({ user: data.user, token: data.access_token, isLoading: false })
+        } catch (e) {
+          set({ isLoading: false })
+          throw e
+        }
+      },
+
+      // Used by the social-login callback: a backend-issued token is already in
+      // hand, so just persist it and fetch the user.
+      loginWithToken: async (token) => {
+        set({ isLoading: true })
+        try {
+          localStorage.setItem('token', token)
+          set({ token })
+          const user = await authApi.me()
+          set({ user, isLoading: false })
         } catch (e) {
           set({ isLoading: false })
           throw e

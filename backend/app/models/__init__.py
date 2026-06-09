@@ -57,6 +57,23 @@ class User(Base):
     binders: Mapped[List["Binder"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     decks: Mapped[List["Deck"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     wishlist: Mapped[List["WishlistEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    oauth_accounts: Mapped[List["OAuthAccount"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+
+class OAuthAccount(Base):
+    """A social-login identity linked to a User. One user can have several
+    (e.g. Google + Steam); (provider, provider_user_id) is globally unique."""
+    __tablename__ = "oauth_accounts"
+    __table_args__ = (UniqueConstraint("provider", "provider_user_id", name="uq_oauth_provider_uid"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    provider: Mapped[str] = mapped_column(String(20), index=True)          # google | facebook | steam | apple
+    provider_user_id: Mapped[str] = mapped_column(String(190), index=True)  # sub / id from the provider
+    email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship(back_populates="oauth_accounts")
 
 
 class CollectionEntry(Base):
