@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { GoogleLogin } from '@react-oauth/google'
 import { useAuthStore } from '@/store/auth'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
@@ -9,9 +10,20 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const { login, isLoading } = useAuthStore()
+  const { login, loginWithGoogle, isLoading } = useAuthStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return
+    setError('')
+    try {
+      await loginWithGoogle(credentialResponse.credential)
+      navigate('/collection')
+    } catch (err: any) {
+      setError(err.response?.data?.detail || t('auth.loginError'))
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,6 +97,19 @@ export default function LoginPage() {
               {t('auth.forgotPassword')}
             </Link>
           </div>
+
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <div className="mt-4">
+              <div className="flex items-center gap-2 my-3">
+                <div className="flex-1 h-px bg-vault-border/60" />
+                <span className="text-xs text-vault-muted">ou</span>
+                <div className="flex-1 h-px bg-vault-border/60" />
+              </div>
+              <div className="flex justify-center">
+                <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => {}} useOneTap={false} />
+              </div>
+            </div>
+          )}
 
           <p className="text-center text-sm text-vault-muted mt-3">
             {t('auth.noAccount')}{' '}

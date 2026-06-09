@@ -50,6 +50,7 @@ export const authApi = {
   resubscribe: (token: string) => api.post('/api/auth/resubscribe', { token }).then(r => r.data),
   sendVerification: () => api.post('/api/auth/send-verification').then(r => r.data),
   verifyEmail: (token: string) => api.post('/api/auth/verify-email', { token }).then(r => r.data),
+  googleLogin: (credential: string) => api.post('/api/auth/google-login', { credential }).then(r => r.data),
 }
 
 // CEP lookup (Brazil) via the free public ViaCEP API. Returns { state, city } or null.

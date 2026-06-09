@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { GoogleLogin } from '@react-oauth/google'
 import { useAuthStore } from '@/store/auth'
 import { lookupCep } from '@/lib/api'
 import { useTranslation } from 'react-i18next'
@@ -18,9 +19,20 @@ export default function RegisterPage() {
   const [cepLoading, setCepLoading] = useState(false)
   const [locationPublic, setLocationPublic] = useState(false)
   const [error, setError] = useState('')
-  const { register, isLoading } = useAuthStore()
+  const { register, loginWithGoogle, isLoading } = useAuthStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return
+    setError('')
+    try {
+      await loginWithGoogle(credentialResponse.credential)
+      navigate('/collection')
+    } catch (err: any) {
+      setError(err.response?.data?.detail || t('auth.registerError'))
+    }
+  }
 
   const tryCep = async (value: string) => {
     setCep(value)
@@ -106,6 +118,19 @@ export default function RegisterPage() {
               {isLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : t('auth.registerButton')}
             </button>
           </form>
+
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <div className="mt-4">
+              <div className="flex items-center gap-2 my-3">
+                <div className="flex-1 h-px bg-vault-border/60" />
+                <span className="text-xs text-vault-muted">ou</span>
+                <div className="flex-1 h-px bg-vault-border/60" />
+              </div>
+              <div className="flex justify-center">
+                <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => {}} useOneTap={false} />
+              </div>
+            </div>
+          )}
 
           <p className="text-center text-sm text-vault-muted mt-5">
             {t('auth.haveAccount')}{' '}

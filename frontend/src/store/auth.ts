@@ -10,6 +10,7 @@ interface User {
   contact?: string | null; contact_public?: boolean; collection_public?: boolean
   country?: string | null; state?: string | null; city?: string | null; location_public?: boolean
   email_verified?: boolean
+  has_password?: boolean
 }
 
 export interface RegisterExtra { country?: string; state?: string; city?: string; location_public?: boolean }
@@ -19,6 +20,7 @@ interface AuthState {
   token: string | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: (credential: string) => Promise<void>
   register: (email: string, username: string, password: string, extra?: RegisterExtra) => Promise<void>
   logout: () => void
   setUser: (user: User) => void
@@ -36,6 +38,18 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const data = await authApi.login(email, password)
+          localStorage.setItem('token', data.access_token)
+          set({ user: data.user, token: data.access_token, isLoading: false })
+        } catch (e) {
+          set({ isLoading: false })
+          throw e
+        }
+      },
+
+      loginWithGoogle: async (credential) => {
+        set({ isLoading: true })
+        try {
+          const data = await authApi.googleLogin(credential)
           localStorage.setItem('token', data.access_token)
           set({ user: data.user, token: data.access_token, isLoading: false })
         } catch (e) {

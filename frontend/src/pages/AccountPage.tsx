@@ -57,6 +57,9 @@ export default function AccountPage() {
   const [locationPublic, setLocationPublic] = useState(!!user?.location_public)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [verifyMsg, setVerifyMsg] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordMsg, setPasswordMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const tryCep = async (value: string) => {
@@ -81,6 +84,17 @@ export default function AccountPage() {
     if (file.size > 2 * 1024 * 1024) { setMsg({ ok: false, text: 'Máx 2MB' }); return }
     try { setAvatar(await fileToAvatar(file)) } catch { setMsg({ ok: false, text: t('account.saveError') }) }
   }
+
+  const passwordMutation = useMutation({
+    mutationFn: () => authApi.updateMe({ new_password: newPassword }),
+    onSuccess: (updated) => {
+      setUser(updated)
+      setNewPassword('')
+      setConfirmNewPassword('')
+      setPasswordMsg({ ok: true, text: 'Senha definida com sucesso!' })
+    },
+    onError: (e: any) => setPasswordMsg({ ok: false, text: e?.response?.data?.detail || t('account.saveError') }),
+  })
 
   const mutation = useMutation({
     mutationFn: () => authApi.updateMe({
@@ -257,6 +271,48 @@ export default function AccountPage() {
           ))}
         </div>
       </div>
+
+      {user && !user.has_password && (
+        <div className="surface p-5 mb-4 border-amber-500/30 bg-amber-500/5">
+          <p className="text-sm font-medium text-vault-text mb-1">Definir senha</p>
+          <p className="text-xs text-vault-muted mb-3">
+            Você entrou via Google. Defina uma senha para poder fazer login com email e senha também.
+          </p>
+          <div className="space-y-3">
+            <input
+              type="password"
+              className="input-field"
+              placeholder="Nova senha (mín. 6 caracteres)"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              className="input-field"
+              placeholder="Confirmar nova senha"
+              value={confirmNewPassword}
+              onChange={e => setConfirmNewPassword(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={() => { setPasswordMsg(null); passwordMutation.mutate() }}
+              disabled={passwordMutation.isPending || newPassword.length < 6 || newPassword !== confirmNewPassword}
+              className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50"
+            >
+              {passwordMutation.isPending
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Check size={15} />}
+              Salvar senha
+            </button>
+            {passwordMsg && (
+              <span className={`text-xs ${passwordMsg.ok ? 'text-green-400' : 'text-red-400'}`}>
+                {passwordMsg.text}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <button onClick={() => { setMsg(null); mutation.mutate() }} disabled={mutation.isPending} className="btn-primary flex items-center gap-2 disabled:opacity-50">
