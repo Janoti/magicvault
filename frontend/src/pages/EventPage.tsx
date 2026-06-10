@@ -87,7 +87,15 @@ export default function EventPage() {
           <div className="surface p-5 mt-5 space-y-2 text-sm">
             <p className="flex items-center gap-2 text-vault-text"><Calendar size={15} className="text-vault-accent" /> <span className="capitalize">{whenLabel}</span></p>
             {ev.duration_minutes && <p className="flex items-center gap-2 text-vault-muted"><Clock size={15} /> {t('userEvents.duration', { min: ev.duration_minutes })}</p>}
-            {ev.location && <p className="flex items-center gap-2 text-vault-muted"><MapPin size={15} /> {ev.location}</p>}
+            {ev.location && (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`}
+                target="_blank" rel="noreferrer noopener"
+                className="flex items-center gap-2 text-vault-muted hover:text-vault-accent transition-colors w-fit">
+                <MapPin size={15} className="text-vault-accent" />
+                <span className="underline decoration-dotted underline-offset-2">{ev.location}</span>
+                <ExternalLink size={12} />
+              </a>
+            )}
           </div>
 
           {ev.description && <p className="mt-5 text-vault-text/90 whitespace-pre-line leading-relaxed">{ev.description}</p>}

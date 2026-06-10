@@ -66,16 +66,52 @@ export default function ProfilePage() {
         </div>
       ) : (
         <>
-          <div className="surface p-6 mb-4 flex items-center gap-4">
-            <Avatar value={data.avatar} size={80} />
-            <div className="min-w-0">
-              <h1 className="font-display text-2xl font-bold text-vault-gold truncate">{data.display_name || data.username}</h1>
-              <p className="text-sm text-vault-muted">@{data.username}</p>
-              {data.member_since && (
-                <p className="text-xs text-vault-muted mt-1">{t('account.memberSince')} {new Date(data.member_since).toLocaleDateString()}</p>
-              )}
-              {data.location && (
-                <p className="text-xs text-vault-muted mt-0.5 flex items-center gap-1"><MapPin size={12} /> {data.location}</p>
+          {/* Hero header with gradient banner */}
+          <div className="surface overflow-hidden mb-4">
+            <div className="h-24 sm:h-28 bg-gradient-to-r from-vault-accent/40 via-vault-gold/25 to-vault-accent/40 relative">
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15), transparent 40%)' }} />
+            </div>
+            <div className="px-5 sm:px-6 pb-5 -mt-12">
+              <div className="flex items-end gap-4">
+                <div className="rounded-2xl ring-4 ring-vault-surface shrink-0">
+                  <Avatar value={data.avatar} size={88} />
+                </div>
+                <div className="min-w-0 pb-1.5">
+                  <h1 className="font-display text-2xl font-bold text-vault-gold truncate">{data.display_name || data.username}</h1>
+                  <p className="text-sm text-vault-muted">@{data.username}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-vault-muted">
+                {data.location && <span className="flex items-center gap-1"><MapPin size={12} /> {data.location}</span>}
+                {data.member_since && <span>{t('account.memberSince')} {new Date(data.member_since).toLocaleDateString()}</span>}
+              </div>
+
+              {/* Social icons + contact, as compact colorful chips */}
+              {(data.links?.length > 0 || data.has_contact) && (
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  {data.has_contact && (contact ? (
+                    <a href={contactHref(contact)} target="_blank" rel="noreferrer" title={contact}
+                      className="w-10 h-10 rounded-full flex items-center justify-center border border-green-500/40 bg-green-500/15 hover:scale-110 transition-transform">
+                      <MessageCircle size={18} className="text-green-400" />
+                    </a>
+                  ) : (
+                    <button onClick={revealContact} disabled={revealing} title={t('pubprofile.revealContact')}
+                      className="w-10 h-10 rounded-full flex items-center justify-center border border-green-500/40 bg-green-500/15 hover:scale-110 transition-transform disabled:opacity-60">
+                      {revealing ? <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" /> : <Eye size={18} className="text-green-400" />}
+                    </button>
+                  ))}
+                  {(data.links || []).map((l: any, i: number) => {
+                    const { Icon, color } = socialStyle(l.url, l.label)
+                    return (
+                      <a key={i} href={safeUrl(l.url)} target="_blank" rel="noreferrer" title={l.label}
+                        className="w-10 h-10 rounded-full flex items-center justify-center border hover:scale-110 transition-transform"
+                        style={{ backgroundColor: `${color}1f`, borderColor: `${color}66` }}>
+                        <Icon size={18} style={{ color }} />
+                      </a>
+                    )
+                  })}
+                </div>
               )}
             </div>
           </div>
@@ -83,71 +119,22 @@ export default function ProfilePage() {
           {data.bio && <div className="surface p-5 mb-4"><p className="text-sm text-vault-text whitespace-pre-wrap">{data.bio}</p></div>}
 
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="surface p-4 text-center">
+            <div className="surface p-4 text-center hover:border-vault-accent/40 transition-colors">
               <Library size={18} className="mx-auto text-vault-accent mb-1" />
               <p className="text-xl font-display font-bold text-vault-gold">{data.stats?.cards ?? 0}</p>
               <p className="text-xs text-vault-muted">{t('nav.collection')}</p>
             </div>
-            <div className="surface p-4 text-center">
+            <div className="surface p-4 text-center hover:border-vault-accent/40 transition-colors">
               <Swords size={18} className="mx-auto text-vault-accent mb-1" />
               <p className="text-xl font-display font-bold text-vault-gold">{data.stats?.decks ?? 0}</p>
               <p className="text-xs text-vault-muted">{t('nav.decks')}</p>
             </div>
-            <div className="surface p-4 text-center">
+            <div className="surface p-4 text-center hover:border-vault-accent/40 transition-colors">
               <BookOpen size={18} className="mx-auto text-vault-accent mb-1" />
               <p className="text-xl font-display font-bold text-vault-gold">{data.stats?.binders ?? 0}</p>
               <p className="text-xs text-vault-muted">{t('nav.binders')}</p>
             </div>
           </div>
-
-          {data.has_contact && (
-            contact ? (
-              <a
-                href={contactHref(contact)} target="_blank" rel="noreferrer"
-                className="surface p-4 flex items-center gap-3 hover:border-vault-accent/40 transition-all"
-              >
-                <span className="w-9 h-9 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center justify-center">
-                  <MessageCircle size={16} className="text-green-400" />
-                </span>
-                <div>
-                  <p className="text-xs text-vault-muted">{t('account.contact')}</p>
-                  <p className="text-sm text-vault-text">{contact}</p>
-                </div>
-              </a>
-            ) : (
-              <button
-                onClick={revealContact} disabled={revealing}
-                className="surface p-4 w-full flex items-center gap-3 hover:border-vault-accent/40 transition-all text-left disabled:opacity-60"
-              >
-                <span className="w-9 h-9 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center justify-center">
-                  {revealing ? <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" /> : <Eye size={16} className="text-green-400" />}
-                </span>
-                <div>
-                  <p className="text-xs text-vault-muted">{t('account.contact')}</p>
-                  <p className="text-sm text-vault-accent">{t('pubprofile.revealContact')}</p>
-                </div>
-              </button>
-            )
-          )}
-
-          {data.links?.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {data.links.map((l: any, i: number) => {
-                const { Icon, color } = socialStyle(l.url, l.label)
-                return (
-                  <a key={i} href={safeUrl(l.url)} target="_blank" rel="noreferrer"
-                    className="group flex items-center gap-3 p-3 rounded-xl border border-vault-border bg-vault-card/40 hover:border-vault-accent/50 hover:bg-vault-card/70 transition-all">
-                    <span className="w-9 h-9 rounded-lg flex items-center justify-center border shrink-0"
-                      style={{ backgroundColor: `${color}1f`, borderColor: `${color}55` }}>
-                      <Icon size={17} style={{ color }} />
-                    </span>
-                    <span className="text-sm font-medium text-vault-text truncate flex-1">{l.label}</span>
-                    <ExternalLink size={14} className="text-vault-muted group-hover:text-vault-accent transition-colors" />
-                  </a>
-                )
-              })}
-            </div>
-          )}
 
           {/* Public collection, decks & binders the owner chose to show off */}
           {(data.collection_public || data.public_decks?.length > 0 || data.public_binders?.length > 0) && (
