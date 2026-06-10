@@ -14,6 +14,7 @@ from sqlalchemy import or_, and_, delete as sa_delete
 from app.models.user import User, Deck, DeckCard, WishlistEntry, CollectionEntry, Friendship, DeckFolder
 from app.services.scryfall import get_sets, get_card_by_id, get_card_by_name, extract_card_summary, get_cards_bulk
 from app.services import deck_doctor, edhrec
+from app.services.decklist import parse_decklist
 from app.services.sharing import build_resource_view
 from app.core.cache import cache_get, cache_set
 from app.core.feature_flags import flag_on_for
@@ -456,47 +457,23 @@ class ImportDeckRequest(BaseModel):
     list: str  # pasted decklist text
 
 
-_CARD_LINE = re.compile(r"^\s*(\d+)\s*[xX]?\s+(.+?)\s*$")
-
-
 @router.post("/import", status_code=201)
 async def import_deck(data: ImportDeckRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    """Create a deck from a pasted decklist (e.g. '4 Lightning Bolt'). Handles
-    Sideboard/Commander section headers and Moxfield/Arena set annotations."""
+    """Create a deck from a pasted decklist. Accepts the main market formats —
+    plain text, MTG Arena/MTGO, Moxfield, Archidekt, Deckstats, TappedOut and CSV —
+    including Sideboard/Commander sections and set/foil/category annotations."""
     deck = Deck(user_id=current_user.id, name=data.name[:120], format=data.format[:30])
     db.add(deck)
     await db.flush()
 
-    section = "main"  # main | sideboard | commander
     resolved: dict = {}  # name_lower -> scryfall_id or None (cache lookups)
     pending: dict = {}   # (sid, sideboard, commander) -> DeckCard, to merge dupes
     added = skipped = 0
     errors = []
+    counts = {"main": 0, "sideboard": 0, "commander": 0}
 
-    for raw in data.list.splitlines()[:400]:
-        line = raw.strip()
-        if not line or line.startswith(("//", "#")):
-            continue
-        low = line.lower().rstrip(":")
-        if low in ("sideboard", "sb"):
-            section = "sideboard"; continue
-        if low in ("commander", "commanders"):
-            section = "commander"; continue
-        if low in ("deck", "mainboard", "main"):
-            section = "main"; continue
-
-        m = _CARD_LINE.match(line)
-        if not m:
-            # A bare card name with no quantity → treat as 1.
-            qty, name = 1, line
-        else:
-            qty, name = int(m.group(1)), m.group(2)
-        qty = max(1, min(qty, 99))
-        # Strip trailing set/collector annotations: "(C21) 263 *F*", "[LEA]", etc.
-        name = re.sub(r"\s*[\(\[].*$", "", name).strip()
-        if not name:
-            continue
-
+    for entry in parse_decklist(data.list):
+        name, qty, section = entry["name"], entry["qty"], entry["section"]
         key = name.lower()
         if key not in resolved:
             try:
@@ -510,21 +487,21 @@ async def import_deck(data: ImportDeckRequest, current_user: User = Depends(get_
             errors.append(f"Não encontrada: {name}")
             continue
 
-        mkey = (sid, section == "sideboard", section == "commander")
+        is_sb, is_cmd = section == "sideboard", section == "commander"
+        mkey = (sid, is_sb, is_cmd)
         if mkey in pending:
             pending[mkey].quantity = min(99, pending[mkey].quantity + qty)
         else:
-            dc = DeckCard(
-                deck_id=deck.id, scryfall_id=sid, quantity=qty,
-                is_sideboard=(section == "sideboard"),
-                is_commander=(section == "commander"),
-            )
+            dc = DeckCard(deck_id=deck.id, scryfall_id=sid, quantity=qty,
+                          is_sideboard=is_sb, is_commander=is_cmd)
             db.add(dc)
             pending[mkey] = dc
+        counts[section] = counts.get(section, 0) + qty
         added += 1
 
     await db.flush()
-    return {"id": deck.id, "name": deck.name, "added": added, "skipped": skipped, "errors": errors[:20]}
+    return {"id": deck.id, "name": deck.name, "added": added, "skipped": skipped,
+            "counts": counts, "errors": errors[:20]}
 
 
 @router.get("/compare-options")
