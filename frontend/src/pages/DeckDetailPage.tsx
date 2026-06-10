@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi, wishlistApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText, Wand2 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText, Wand2, Pencil } from 'lucide-react'
 import { useFlags } from '@/lib/flags'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
@@ -90,6 +90,8 @@ export default function DeckDetailPage() {
   const [view, setView] = useState<'grid' | 'list' | 'pile'>('list')
   const [deckSort, setDeckSort] = useState('name')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [editingName, setEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState('')
   const [showShare, setShowShare] = useState(false)
   const [showCoverage, setShowCoverage] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
@@ -140,6 +142,11 @@ export default function DeckDetailPage() {
       qc.invalidateQueries({ queryKey: ['deck', deckId] })
       setNotice(isPublic ? 'public' : 'private')
     },
+  })
+
+  const renameMutation = useMutation({
+    mutationFn: (name: string) => decksApi.update(deckId, { name }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['deck', deckId] }); setEditingName(false) },
   })
 
   useEffect(() => { if (deck) setPrimerText(deck.primer || '') }, [deck?.primer])
@@ -244,7 +251,20 @@ export default function DeckDetailPage() {
         <Link to="/decks" className="btn-ghost !p-2"><ArrowLeft size={18} /></Link>
         <div className="flex-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="font-display text-2xl font-bold text-vault-gold">{deck?.name}</h1>
+            {editingName ? (
+              <div className="flex items-center gap-2">
+                <input autoFocus value={nameInput} onChange={(e) => setNameInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && nameInput.trim()) renameMutation.mutate(nameInput.trim()); if (e.key === 'Escape') setEditingName(false) }}
+                  className="input-field !w-auto text-xl font-display font-bold" />
+                <button onClick={() => nameInput.trim() && renameMutation.mutate(nameInput.trim())} disabled={renameMutation.isPending} className="btn-primary !p-2"><Check size={16} /></button>
+                <button onClick={() => setEditingName(false)} className="btn-ghost !p-2"><X size={16} /></button>
+              </div>
+            ) : (
+              <button onClick={() => { setNameInput(deck?.name || ''); setEditingName(true) }} title={t('detail.rename', 'Renomear')} className="group flex items-center gap-2 text-left">
+                <h1 className="font-display text-2xl font-bold text-vault-gold">{deck?.name}</h1>
+                <Pencil size={14} className="text-vault-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )}
             <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full bg-vault-accent/20 text-vault-accent">
               {deck?.format}
             </span>

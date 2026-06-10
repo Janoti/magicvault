@@ -55,7 +55,9 @@ async def _local_by_name(name: str) -> Optional[Dict[str, Any]]:
                 select(ScryfallCard).where(
                     func.lower(ScryfallCard.name) == name.strip().lower(),
                     ScryfallCard.lang == "en",
-                ).limit(1)
+                # Prefer paper printings over digital-only (Alchemy) ones, which
+                # have no market price.
+                ).order_by(ScryfallCard.data["digital"].astext).limit(1)
             )).scalar_one_or_none()
             return row.data if row else None
     except Exception:
@@ -112,7 +114,8 @@ async def _local_search(query: str, page: int, per: int = 60) -> Optional[Dict[s
                 select(ScryfallCard.data).where(
                     ScryfallCard.lang == "en",
                     func.lower(ScryfallCard.name).like(like),
-                ).order_by(func.length(ScryfallCard.name), ScryfallCard.name).limit(600)
+                # Paper printings first (digital-only Alchemy cards have no price).
+                ).order_by(ScryfallCard.data["digital"].astext, func.length(ScryfallCard.name), ScryfallCard.name).limit(600)
             )).scalars().all()
         seen, cards = set(), []
         for d in rows:
