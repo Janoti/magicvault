@@ -74,7 +74,8 @@ export default function DeckAnalysis({ deckId }: { deckId: number }) {
         <div className="flex flex-wrap gap-3 mt-2">
           {Object.entries(data.colors as Record<string, number>).filter(([, v]) => v > 0).map(([k, v]) => (
             <span key={k} className="flex items-center gap-1.5 text-xs text-vault-muted">
-              <span className="w-3 h-3 rounded-full inline-block" style={{ background: COLOR_HEX[k] }} /> {k} {v}
+              <span className="w-3 h-3 rounded-full inline-block" style={{ background: COLOR_HEX[k] }} />
+              {t(`analysis.colorNames.${k}`, k)} <span className="opacity-60">({k})</span> {v}
             </span>
           ))}
         </div>

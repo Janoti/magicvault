@@ -89,6 +89,7 @@ export default function DeckDetailPage() {
   const [searching, setSearching] = useState(false)
   const [view, setView] = useState<'grid' | 'list' | 'pile'>('list')
   const [deckSort, setDeckSort] = useState('name')
+  const [typeFilter, setTypeFilter] = useState('all')
   const [showShare, setShowShare] = useState(false)
   const [showCoverage, setShowCoverage] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
@@ -180,6 +181,11 @@ export default function DeckDetailPage() {
   })
   const sideboard = deck?.cards?.filter((c: any) => c.is_sideboard) || []
   const commanders = deck?.cards?.filter((c: any) => c.is_commander) || []
+
+  // Type filter for the mainboard view only (keeps totals/playtest/export intact).
+  const displayedMainboard = typeFilter === 'all'
+    ? mainboard
+    : mainboard.filter((c: any) => (c.card?.type_line || '').toLowerCase().includes(typeFilter))
 
   const totalCards = mainboard.reduce((s: number, c: any) => s + c.quantity, 0)
   const totalValue = deck?.cards?.reduce((s: number, c: any) => s + (c.card?.price_usd || 0) * c.quantity, 0) || 0
@@ -627,6 +633,16 @@ export default function DeckDetailPage() {
                   {t('detail.mainDeck')} ({t('common.cardsCount', { count: totalCards })})
                 </h2>
                 <div className="flex items-center gap-2">
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="input-field !w-auto text-xs !py-1.5">
+                  <option value="all">{t('detail.filterAllTypes', 'Todos os tipos')}</option>
+                  <option value="creature">{t('detail.filterCreature', 'Criaturas')}</option>
+                  <option value="land">{t('detail.filterLand', 'Terrenos')}</option>
+                  <option value="instant">{t('detail.filterInstant', 'Instantâneos')}</option>
+                  <option value="sorcery">{t('detail.filterSorcery', 'Feitiços')}</option>
+                  <option value="artifact">{t('detail.filterArtifact', 'Artefatos')}</option>
+                  <option value="enchantment">{t('detail.filterEnchantment', 'Encantamentos')}</option>
+                  <option value="planeswalker">{t('detail.filterPlaneswalker', 'Planeswalkers')}</option>
+                </select>
                 <select value={deckSort} onChange={(e) => setDeckSort(e.target.value)} className="input-field !w-auto text-xs !py-1.5">
                   <option value="name">{t('col.sortName')}</option>
                   <option value="cmc">{t('col.sortCmc')}</option>
@@ -641,10 +657,10 @@ export default function DeckDetailPage() {
                 </div>
               </div>
               {view === 'pile' ? (
-                <PileView entries={mainboard} t={t} />
+                <PileView entries={displayedMainboard} t={t} />
               ) : view === 'grid' ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                  {mainboard.map((entry: any) => (
+                  {displayedMainboard.map((entry: any) => (
                     <div key={entry.id} className="relative group">
                       <CardTile card={entry.card} showActions={false} onClick={() => entry.card && setInfoCard(entry.card)} />
                       <span className="absolute top-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded font-mono">×{entry.quantity}</span>
@@ -671,7 +687,7 @@ export default function DeckDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mainboard.map((entry: any) => (
+                    {displayedMainboard.map((entry: any) => (
                       <tr key={entry.id} className="border-b border-vault-border/40 hover:bg-vault-card/30 transition-colors">
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-3">

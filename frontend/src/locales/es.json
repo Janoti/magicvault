@@ -838,6 +838,7 @@
     "avgCmc": "Coste medio",
     "curve": "Curva de maná",
     "colors": "Colores (símbolos de maná)",
+    "colorNames": { "W": "Blanco", "U": "Azul", "B": "Negro", "R": "Rojo", "G": "Verde", "C": "Incoloro" },
     "types": "Tipos",
     "roles": "Funciones",
     "noRoles": "No se detectaron funciones.",

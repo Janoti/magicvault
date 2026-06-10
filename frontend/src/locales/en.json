@@ -838,6 +838,7 @@
     "avgCmc": "Avg. cost",
     "curve": "Mana curve",
     "colors": "Colors (mana symbols)",
+    "colorNames": { "W": "White", "U": "Blue", "B": "Black", "R": "Red", "G": "Green", "C": "Colorless" },
     "types": "Types",
     "roles": "Roles",
     "noRoles": "No roles detected.",
