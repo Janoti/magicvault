@@ -10,6 +10,7 @@
     "friends": "Amigos",
     "shared": "Compartidos",
     "events": "Eventos",
+    "myEvents": "Mis Eventos",
     "communityDecks": "Decks de la comunidad",
     "guide": "Cómo funciona",
     "logout": "Salir",
@@ -1080,8 +1081,8 @@
     "email": "Email (para respuesta)"
   },
   "trades": {
-    "nav": "Intercambios",
-    "title": "Intercambios y Ventas",
+    "nav": "Mercado",
+    "title": "Mercado",
     "subtitle": "Compra, vende e intercambia cartas físicas con la comunidad",
     "marketplace": "Mercado",
     "mine": "Mis publicaciones",

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
-  CalendarDays, List, MapPin, Clock, Store as StoreIcon, ExternalLink,
+  CalendarDays, CalendarPlus, List, MapPin, Clock, Store as StoreIcon, ExternalLink,
   ChevronLeft, ChevronRight, Ticket, Sparkles,
 } from 'lucide-react'
 import { useSeo, JsonLd } from '@/components/Seo'
@@ -126,6 +126,16 @@ export default function EventsPage() {
         </div>
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-vault-gold leading-tight">{t('events.title')}</h1>
         <p className="text-vault-muted text-lg mt-3 max-w-2xl mx-auto">{t('events.subtitle')}</p>
+
+        {/* Create / manage your own events */}
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <Link to="/meus-eventos" className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-base shadow-lg">
+            <CalendarPlus size={18} /> {t('events.createMine', 'Criar meu evento')}
+          </Link>
+          <Link to="/meus-eventos" className="text-sm text-vault-muted hover:text-vault-accent">
+            {t('events.manageMine', 'Ver / gerenciar meus eventos')}
+          </Link>
+        </div>
       </section>
 
       <section className="max-w-4xl mx-auto px-6 pb-20">
