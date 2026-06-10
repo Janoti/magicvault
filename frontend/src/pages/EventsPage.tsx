@@ -128,12 +128,12 @@ export default function EventsPage() {
         <p className="text-vault-muted text-lg mt-3 max-w-2xl mx-auto">{t('events.subtitle')}</p>
 
         {/* Create / manage your own events */}
-        <div className="mt-6 flex flex-col items-center gap-2">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link to="/meus-eventos" className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-base shadow-lg">
             <CalendarPlus size={18} /> {t('events.createMine', 'Criar meu evento')}
           </Link>
-          <Link to="/meus-eventos" className="text-sm text-vault-muted hover:text-vault-accent">
-            {t('events.manageMine', 'Ver / gerenciar meus eventos')}
+          <Link to="/meus-eventos" className="btn-ghost inline-flex items-center gap-2 px-5 py-3 text-base border border-vault-border">
+            <CalendarDays size={18} /> {t('events.myEvents', 'Meus eventos')}
           </Link>
         </div>
       </section>
