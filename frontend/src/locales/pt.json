@@ -723,7 +723,7 @@
     "artist": "Artista",
     "loyalty": "Lealdade",
     "langUnavailable": "Esta carta não existe em {{lang}} — usando inglês",
-    "rulings": "Rulings (interações oficiais)"
+    "rulings": "Rulings (interações oficiais · em inglês)"
   },
   "unsubscribe": {
     "invalid": "Link inválido ou expirado.",
