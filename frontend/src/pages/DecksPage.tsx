@@ -213,8 +213,25 @@ export default function DecksPage() {
               className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowImport(false)} />
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[88vh] overflow-y-auto">
-              <h2 className="font-display text-xl font-bold text-vault-gold mb-1">{t('modal.importDeckTitle')}</h2>
-              <p className="text-xs text-vault-muted mb-4">{t('modal.importDeckHint')}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="grid place-items-center w-8 h-8 rounded-lg bg-vault-accent/15 text-vault-accent"><Upload size={16} /></span>
+                <h2 className="font-display text-xl font-bold text-vault-gold">{t('modal.importDeckTitle')}</h2>
+              </div>
+              <p className="text-xs text-vault-muted mb-3">
+                {t('modal.importDeckHint2', 'Cole a lista exportada de qualquer site — a gente detecta o formato automaticamente.')}
+              </p>
+
+              {/* Supported formats */}
+              <div className="rounded-lg border border-vault-border bg-vault-card/40 px-3 py-2.5 mb-4">
+                <p className="text-[10px] uppercase tracking-wide text-vault-muted mb-1.5">{t('modal.formatsAccepted', 'Formatos aceitos')}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Moxfield', 'Archidekt', 'MTG Arena', 'MTGO', 'Deckstats', 'TappedOut', 'CSV'].map(s => (
+                    <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-vault-accent/10 border border-vault-accent/25 text-vault-accent">{s}</span>
+                  ))}
+                </div>
+                <p className="text-[11px] text-vault-muted mt-2">{t('modal.formatsHint', 'Reconhece seções Commander/Sideboard, prefixo SB:, e anotações de set/foil (ex.: (C21) 263 *F*).')}</p>
+              </div>
+
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -231,8 +248,8 @@ export default function DecksPage() {
                 <div>
                   <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.decklist')}</label>
                   <textarea
-                    className="input-field resize-none font-mono text-xs" rows={9}
-                    placeholder={"4 Lightning Bolt\n2 Counterspell\n1 Sol Ring\n\nSideboard\n2 Negate"}
+                    className="input-field resize-none font-mono text-xs" rows={10}
+                    placeholder={"Commander\n1 Krenko, Mob Boss\n\nDeck\n1 Sol Ring (C21) 263\n30 Mountain\n\nSideboard\n2 Pyroblast"}
                     value={importForm.list}
                     onChange={e => setImportForm(f => ({ ...f, list: e.target.value }))}
                   />
@@ -240,6 +257,11 @@ export default function DecksPage() {
                 {importResult && (
                   <div className="rounded-lg border border-vault-gold/30 bg-vault-gold/5 p-3 text-xs">
                     <p className="text-vault-text mb-1">{t('modal.importDone', { added: importResult.added, skipped: importResult.skipped })}</p>
+                    {importResult.counts && (
+                      <p className="text-vault-muted mb-1">
+                        Main {importResult.counts.main} · Sideboard {importResult.counts.sideboard} · Commander {importResult.counts.commander}
+                      </p>
+                    )}
                     {importResult.errors?.length > 0 && (
                       <ul className="text-vault-muted list-disc list-inside max-h-24 overflow-y-auto">
                         {importResult.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}
