@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react'
 import { collectionApi } from '@/lib/api'
-import { useUsdBrl } from '@/components/cards/CardPrice'
+import { useMoney } from '@/components/cards/CardPrice'
 
 export default function PnLPage() {
   const { t } = useTranslation()
-  const rate = useUsdBrl()
+  const fmt = useMoney()
   const { data, isLoading } = useQuery({ queryKey: ['pnl'], queryFn: collectionApi.pnl })
 
   const items: any[] = data?.items || []
@@ -17,7 +17,6 @@ export default function PnLPage() {
   const pct = cost ? (pnl / cost) * 100 : 0
   const up = pnl >= 0
   const noMarketCount = items.filter((i) => !i.has_market).length
-  const fmt = (usd: number) => `$${usd.toFixed(2)}${rate ? ` (R$${(usd * rate).toFixed(2).replace('.', ',')})` : ''}`
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -86,7 +85,7 @@ export default function PnLPage() {
                       </td>
                       <td className="px-3 py-2 text-right font-mono">
                         {i.has_market ? (
-                          <span className={u ? 'text-green-400' : 'text-red-400'}>{u ? '+' : ''}{d.toFixed(2)} ({p >= 0 ? '+' : ''}{p.toFixed(0)}%)</span>
+                          <span className={u ? 'text-green-400' : 'text-red-400'}>{u ? '+' : ''}{fmt(d)} ({p >= 0 ? '+' : ''}{p.toFixed(0)}%)</span>
                         ) : <span className="text-vault-muted">—</span>}
                       </td>
                     </tr>

@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
 import { collectionApi } from '@/lib/api'
-import { useUsdBrl } from '@/components/cards/CardPrice'
+import { useMoney } from '@/components/cards/CardPrice'
 
 export default function PnL() {
   const { t } = useTranslation()
-  const rate = useUsdBrl()
+  const fmt = useMoney()
   const { data } = useQuery({ queryKey: ['collection-stats'], queryFn: collectionApi.stats })
   const cost = data?.cost_usd ?? 0
   const value = data?.costed_value_usd ?? 0
@@ -16,7 +16,6 @@ export default function PnL() {
   const pnl = value - cost
   const pct = cost ? (pnl / cost) * 100 : 0
   const up = pnl >= 0
-  const fmt = (usd: number) => `$${usd.toFixed(2)}${rate ? ` (R$${(usd * rate).toFixed(2).replace('.', ',')})` : ''}`
 
   const noMarket = value <= 0  // we don't have a current price for the costed cards
 

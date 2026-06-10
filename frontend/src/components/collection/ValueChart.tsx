@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
 import { collectionApi } from '@/lib/api'
-import { useUsdBrl } from '@/components/cards/CardPrice'
+import { useMoney } from '@/components/cards/CardPrice'
 
 export default function ValueChart() {
   const { t, i18n } = useTranslation()
-  const rate = useUsdBrl()
+  const money = useMoney()
   const { data: history = [] } = useQuery({ queryKey: ['value-history'], queryFn: collectionApi.valueHistory })
 
   if (history.length < 2) return null  // builds up over days of use
@@ -31,7 +31,6 @@ export default function ValueChart() {
   }
   const weekPct = weekRef ? ((last - weekRef) / weekRef) * 100 : 0
   const weekUp = weekPct >= 0
-  const brl = (v: number) => (rate ? ` ≈ R$${(v * rate).toFixed(2).replace('.', ',')}` : '')
   const fmtDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })
 
   return (
@@ -59,7 +58,7 @@ export default function ValueChart() {
       </svg>
       <div className="flex justify-between text-[11px] text-vault-muted mt-1">
         <span>{fmtDate(history[0].date)}</span>
-        <span className="font-mono text-green-400">${last.toFixed(2)}{brl(last)}</span>
+        <span className="font-mono text-green-400">{money(last)}</span>
         <span>{fmtDate(history[n - 1].date)}</span>
       </div>
     </Link>

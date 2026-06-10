@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { collectionApi } from '@/lib/api'
 import { useFlags } from '@/lib/flags'
-import { useUsdBrl } from '@/components/cards/CardPrice'
+import { useMoney } from '@/components/cards/CardPrice'
 import LanguageSwitcher from './LanguageSwitcher'
 import EmberBackground from '@/components/EmberBackground'
 import FeedbackModal from '@/components/FeedbackModal'
@@ -67,7 +67,7 @@ export default function Layout({ children }: { children?: ReactNode }) {
     queryKey: ['collection-stats'],
     queryFn: collectionApi.stats,
   })
-  const usdBrl = useUsdBrl()
+  const money = useMoney()
 
   const handleLogout = () => {
     logout()
@@ -134,12 +134,7 @@ export default function Layout({ children }: { children?: ReactNode }) {
               {(stats.total_value ?? 0) > 0 && (
                 <div className="col-span-2 bg-vault-card rounded-lg p-2 text-center">
                   <p className="text-lg font-display font-bold text-green-400">
-                    ${stats.total_value.toFixed(2)}
-                    {usdBrl > 0 && (
-                      <span className="text-xs text-vault-muted font-mono font-normal ml-1.5">
-                        ≈ R${(stats.total_value * usdBrl).toFixed(2).replace('.', ',')}
-                      </span>
-                    )}
+                    {money(stats.total_value)}
                   </p>
                   <p className="text-xs text-vault-muted">{t('nav.totalValue')}</p>
                 </div>

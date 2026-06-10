@@ -4,14 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react'
 import { collectionApi } from '@/lib/api'
-import { useUsdBrl } from '@/components/cards/CardPrice'
+import { useMoney } from '@/components/cards/CardPrice'
 
 export default function ValuePage() {
   const { t, i18n } = useTranslation()
-  const rate = useUsdBrl()
+  const money = useMoney()
   const { data: history = [], isLoading } = useQuery({ queryKey: ['value-history'], queryFn: collectionApi.valueHistory })
 
-  const brl = (v: number) => (rate ? `R$${(v * rate).toFixed(2).replace('.', ',')}` : '')
   const fmtDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })
 
   const chart = useMemo(() => {
@@ -45,7 +44,7 @@ export default function ValuePage() {
       <p className="text-vault-muted text-sm mb-6">{t('valuePage.subtitle')}</p>
 
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <Stat label={t('valuePage.current')} value={`$${last.toFixed(2)}`} sub={brl(last)} />
+        <Stat label={t('valuePage.current')} value={money(last)} sub={''} />
         <Delta label={t('valuePage.d7')} pct={d7} />
         <Delta label={t('valuePage.d30')} pct={d30} />
       </div>

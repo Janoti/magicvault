@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingCart, ExternalLink, Plus, Library, Check, TrendingUp, TrendingDown } from 'lucide-react'
 import { collectionApi, cardsApi } from '@/lib/api'
-import { useUsdBrl } from '@/components/cards/CardPrice'
+import { useMoney, useUsdBrl } from '@/components/cards/CardPrice'
 import { useAuthStore } from '@/store/auth'
 import { useFlags } from '@/lib/flags'
 
@@ -50,6 +50,7 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
   const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const money = useMoney()
   const rate = useUsdBrl()
   const qc = useQueryClient()
   const flags = useFlags()
@@ -108,7 +109,6 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
   // Scryfall, so fall back to the original card's price.
   const usd = card.price_usd || initialCard.price_usd || 0
   const usdFoil = card.price_usd_foil || initialCard.price_usd_foil || 0
-  const brl = (v: number) => (rate ? `R$${(v * rate).toFixed(2).replace('.', ',')}` : '')
   const goMarket = () => navigate(`/trades?q=${encodeURIComponent(card.name)}`)
 
   const legalities = card.legalities || {}
@@ -135,9 +135,8 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
               {image && <img src={image} alt={card.name} className="w-full max-w-[200px] mx-auto md:max-w-none rounded-xl shadow-lg" />}
               {(usd > 0 || usdFoil > 0) && (
                 <div className="text-center text-sm font-mono">
-                  {usd > 0 && <span className="text-green-400">${usd.toFixed(2)}</span>}
-                  {usdFoil > 0 && <span className="text-yellow-400"> / ✦${usdFoil.toFixed(2)}</span>}
-                  {rate > 0 && usd > 0 && <div className="text-[11px] text-vault-muted">≈ {brl(usd)}</div>}
+                  {usd > 0 && <span className="text-green-400">{money(usd)}</span>}
+                  {usdFoil > 0 && <span className="text-yellow-400"> / ✦{money(usdFoil)}</span>}
                 </div>
               )}
 
@@ -222,7 +221,7 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
                     {num > 0 && usd > 0 && (
                       <div className={`mt-2 flex items-center gap-1.5 text-xs font-mono ${up ? 'text-green-400' : 'text-red-400'}`}>
                         {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-                        {up ? '+' : ''}{brl(delta) || `$${delta.toFixed(2)}`} ({up ? '+' : ''}{pct}%)
+                        {up ? '+' : ''}{money(delta)} ({up ? '+' : ''}{pct}%)
                         <span className="text-vault-muted font-sans ml-1">{t('cardInfo.paidVsNow')}</span>
                       </div>
                     )}

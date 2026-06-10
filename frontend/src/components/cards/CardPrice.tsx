@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 import { cardsApi } from '@/lib/api'
 
@@ -10,6 +11,20 @@ export function useUsdBrl(): number {
     staleTime: 1000 * 60 * 60, // 1h
   })
   return data?.usd_brl || 0
+}
+
+/** Formats a USD amount in a single currency chosen by the UI language:
+ *  Portuguese → BRL (R$), English/Spanish → USD ($). Falls back to USD if the
+ *  exchange rate hasn't loaded yet. */
+export function useMoney(): (usd: number) => string {
+  const { i18n } = useTranslation()
+  const rate = useUsdBrl()
+  const brl = (i18n.language || '').toLowerCase().startsWith('pt')
+  return (usd: number) => {
+    const v = usd || 0
+    if (brl && rate) return `R$${(v * rate).toFixed(2).replace('.', ',')}`
+    return `$${v.toFixed(2)}`
+  }
 }
 
 interface Props {
@@ -26,22 +41,13 @@ interface Props {
 /** Shows a card price in USD with an approximate BRL value, linking to the
  *  official store page when available. */
 export default function CardPrice({ usd, quantity = 1, purchaseUri, className = '', compact = false }: Props) {
-  const rate = useUsdBrl()
+  const money = useMoney()
   const value = (usd || 0) * quantity
   if (value <= 0) return <span className={`text-vault-muted ${className}`}>—</span>
 
-  const brl = rate ? value * rate : 0
-  const usdLabel = `$${value.toFixed(2)}`
-  const brlLabel = brl ? `R$${brl.toFixed(2).replace('.', ',')}` : ''
-
-  const content = compact ? (
-    <span className="font-mono font-bold text-green-400" title={brlLabel ? `≈ ${brlLabel}` : undefined}>
-      {usdLabel}
-    </span>
-  ) : (
-    <span className="inline-flex items-baseline gap-1.5">
-      <span className="font-mono font-bold text-green-400">{usdLabel}</span>
-      {brlLabel && <span className="font-mono text-[10px] text-vault-muted">≈ {brlLabel}</span>}
+  const content = (
+    <span className={compact ? '' : 'inline-flex items-baseline gap-1.5'}>
+      <span className="font-mono font-bold text-green-400">{money(value)}</span>
     </span>
   )
 

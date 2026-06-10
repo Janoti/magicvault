@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { cardsApi, listingsApi, collectionApi, bindersApi, decksApi } from '@/lib/api'
-import { useUsdBrl } from '@/components/cards/CardPrice'
+import { useUsdBrl, useMoney } from '@/components/cards/CardPrice'
 
 const CONDITIONS = ['M', 'NM', 'LP', 'MP', 'HP', 'DMG']
 type Source = 'collection' | 'binder' | 'deck' | 'search'
@@ -28,6 +28,7 @@ function resizePhoto(file: File): Promise<string> {
 export default function CreateListingModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { t } = useTranslation()
   const rate = useUsdBrl()
+  const money = useMoney()
   const [source, setSource] = useState<Source>('collection')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
@@ -194,8 +195,7 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
                   {marketUsd > 0 && (
                     <p className="text-xs text-vault-muted mt-0.5">
                       {t('trades.marketPrice')}:{' '}
-                      <span className="font-mono font-bold text-green-400">${marketUsd.toFixed(2)}</span>
-                      {marketBrlLabel && <span className="font-mono text-vault-muted/80"> ≈ {marketBrlLabel}</span>}
+                      <span className="font-mono font-bold text-green-400">{money(marketUsd)}</span>
                     </p>
                   )}
                 </div>
