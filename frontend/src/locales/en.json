@@ -187,7 +187,7 @@
   },
   "pubprofile": {
     "title": "{{name}}'s showcase",
-    "subtitle": "Collection and decks this person chose to make public.",
+    "subtitle": "Take a look at {{name}}'s public collection and decks.",
     "collection": "View the full collection",
     "events": "Upcoming events",
     "revealContact": "Show contact (click to reveal)",

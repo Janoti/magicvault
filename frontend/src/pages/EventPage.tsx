@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Calendar, MapPin, Clock, Heart, Download, ExternalLink, Send, Trash2, User as UserIcon } from 'lucide-react'
+import { Calendar, MapPin, Clock, Heart, Download, ExternalLink, Send, Trash2, User as UserIcon, Share2, Check } from 'lucide-react'
 import PublicPage from '@/components/PublicPage'
 import { useSeo } from '@/components/Seo'
 import { userEventsApi, cardsApi } from '@/lib/api'
@@ -27,6 +27,7 @@ export default function EventPage() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
   const [comment, setComment] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const { data: ev, isLoading, isError } = useQuery({ queryKey: ['user-event', eventId], queryFn: () => userEventsApi.get(eventId, token) })
   const { data: comments = [] } = useQuery({ queryKey: ['user-event-comments', eventId], queryFn: () => userEventsApi.comments(eventId, token), enabled: !!ev })
@@ -102,6 +103,15 @@ export default function EventPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-3 mt-6">
+            <button
+              onClick={async () => {
+                const url = window.location.href
+                try { if (navigator.share) { await navigator.share({ title: ev.title, url }); return } } catch { return }
+                try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* noop */ }
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-vault-accent/40 text-vault-accent hover:bg-vault-accent/10 transition-colors">
+              {copied ? <><Check size={15} /> {t('userEvents.copied', 'Link copiado!')}</> : <><Share2 size={15} /> {t('userEvents.share', 'Compartilhar')}</>}
+            </button>
             {user ? (
               <button onClick={() => interestMut.mutate()} disabled={interestMut.isPending}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${

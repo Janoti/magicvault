@@ -187,7 +187,7 @@
   },
   "pubprofile": {
     "title": "Vitrina de {{name}}",
-    "subtitle": "Colección y mazos que esta persona hizo públicos.",
+    "subtitle": "Echa un vistazo a la colección y los mazos públicos de {{name}}.",
     "collection": "Ver la colección completa",
     "events": "Próximos eventos",
     "revealContact": "Mostrar contacto (clic para revelar)",

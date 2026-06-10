@@ -2,24 +2,36 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Library, Swords, BookOpen, ExternalLink, MessageCircle, CalendarDays, Eye, ShoppingBag, Lock, Crown, ArrowLeftRight, MapPin, Instagram, Facebook, Twitter, Youtube, Twitch, Music2, Globe, Link2 } from 'lucide-react'
+import { Library, Swords, BookOpen, ExternalLink, CalendarDays, Eye, ShoppingBag, Lock, Crown, ArrowLeftRight, MapPin, Globe } from 'lucide-react'
+import { SiWhatsapp, SiInstagram, SiFacebook, SiX, SiYoutube, SiTwitch, SiTiktok, SiDiscord, SiReddit, SiSpotify } from 'react-icons/si'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import PublicPage from '@/components/PublicPage'
 import Avatar from '@/components/Avatar'
 
-// Pick a brand icon + accent colour from a link's URL/label.
-function socialStyle(url: string, label: string): { Icon: any; color: string } {
+// Official brand icon + colour + platform name from a link's URL/label.
+function socialMeta(url: string, label: string): { Icon: any; color: string; name: string } {
   const s = `${url} ${label}`.toLowerCase()
-  if (s.includes('instagram')) return { Icon: Instagram, color: '#e1306c' }
-  if (s.includes('tiktok')) return { Icon: Music2, color: '#69C9D0' }
-  if (s.includes('facebook') || s.includes('fb.com')) return { Icon: Facebook, color: '#1877f2' }
-  if (s.includes('twitter') || s.includes('x.com')) return { Icon: Twitter, color: '#1da1f2' }
-  if (s.includes('youtube') || s.includes('youtu.be')) return { Icon: Youtube, color: '#ff0000' }
-  if (s.includes('twitch')) return { Icon: Twitch, color: '#9146ff' }
-  if (s.includes('loja') || s.includes('store') || s.includes('shop')) return { Icon: ShoppingBag, color: '#f5a623' }
-  if (s.includes('http')) return { Icon: Globe, color: '#8aa0c0' }
-  return { Icon: Link2, color: '#8aa0c0' }
+  if (s.includes('instagram')) return { Icon: SiInstagram, color: '#E4405F', name: 'Instagram' }
+  if (s.includes('tiktok')) return { Icon: SiTiktok, color: '#ff0050', name: 'TikTok' }
+  if (s.includes('facebook') || s.includes('fb.com')) return { Icon: SiFacebook, color: '#1877F2', name: 'Facebook' }
+  if (s.includes('twitter') || s.includes('x.com')) return { Icon: SiX, color: '#e7e9ea', name: 'X' }
+  if (s.includes('youtube') || s.includes('youtu.be')) return { Icon: SiYoutube, color: '#FF0000', name: 'YouTube' }
+  if (s.includes('twitch')) return { Icon: SiTwitch, color: '#9146FF', name: 'Twitch' }
+  if (s.includes('discord')) return { Icon: SiDiscord, color: '#5865F2', name: 'Discord' }
+  if (s.includes('reddit')) return { Icon: SiReddit, color: '#FF4500', name: 'Reddit' }
+  if (s.includes('spotify')) return { Icon: SiSpotify, color: '#1DB954', name: 'Spotify' }
+  if (s.includes('loja') || s.includes('store') || s.includes('shop')) return { Icon: ShoppingBag, color: '#f5a623', name: label || 'Loja' }
+  return { Icon: Globe, color: '#8aa0c0', name: label || 'Site' }
+}
+
+// Best-effort @handle (or domain) from a profile URL, for display.
+function handleOf(url: string): string {
+  try {
+    const u = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`)
+    const last = u.pathname.replace(/\/+$/, '').split('/').filter(Boolean).pop()
+    return last ? `@${last.replace(/^@/, '')}` : u.hostname.replace(/^www\./, '')
+  } catch { return '' }
 }
 
 // Only allow http(s) links (blocks javascript:/data: XSS in user-supplied URLs).
@@ -66,54 +78,55 @@ export default function ProfilePage() {
         </div>
       ) : (
         <>
-          {/* Hero header with gradient banner */}
-          <div className="surface overflow-hidden mb-4">
-            <div className="h-24 sm:h-28 bg-gradient-to-r from-vault-accent/40 via-vault-gold/25 to-vault-accent/40 relative">
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15), transparent 40%)' }} />
+          {/* Header */}
+          <div className="surface p-5 sm:p-6 mb-4">
+            <div className="flex items-center gap-4">
+              <div className="rounded-2xl ring-2 ring-vault-accent/30 shrink-0">
+                <Avatar value={data.avatar} size={84} />
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-display text-2xl font-bold text-vault-gold truncate">{data.display_name || data.username}</h1>
+                <p className="text-sm text-vault-muted">@{data.username}</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-vault-muted">
+                  {data.location && <span className="flex items-center gap-1"><MapPin size={12} /> {data.location}</span>}
+                  {data.member_since && <span>{t('account.memberSince')} {new Date(data.member_since).toLocaleDateString()}</span>}
+                </div>
+              </div>
             </div>
-            <div className="px-5 sm:px-6 pb-5 -mt-12">
-              <div className="flex items-end gap-4">
-                <div className="rounded-2xl ring-4 ring-vault-surface shrink-0">
-                  <Avatar value={data.avatar} size={88} />
-                </div>
-                <div className="min-w-0 pb-1.5">
-                  <h1 className="font-display text-2xl font-bold text-vault-gold truncate">{data.display_name || data.username}</h1>
-                  <p className="text-sm text-vault-muted">@{data.username}</p>
-                </div>
-              </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-vault-muted">
-                {data.location && <span className="flex items-center gap-1"><MapPin size={12} /> {data.location}</span>}
-                {data.member_since && <span>{t('account.memberSince')} {new Date(data.member_since).toLocaleDateString()}</span>}
-              </div>
-
-              {/* Social icons + contact, as compact colorful chips */}
-              {(data.links?.length > 0 || data.has_contact) && (
-                <div className="flex flex-wrap items-center gap-2 mt-4">
-                  {data.has_contact && (contact ? (
-                    <a href={contactHref(contact)} target="_blank" rel="noreferrer" title={contact}
-                      className="w-10 h-10 rounded-full flex items-center justify-center border border-green-500/40 bg-green-500/15 hover:scale-110 transition-transform">
-                      <MessageCircle size={18} className="text-green-400" />
+            {/* Contact + socials — one per line, official brand icons */}
+            {(data.has_contact || data.links?.length > 0) && (
+              <div className="mt-5 space-y-2">
+                {data.has_contact && (contact ? (
+                  <a href={contactHref(contact)} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-xl border border-vault-border bg-vault-card/40 hover:border-[#25D366]/50 transition-all">
+                    <span className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#25D366]/15 border border-[#25D366]/40 shrink-0"><SiWhatsapp size={18} color="#25D366" /></span>
+                    <span className="text-sm font-medium text-vault-text">WhatsApp</span>
+                    <span className="text-sm text-vault-muted ml-auto truncate">{contact}</span>
+                  </a>
+                ) : (
+                  <button onClick={revealContact} disabled={revealing}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-vault-border bg-vault-card/40 hover:border-[#25D366]/50 transition-all text-left disabled:opacity-60">
+                    <span className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#25D366]/15 border border-[#25D366]/40 shrink-0"><SiWhatsapp size={18} color="#25D366" /></span>
+                    <span className="text-sm font-medium text-vault-text">WhatsApp</span>
+                    <span className="text-sm text-vault-accent ml-auto flex items-center gap-1.5">
+                      {revealing ? <div className="w-4 h-4 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" /> : <><Eye size={14} /> {t('pubprofile.revealContact')}</>}
+                    </span>
+                  </button>
+                ))}
+                {(data.links || []).map((l: any, i: number) => {
+                  const { Icon, color, name } = socialMeta(l.url, l.label)
+                  return (
+                    <a key={i} href={safeUrl(l.url)} target="_blank" rel="noreferrer"
+                      className="flex items-center gap-3 p-3 rounded-xl border border-vault-border bg-vault-card/40 hover:border-vault-accent/50 transition-all">
+                      <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border" style={{ backgroundColor: `${color}1f`, borderColor: `${color}55` }}><Icon size={18} color={color} /></span>
+                      <span className="text-sm font-medium text-vault-text">{name}</span>
+                      <span className="text-sm text-vault-muted ml-auto truncate flex items-center gap-1">{handleOf(l.url)} <ExternalLink size={12} /></span>
                     </a>
-                  ) : (
-                    <button onClick={revealContact} disabled={revealing} title={t('pubprofile.revealContact')}
-                      className="w-10 h-10 rounded-full flex items-center justify-center border border-green-500/40 bg-green-500/15 hover:scale-110 transition-transform disabled:opacity-60">
-                      {revealing ? <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" /> : <Eye size={18} className="text-green-400" />}
-                    </button>
-                  ))}
-                  {(data.links || []).map((l: any, i: number) => {
-                    const { Icon, color } = socialStyle(l.url, l.label)
-                    return (
-                      <a key={i} href={safeUrl(l.url)} target="_blank" rel="noreferrer" title={l.label}
-                        className="w-10 h-10 rounded-full flex items-center justify-center border hover:scale-110 transition-transform"
-                        style={{ backgroundColor: `${color}1f`, borderColor: `${color}66` }}>
-                        <Icon size={18} style={{ color }} />
-                      </a>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {data.bio && <div className="surface p-5 mb-4"><p className="text-sm text-vault-text whitespace-pre-wrap">{data.bio}</p></div>}
@@ -140,7 +153,7 @@ export default function ProfilePage() {
           {(data.collection_public || data.public_decks?.length > 0 || data.public_binders?.length > 0) && (
             <div className="surface p-5">
               <h2 className="font-display text-lg font-bold text-vault-gold mb-1">{t('pubprofile.title', { name: data.display_name || data.username })}</h2>
-              <p className="text-xs text-vault-muted mb-4">{t('pubprofile.subtitle')}</p>
+              <p className="text-xs text-vault-muted mb-4">{t('pubprofile.subtitle', { name: data.display_name || data.username })}</p>
               <div className="space-y-2">
                 {data.collection_public && (
                   <Link to={`/c/${data.username}`}

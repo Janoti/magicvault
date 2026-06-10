@@ -187,7 +187,7 @@
   },
   "pubprofile": {
     "title": "Vitrine de {{name}}",
-    "subtitle": "Coleção e decks que esta pessoa deixou públicos.",
+    "subtitle": "Dê uma olhada na coleção e nos decks públicos de {{name}}.",
     "collection": "Ver a coleção completa",
     "events": "Próximos eventos",
     "revealContact": "Mostrar contato (clique para revelar)",
