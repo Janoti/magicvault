@@ -52,6 +52,7 @@ export default function CollectionPage() {
   const [notice, setNotice] = useState<string | null>(null)
   const [preview, setPreview] = useState<{ src: string; x: number; y: number } | null>(null)
   const [showShare, setShowShare] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const qc = useQueryClient()
 
@@ -140,6 +141,7 @@ export default function CollectionPage() {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['collection'] })
       qc.invalidateQueries({ queryKey: ['collection-stats'] })
+      setShowImport(false)
       setNotice(t('col.importResult', { imported: res.imported, updated: res.updated, skipped: res.skipped }))
     },
     onError: () => setNotice(t('col.importError')),
@@ -189,15 +191,8 @@ export default function CollectionPage() {
           <button onClick={handleExport} className="btn-ghost flex items-center gap-2">
             <Download size={16} /> {t('col.export')}
           </button>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importMutation.isPending}
-            className="btn-ghost flex items-center gap-2 disabled:opacity-40"
-          >
-            {importMutation.isPending ? (
-              <div className="w-4 h-4 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
-            ) : <Upload size={16} />}
-            {t('col.import')}
+          <button onClick={() => setShowImport(true)} className="btn-ghost flex items-center gap-2">
+            <Upload size={16} /> {t('col.import')}
           </button>
           <input
             ref={fileInputRef}
@@ -206,6 +201,43 @@ export default function CollectionPage() {
             className="hidden"
             onChange={handleImportFile}
           />
+
+          {/* Import collection modal */}
+          <AnimatePresence>
+            {showImport && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowImport(false)} />
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                  className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-md shadow-2xl text-left">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="grid place-items-center w-8 h-8 rounded-lg bg-vault-accent/15 text-vault-accent"><Upload size={16} /></span>
+                    <h2 className="font-display text-xl font-bold text-vault-gold">{t('col.importTitle', 'Importar coleção')}</h2>
+                  </div>
+                  <p className="text-xs text-vault-muted mb-4">
+                    {t('col.importHint', 'Suba um arquivo CSV com suas cartas. Como a lista pode ser enorme, a importação é por arquivo (não por colar).')}
+                  </p>
+
+                  <div className="rounded-lg border border-vault-border bg-vault-card/40 px-3 py-2.5 mb-4">
+                    <p className="text-[10px] uppercase tracking-wide text-vault-muted mb-1">{t('col.importFormat', 'Formato do arquivo')}</p>
+                    <p className="text-xs text-vault-text/90">CSV — colunas: <span className="font-mono text-[11px]">name, set_code, collector_number, scryfall_id, quantity, condition, finish, language, acquired_price</span>.</p>
+                    <p className="text-[11px] text-vault-muted mt-2">{t('col.importTemplateTip', 'Dica: clique em Exportar para baixar um CSV já no formato certo — edite e reimporte.')}</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowImport(false)} className="btn-ghost flex-1">{t('common.cancel')}</button>
+                    <button onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending}
+                      className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50">
+                      {importMutation.isPending
+                        ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        : <Upload size={15} />}
+                      {t('col.importSelectFile', 'Selecionar arquivo CSV')}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
           <Link to="/search" className="btn-primary flex items-center gap-2">
             <Plus size={16} /> {t('col.addCards')}
           </Link>
