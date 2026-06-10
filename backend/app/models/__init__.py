@@ -5,6 +5,7 @@ from sqlalchemy import (
     Text, Enum as SAEnum, UniqueConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import JSONB
 import enum
 
 from app.core.database import Base
@@ -58,6 +59,22 @@ class User(Base):
     decks: Mapped[List["Deck"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     wishlist: Mapped[List["WishlistEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     oauth_accounts: Mapped[List["OAuthAccount"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+
+class ScryfallCard(Base):
+    """Local cache of Scryfall card objects (every printing, every language) from
+    the bulk data. Refreshed by a periodic job; the app reads this first and only
+    falls back to the Scryfall API on a miss. `data` is the full card object."""
+    __tablename__ = "scryfall_cards"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)            # Scryfall card id (uuid)
+    oracle_id: Mapped[Optional[str]] = mapped_column(String(40), index=True, nullable=True)
+    name: Mapped[str] = mapped_column(Text, index=True)                      # English/oracle name
+    lang: Mapped[str] = mapped_column(String(8), index=True, default="en")
+    set_code: Mapped[Optional[str]] = mapped_column(String(12), index=True, nullable=True)
+    collector_number: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    data: Mapped[dict] = mapped_column(JSONB)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class OAuthAccount(Base):

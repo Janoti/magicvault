@@ -32,6 +32,49 @@ async def _post(url: str, json_body: dict) -> Dict[str, Any]:
         return r.json()
 
 
+async def _local_by_id(sid: str) -> Optional[Dict[str, Any]]:
+    """Read a single card from the local Scryfall bulk cache (best-effort)."""
+    try:
+        from app.core.database import AsyncSessionLocal
+        from app.models.user import ScryfallCard
+        async with AsyncSessionLocal() as db:
+            row = await db.get(ScryfallCard, sid)
+            return row.data if row else None
+    except Exception:
+        return None
+
+
+async def _local_by_name(name: str) -> Optional[Dict[str, Any]]:
+    """Exact (case-insensitive) English-name lookup from the local cache."""
+    try:
+        from sqlalchemy import select, func
+        from app.core.database import AsyncSessionLocal
+        from app.models.user import ScryfallCard
+        async with AsyncSessionLocal() as db:
+            row = (await db.execute(
+                select(ScryfallCard).where(
+                    func.lower(ScryfallCard.name) == name.strip().lower(),
+                    ScryfallCard.lang == "en",
+                ).limit(1)
+            )).scalar_one_or_none()
+            return row.data if row else None
+    except Exception:
+        return None
+
+
+async def _local_by_ids(ids: List[str]) -> Dict[str, Dict[str, Any]]:
+    """Batch lookup from the local cache."""
+    try:
+        from sqlalchemy import select
+        from app.core.database import AsyncSessionLocal
+        from app.models.user import ScryfallCard
+        async with AsyncSessionLocal() as db:
+            rows = (await db.execute(select(ScryfallCard).where(ScryfallCard.id.in_(ids)))).scalars().all()
+            return {r.id: r.data for r in rows}
+    except Exception:
+        return {}
+
+
 async def get_cards_bulk(scryfall_ids: List[str]) -> Dict[str, Dict[str, Any]]:
     """Resolve many cards efficiently: serve from cache, then batch-fetch the rest
     via Scryfall's /cards/collection endpoint (up to 75 ids per request)."""
@@ -43,6 +86,14 @@ async def get_cards_bulk(scryfall_ids: List[str]) -> Dict[str, Dict[str, Any]]:
             result[sid] = cached
         else:
             missing.append(sid)
+
+    # Serve misses from the local bulk cache before hitting the API.
+    if missing:
+        local = await _local_by_ids(missing)
+        for sid, card in local.items():
+            result[sid] = card
+            await cache_set(f"scryfall:card:{sid}", card)
+        missing = [s for s in missing if s not in local]
 
     for i in range(0, len(missing), 75):
         chunk = missing[i:i + 75]
@@ -75,6 +126,11 @@ async def get_card_by_id(scryfall_id: str) -> Optional[Dict[str, Any]]:
     if cached:
         return cached
 
+    local = await _local_by_id(scryfall_id)
+    if local:
+        await cache_set(cache_key, local)
+        return local
+
     data = await _get(f"{BASE}/cards/{scryfall_id}")
     await cache_set(cache_key, data)
     return data
@@ -86,6 +142,12 @@ async def get_card_by_name(name: str, fuzzy: bool = True) -> Optional[Dict[str, 
     cached = await cache_get(cache_key)
     if cached:
         return cached
+
+    # Exact name hits the local bulk cache; only ambiguous/fuzzy names need the API.
+    local = await _local_by_name(name)
+    if local:
+        await cache_set(cache_key, local)
+        return local
 
     param = "fuzzy" if fuzzy else "exact"
     data = await _get(f"{BASE}/cards/named", params={param: name})
