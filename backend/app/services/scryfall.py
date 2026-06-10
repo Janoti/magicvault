@@ -75,6 +75,25 @@ async def _local_by_ids(ids: List[str]) -> Dict[str, Dict[str, Any]]:
         return {}
 
 
+async def _local_by_set_collector(set_code: str, number: str, lang: str = "en") -> Optional[Dict[str, Any]]:
+    """Exact printing lookup by set + collector number from the local cache."""
+    try:
+        from sqlalchemy import select, func
+        from app.core.database import AsyncSessionLocal
+        from app.models.user import ScryfallCard
+        async with AsyncSessionLocal() as db:
+            base = select(ScryfallCard).where(
+                func.lower(ScryfallCard.set_code) == set_code.lower(),
+                ScryfallCard.collector_number == number,
+            )
+            row = (await db.execute(base.where(ScryfallCard.lang == lang).limit(1))).scalar_one_or_none()
+            if not row:
+                row = (await db.execute(base.limit(1))).scalar_one_or_none()
+            return row.data if row else None
+    except Exception:
+        return None
+
+
 def _has_search_operators(query: str) -> bool:
     """Scryfall advanced syntax (t:, c:, cmc<=3, set:, "exact") must use the API."""
     return any(ch in query for ch in (":", "<", ">", "=", '"'))
@@ -223,6 +242,32 @@ async def get_card_by_name(name: str, fuzzy: bool = True) -> Optional[Dict[str, 
     param = "fuzzy" if fuzzy else "exact"
     data = await _get(f"{BASE}/cards/named", params={param: name})
     await cache_set(cache_key, data)
+    return data
+
+
+async def get_card_by_set_collector(set_code: str, number: str, lang: str = "en") -> Optional[Dict[str, Any]]:
+    """Resolve an exact printing by set code + collector number. Local-first,
+    then the Scryfall API (/cards/{set}/{number})."""
+    set_code = (set_code or "").strip()
+    number = (number or "").strip()
+    if not set_code or not number:
+        return None
+    cache_key = f"scryfall:setcn:{set_code.lower()}:{number.lower()}:{lang}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    local = await _local_by_set_collector(set_code, number, lang)
+    if local:
+        await cache_set(cache_key, local)
+        return local
+
+    try:
+        data = await _get(f"{BASE}/cards/{set_code.lower()}/{number}")
+    except Exception:
+        return None
+    if data:
+        await cache_set(cache_key, data)
     return data
 
 

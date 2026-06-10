@@ -10,9 +10,9 @@ import csv
 import io
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_premium_user
 from app.models.user import User, CollectionEntry, Binder, BinderCard, Listing, CollectionSnapshot
-from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk, get_sets
+from app.services.scryfall import get_card_by_id, extract_card_summary, get_card_by_name, get_cards_bulk, get_sets, get_card_by_set_collector
 from app.services.fx import get_usd_brl
 from app.services.sharing import build_resource_view
 
@@ -55,6 +55,57 @@ def _finish_to_foil(value: Optional[str]) -> bool:
 
 def _foil_to_finish(foil: bool) -> str:
     return "foil" if foil else "nonfoil"
+
+
+def _to_foil(value: Optional[str]) -> bool:
+    """Tolerant foil detection across export formats (Foil/Normal, true/false, finish)."""
+    return (value or "").strip().lower() in ("foil", "etched", "true", "yes", "1", "y", "foil/etched")
+
+
+_CONDITION_MAP = {
+    "m": "M", "mint": "M",
+    "nm": "NM", "near mint": "NM", "near_mint": "NM", "nearmint": "NM",
+    "ex": "LP", "excellent": "LP", "lp": "LP", "lightly played": "LP", "light_played": "LP",
+    "light played": "LP", "sp": "LP", "slightly played": "LP",
+    "mp": "MP", "moderately played": "MP", "good": "MP", "played": "MP", "gd": "MP",
+    "hp": "HP", "heavily played": "HP", "poor": "HP",
+    "dmg": "DMG", "damaged": "DMG",
+}
+
+
+def _norm_condition(value: Optional[str]) -> str:
+    """Map condition labels from any exporter to our codes (M/NM/LP/MP/HP/DMG)."""
+    s = (value or "").strip().lower().replace("-", " ")
+    return _CONDITION_MAP.get(s, (value or "NM").strip().upper()[:3] or "NM")
+
+
+# Header aliases used by the main collection managers (ManaBox, Moxfield, Deckbox,
+# Archidekt, TCGplayer, …) mapped to our canonical fields. Auto-detected per file.
+_COL_ALIASES = {
+    "scryfall_id": ["scryfall_id", "scryfall id", "scryfallid", "scryfall"],
+    "name": ["name", "card name", "card", "cardname"],
+    "set_code": ["set_code", "set code", "edition code", "set", "expansion code", "set id", "edition"],
+    "collector_number": ["collector_number", "collector number", "card number", "card_number",
+                          "number", "collectornumber", "cn"],
+    "quantity": ["quantity", "count", "qty", "amount", "qtd"],
+    "condition": ["condition", "card condition"],
+    "foil": ["foil", "finish", "printing", "is foil", "isfoil", "foil/normal"],
+    "language": ["language", "lang"],
+    "price": ["acquired_price", "purchase price", "purchase_price", "my price", "price bought",
+              "price_bought", "bought price"],
+}
+
+
+def _header_map(fieldnames) -> dict:
+    """Map our canonical fields to the actual (lowercased) header present in the file."""
+    present = {(f or "").strip().lower() for f in (fieldnames or [])}
+    out = {}
+    for canon, aliases in _COL_ALIASES.items():
+        for a in aliases:
+            if a in present:
+                out[canon] = a
+                break
+    return out
 
 
 class AddCardRequest(BaseModel):
@@ -192,6 +243,49 @@ async def pnl_breakdown(current_user: User = Depends(get_current_user), db: Asyn
     # Biggest movers first; cards without a market price go last.
     items.sort(key=lambda i: (i["has_market"], i["current_usd"] - i["cost_usd"]), reverse=True)
     return {"items": items, "cost_usd": round(tot_cost, 2), "costed_value_usd": round(tot_val, 2), "rate": rate}
+
+
+@router.get("/insights")
+async def insights(viewer: User = Depends(get_premium_user), db: AsyncSession = Depends(get_db)):
+    """Premium analytics: most valuable cards, and biggest gainers/losers since
+    they were added (current price vs the price snapshot at add time)."""
+    entries = (await db.execute(
+        select(CollectionEntry).where(CollectionEntry.user_id == viewer.id)
+    )).scalars().all()
+    rate = await get_usd_brl() or 0
+    cards = await get_cards_bulk([e.scryfall_id for e in entries]) if entries else {}
+
+    rows = []
+    for e in entries:
+        raw = cards.get(e.scryfall_id)
+        if not raw:
+            continue
+        s = extract_card_summary(raw)
+        unit = (s.get("price_usd_foil") if e.foil else s.get("price_usd")) or 0
+        rows.append({
+            "id": e.scryfall_id, "name": s.get("name", "?"), "set": s.get("set", ""),
+            "collector_number": s.get("collector_number", ""), "image_small": s.get("image_small", ""),
+            "foil": e.foil, "quantity": e.quantity,
+            "unit_usd": unit, "total_usd": round(unit * e.quantity, 2),
+            "added_usd": e.price_at_add or 0,
+        })
+
+    def card_min(r):
+        return {k: r[k] for k in ("id", "name", "set", "collector_number", "image_small", "foil", "quantity")}
+
+    top_value = [{**card_min(r), "unit_usd": round(r["unit_usd"], 2), "total_usd": r["total_usd"]}
+                 for r in sorted(rows, key=lambda r: r["total_usd"], reverse=True)[:12] if r["total_usd"] > 0]
+
+    movers = []
+    for r in rows:
+        if r["added_usd"] and r["added_usd"] > 0 and r["unit_usd"] > 0:
+            d = r["unit_usd"] - r["added_usd"]
+            movers.append({**card_min(r), "added_usd": round(r["added_usd"], 2),
+                           "now_usd": round(r["unit_usd"], 2), "delta_usd": round(d, 2),
+                           "delta_pct": round(d / r["added_usd"] * 100, 1)})
+    gainers = [m for m in sorted(movers, key=lambda m: m["delta_pct"], reverse=True) if m["delta_pct"] > 0][:8]
+    losers = [m for m in sorted(movers, key=lambda m: m["delta_pct"]) if m["delta_pct"] < 0][:8]
+    return {"top_value": top_value, "gainers": gainers, "losers": losers, "rate": rate}
 
 
 @router.get("/card-context/{scryfall_id}")
@@ -631,50 +725,59 @@ async def import_collection(
         text = raw.decode("latin-1")
 
     reader = csv.DictReader(io.StringIO(text))
-    # normalise header keys to lowercase for tolerant matching
-    if reader.fieldnames:
-        reader.fieldnames = [(f or "").strip().lower() for f in reader.fieldnames]
+    # Auto-detect the source app's columns (ManaBox/Moxfield/Deckbox/Archidekt/…).
+    hmap = _header_map(reader.fieldnames)
 
     imported = 0
     updated = 0
     skipped = 0
     errors: List[str] = []
 
+    def col(row: dict, canon: str) -> str:
+        key = hmap.get(canon)
+        return (row.get(key) or "").strip() if key else ""
+
     for i, row in enumerate(reader, start=2):  # row 1 is the header
         if i > 10_001:  # cap at 10k rows to bound work + external lookups
             errors.append("Importação limitada a 10.000 linhas; o restante foi ignorado.")
             break
-        row = {(k or "").strip().lower(): (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
-        scryfall_id = row.get("scryfall_id") or ""
-        name = row.get("name") or ""
-        set_code = row.get("set_code") or ""
+        row = {(k or "").strip().lower(): v for k, v in row.items()}
+        scryfall_id = col(row, "scryfall_id")
+        name = col(row, "name")
+        set_code = col(row, "set_code")
+        number = col(row, "collector_number")
+        language = _norm_language(col(row, "language"))
 
         try:
+            if not scryfall_id and set_code and number:
+                # Most precise: exact printing by set + collector number (local cache).
+                card = await get_card_by_set_collector(set_code, number, language)
+                if card:
+                    scryfall_id = card["id"]
             if not scryfall_id and name:
-                # fallback: resolve by name when scryfall_id is missing
                 card = await get_card_by_name(name, fuzzy=True)
-                scryfall_id = card["id"]
+                if card:
+                    scryfall_id = card["id"]
             if not scryfall_id:
                 skipped += 1
-                errors.append(f"linha {i}: sem scryfall_id nem nome resolvível")
+                errors.append(f"linha {i}: carta não resolvível ({name or set_code+' '+number or '?'})")
                 continue
         except Exception:
             skipped += 1
-            errors.append(f"linha {i}: carta '{name}' não encontrada")
+            errors.append(f"linha {i}: carta '{name or number}' não encontrada")
             continue
 
         try:
-            quantity = int(float(row.get("quantity") or 1))
+            quantity = int(float(col(row, "quantity") or 1))
         except (ValueError, TypeError):
             quantity = 1
-        condition = (row.get("condition") or "NM").upper()[:3]
-        foil = _finish_to_foil(row.get("finish"))
-        language = _norm_language(row.get("language"))
-        notes = row.get("notes") or None
+        condition = _norm_condition(col(row, "condition"))
+        foil = _to_foil(col(row, "foil"))
+        notes = (row.get("notes") or "").strip() or None
         price = None
         try:
-            if row.get("acquired_price"):
-                price = float(row["acquired_price"])
+            if col(row, "price"):
+                price = float(col(row, "price"))
         except (ValueError, TypeError):
             price = None
 

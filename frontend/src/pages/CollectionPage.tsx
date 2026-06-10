@@ -219,9 +219,13 @@ export default function CollectionPage() {
                   </p>
 
                   <div className="rounded-lg border border-vault-border bg-vault-card/40 px-3 py-2.5 mb-4">
-                    <p className="text-[10px] uppercase tracking-wide text-vault-muted mb-1">{t('col.importFormat', 'Formato do arquivo')}</p>
-                    <p className="text-xs text-vault-text/90">CSV — colunas: <span className="font-mono text-[11px]">name, set_code, collector_number, scryfall_id, quantity, condition, finish, language, acquired_price</span>.</p>
-                    <p className="text-[11px] text-vault-muted mt-2">{t('col.importTemplateTip', 'Dica: clique em Exportar para baixar um CSV já no formato certo — edite e reimporte.')}</p>
+                    <p className="text-[10px] uppercase tracking-wide text-vault-muted mb-1.5">{t('col.importFormats', 'Aceita o CSV destes apps')}</p>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {['ManaBox', 'Moxfield', 'Deckbox', 'Archidekt', 'TCGplayer', 'CSV'].map(s => (
+                        <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-vault-accent/10 border border-vault-accent/25 text-vault-accent">{s}</span>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-vault-muted">{t('col.importAuto', 'Detectamos as colunas automaticamente (nome, set, número, foil, condição, idioma, preço). Dica: o Exportar gera um CSV de exemplo.')}</p>
                   </div>
 
                   <div className="flex gap-3">
