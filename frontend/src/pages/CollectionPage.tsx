@@ -215,7 +215,7 @@ export default function CollectionPage() {
                     <h2 className="font-display text-xl font-bold text-vault-gold">{t('col.importTitle', 'Importar coleção')}</h2>
                   </div>
                   <p className="text-xs text-vault-muted mb-4">
-                    {t('col.importHint', 'Suba um arquivo CSV com suas cartas. Como a lista pode ser enorme, a importação é por arquivo (não por colar).')}
+                    {t('col.importHint', 'Suba um arquivo CSV exportado do seu gerenciador de coleção.')}
                   </p>
 
                   <div className="rounded-lg border border-vault-border bg-vault-card/40 px-3 py-2.5 mb-4">

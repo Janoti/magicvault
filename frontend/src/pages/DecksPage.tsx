@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decksApi, cardsApi } from '@/lib/api'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Plus, Trash2, Swords, ChevronRight, Upload, Folder, FolderPlus, Share2, Pencil } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
@@ -14,6 +14,8 @@ export default function DecksPage() {
   const [showImport, setShowImport] = useState(false)
   const [importForm, setImportForm] = useState({ name: '', format: 'casual', list: '' })
   const [importResult, setImportResult] = useState<any>(null)
+  const importFileRef = useRef<HTMLInputElement>(null)
+  const [importFile, setImportFile] = useState('')
   const qc = useQueryClient()
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -218,7 +220,7 @@ export default function DecksPage() {
                 <h2 className="font-display text-xl font-bold text-vault-gold">{t('modal.importDeckTitle')}</h2>
               </div>
               <p className="text-xs text-vault-muted mb-3">
-                {t('modal.importDeckHint2', 'Cole a lista exportada de qualquer site — a gente detecta o formato automaticamente.')}
+                {t('modal.importDeckHint2', 'Selecione o arquivo do deck exportado de qualquer site — a gente detecta o formato automaticamente.')}
               </p>
 
               {/* Supported formats */}
@@ -246,13 +248,31 @@ export default function DecksPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.decklist')}</label>
-                  <textarea
-                    className="input-field resize-none font-mono text-xs" rows={10}
-                    placeholder={"Commander\n1 Krenko, Mob Boss\n\nDeck\n1 Sol Ring (C21) 263\n30 Mountain\n\nSideboard\n2 Pyroblast"}
-                    value={importForm.list}
-                    onChange={e => setImportForm(f => ({ ...f, list: e.target.value }))}
+                  <label className="text-xs text-vault-muted mb-1.5 block">{t('modal.decklistFile', 'Arquivo do deck')}</label>
+                  <input
+                    ref={importFileRef}
+                    type="file"
+                    accept=".txt,.dec,.csv,.text,text/plain"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        const text = String(reader.result || '')
+                        setImportFile(file.name)
+                        setImportForm(f => ({ ...f, list: text, name: f.name || file.name.replace(/\.[^.]+$/, '') }))
+                      }
+                      reader.readAsText(file)
+                      e.target.value = ''
+                    }}
                   />
+                  <button type="button" onClick={() => importFileRef.current?.click()}
+                    className="w-full border border-dashed border-vault-border rounded-lg py-7 flex flex-col items-center gap-1.5 text-vault-muted hover:border-vault-accent/40 hover:text-vault-text transition-colors">
+                    <Upload size={20} />
+                    <span className="text-sm">{importFile || t('modal.selectDeckFile', 'Selecionar arquivo (.txt, .dec, .csv)')}</span>
+                    {importFile && <span className="text-[11px] text-vault-accent">✓ arquivo carregado</span>}
+                  </button>
                 </div>
                 {importResult && (
                   <div className="rounded-lg border border-vault-gold/30 bg-vault-gold/5 p-3 text-xs">
