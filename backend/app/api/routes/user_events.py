@@ -200,6 +200,19 @@ async def toggle_interest(request: Request, event_id: int, token: Optional[str] 
     return {"interested": interested, "count": await _interested_count(db, e.id)}
 
 
+@router.get("/events/u/{event_id}/interested")
+async def list_interested(event_id: int, token: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
+    """Public list of users who marked interest (avatar + username) — shown on the
+    event page so people can see who is going."""
+    await _load_viewable(db, event_id, token)
+    rows = (await db.execute(
+        select(User).join(EventInterest, EventInterest.user_id == User.id)
+        .where(EventInterest.event_id == event_id, User.is_active == True)  # noqa: E712
+        .order_by(EventInterest.created_at).limit(200)
+    )).scalars().all()
+    return [_organizer(u) for u in rows]
+
+
 # --- Comments -------------------------------------------------------------
 
 class CommentIn(BaseModel):

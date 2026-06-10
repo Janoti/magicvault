@@ -30,6 +30,7 @@ export default function EventPage() {
 
   const { data: ev, isLoading, isError } = useQuery({ queryKey: ['user-event', eventId], queryFn: () => userEventsApi.get(eventId, token) })
   const { data: comments = [] } = useQuery({ queryKey: ['user-event-comments', eventId], queryFn: () => userEventsApi.comments(eventId, token), enabled: !!ev })
+  const { data: attendees = [] } = useQuery({ queryKey: ['user-event-interested', eventId], queryFn: () => userEventsApi.interested(eventId, token), enabled: !!ev })
   const { data: art } = useQuery({
     queryKey: ['event-art', eventId],
     queryFn: () => cardsApi.search(`!"${ART[eventId % ART.length]}"`).then((d: any) => d.cards?.[0]?.art_crop || null).catch(() => null),
@@ -40,7 +41,10 @@ export default function EventPage() {
 
   const interestMut = useMutation({
     mutationFn: () => userEventsApi.toggleInterest(eventId, token),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['user-event', eventId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['user-event', eventId] })
+      qc.invalidateQueries({ queryKey: ['user-event-interested', eventId] })
+    },
   })
   const addCommentMut = useMutation({
     mutationFn: () => userEventsApi.addComment(eventId, comment.trim(), token),
@@ -111,6 +115,24 @@ export default function EventPage() {
               <Download size={14} /> {t('userEvents.downloadIcs')}
             </a>
           </div>
+
+          {/* Who is going */}
+          {attendees.length > 0 && (
+            <div className="mt-7">
+              <h2 className="font-display text-lg font-bold text-vault-text mb-3">
+                {t('userEvents.whoIsGoing', 'Quem vai')} ({attendees.length})
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {attendees.map((a: any) => (
+                  <Link key={a.username} to={`/u/${a.username}`}
+                    className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-vault-border bg-vault-card hover:border-vault-accent/40 text-sm text-vault-text">
+                    <Avatar value={a.avatar} size={22} />
+                    {a.display_name || a.username}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Comments */}
           <div className="mt-10">

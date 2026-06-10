@@ -154,6 +154,7 @@ export const userEventsApi = {
   remove: (id: number) => api.delete(`/api/my-events/${id}`),
   get: (id: number, token?: string) => api.get(`/api/events/u/${id}`, { params: token ? { token } : undefined }).then(r => r.data),
   toggleInterest: (id: number, token?: string) => api.post(`/api/events/u/${id}/interest`, null, { params: token ? { token } : undefined }).then(r => r.data),
+  interested: (id: number, token?: string) => api.get(`/api/events/u/${id}/interested`, { params: token ? { token } : undefined }).then(r => r.data),
   comments: (id: number, token?: string) => api.get(`/api/events/u/${id}/comments`, { params: token ? { token } : undefined }).then(r => r.data),
   addComment: (id: number, body: string, token?: string) => api.post(`/api/events/u/${id}/comments`, { body }, { params: token ? { token } : undefined }).then(r => r.data),
   deleteComment: (id: number, commentId: number) => api.delete(`/api/events/u/${id}/comments/${commentId}`),
