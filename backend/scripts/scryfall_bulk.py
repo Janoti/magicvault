@@ -101,6 +101,18 @@ def ingest(bulk_type: str, limit: int | None):
                 execute_values(cur, UPSERT, batch, template=TEMPLATE, page_size=BATCH)
                 conn.commit()
                 total += len(batch)
+        # Trigram index so name search (ILIKE '%q%') is fast. Built here, off the
+        # app's startup path. Idempotent.
+        try:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+            cur.execute(
+                "CREATE INDEX IF NOT EXISTS ix_scryfall_cards_name_trgm "
+                "ON scryfall_cards USING gin (lower(name) gin_trgm_ops)"
+            )
+            conn.commit()
+            print("search index ok")
+        except Exception as e:
+            print("index step skipped:", e)
     finally:
         cur.close()
         conn.close()

@@ -75,6 +75,69 @@ async def _local_by_ids(ids: List[str]) -> Dict[str, Dict[str, Any]]:
         return {}
 
 
+def _has_search_operators(query: str) -> bool:
+    """Scryfall advanced syntax (t:, c:, cmc<=3, set:, "exact") must use the API."""
+    return any(ch in query for ch in (":", "<", ">", "=", '"'))
+
+
+async def _local_search(query: str, page: int, per: int = 60) -> Optional[Dict[str, Any]]:
+    """Name search over the local bulk cache (deduped to one row per card name).
+    Returns a Scryfall-shaped list, or None when nothing matches (API then tries)."""
+    try:
+        from sqlalchemy import select, func
+        from app.core.database import AsyncSessionLocal
+        from app.models.user import ScryfallCard
+        like = f"%{query.strip().lower()}%"
+        async with AsyncSessionLocal() as db:
+            rows = (await db.execute(
+                select(ScryfallCard.data).where(
+                    ScryfallCard.lang == "en",
+                    func.lower(ScryfallCard.name).like(like),
+                ).order_by(func.length(ScryfallCard.name), ScryfallCard.name).limit(600)
+            )).scalars().all()
+        seen, cards = set(), []
+        for d in rows:
+            key = (d.get("name") or "").lower()
+            if key and key not in seen:
+                seen.add(key)
+                cards.append(d)
+        if not cards:
+            return None
+        start = (page - 1) * per
+        return {
+            "object": "list", "data": cards[start:start + per],
+            "total_cards": len(cards), "has_more": start + per < len(cards),
+        }
+    except Exception:
+        return None
+
+
+async def _local_autocomplete(query: str, limit: int = 20) -> List[str]:
+    """Card-name suggestions from the local bulk cache."""
+    try:
+        from sqlalchemy import select, func
+        from app.core.database import AsyncSessionLocal
+        from app.models.user import ScryfallCard
+        like = f"%{query.strip().lower()}%"
+        async with AsyncSessionLocal() as db:
+            rows = (await db.execute(
+                select(ScryfallCard.name).where(
+                    ScryfallCard.lang == "en",
+                    func.lower(ScryfallCard.name).like(like),
+                ).order_by(func.length(ScryfallCard.name)).limit(300)
+            )).scalars().all()
+        out, seen = [], set()
+        for n in rows:
+            if n and n.lower() not in seen:
+                seen.add(n.lower())
+                out.append(n)
+            if len(out) >= limit:
+                break
+        return out
+    except Exception:
+        return []
+
+
 async def get_cards_bulk(scryfall_ids: List[str]) -> Dict[str, Dict[str, Any]]:
     """Resolve many cards efficiently: serve from cache, then batch-fetch the rest
     via Scryfall's /cards/collection endpoint (up to 75 ids per request)."""
@@ -113,6 +176,14 @@ async def search_cards(query: str, page: int = 1) -> Dict[str, Any]:
     cached = await cache_get(cache_key)
     if cached:
         return cached
+
+    # Plain name searches (the "add card" flow) are served from the local cache;
+    # only advanced Scryfall syntax (t:, c:, cmc<=…) still needs the API.
+    if not _has_search_operators(query):
+        local = await _local_search(query, page)
+        if local is not None:
+            await cache_set(cache_key, local, ttl=3600)
+            return local
 
     data = await _get(f"{BASE}/cards/search", params={"q": query, "page": page, "order": "name"})
     await cache_set(cache_key, data, ttl=3600)
@@ -161,6 +232,11 @@ async def autocomplete_cards(query: str) -> List[str]:
     cached = await cache_get(cache_key)
     if cached:
         return cached
+
+    local = await _local_autocomplete(query)
+    if local:
+        await cache_set(cache_key, local, ttl=3600)
+        return local
 
     data = await _get(f"{BASE}/cards/autocomplete", params={"q": query})
     names = data.get("data", [])
