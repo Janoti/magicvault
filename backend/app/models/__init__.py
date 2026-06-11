@@ -220,6 +220,7 @@ class Friendship(Base):
     requester_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
     addressee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
     status: Mapped[str] = mapped_column(String(10), default="pending")  # pending | accepted
+    reminders_sent: Mapped[int] = mapped_column(Integer, default=0)  # email reminders re-sent (capped)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

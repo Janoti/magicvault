@@ -486,7 +486,12 @@
     "noFriends": "No friends yet. Add someone above 👆",
     "remove": "Remove",
     "sent": "Request sent",
-    "sendError": "Error sending request"
+    "sendError": "Error sending request",
+    "resend": "Resend",
+    "resendLeft": "You can still resend {{count}}x",
+    "resendLimit": "Resend limit reached",
+    "reminderSent": "Reminder sent ({{left}} left)",
+    "reminderError": "Error resending reminder"
   },
   "shared": {
     "title": "Shared with me",

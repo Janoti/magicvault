@@ -272,6 +272,7 @@ export const friendsApi = {
   requests: () => api.get('/api/friends/requests').then(r => r.data),
   request: (identifier: string) => api.post('/api/friends/request', { identifier }).then(r => r.data),
   accept: (id: number) => api.post(`/api/friends/${id}/accept`).then(r => r.data),
+  remind: (id: number) => api.post(`/api/friends/${id}/remind`).then(r => r.data),
   remove: (id: number) => api.delete(`/api/friends/${id}`),
 }
 

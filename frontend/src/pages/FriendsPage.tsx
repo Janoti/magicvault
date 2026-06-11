@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { friendsApi } from '@/lib/api'
-import { UserPlus, Check, X, Users, Clock, Send, ExternalLink } from 'lucide-react'
+import { UserPlus, Check, X, Users, Clock, Send, ExternalLink, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 
@@ -27,6 +27,11 @@ export default function FriendsPage() {
   })
   const acceptMut = useMutation({ mutationFn: (id: number) => friendsApi.accept(id), onSuccess: invalidate })
   const removeMut = useMutation({ mutationFn: (id: number) => friendsApi.remove(id), onSuccess: invalidate })
+  const remindMut = useMutation({
+    mutationFn: (id: number) => friendsApi.remind(id),
+    onSuccess: (d: any) => { setMsg({ ok: true, text: t('friends.reminderSent', { left: d?.reminders_left ?? 0 }) }); invalidate() },
+    onError: (e: any) => setMsg({ ok: false, text: e?.response?.data?.detail || t('friends.reminderError') }),
+  })
 
   return (
     <div className="p-6 max-w-3xl">
@@ -89,6 +94,15 @@ export default function FriendsPage() {
                 <p className="text-sm text-vault-text">{r.username}</p>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-vault-muted">{t('friends.pending')}</span>
+                  {r.reminders_left > 0 ? (
+                    <button onClick={() => remindMut.mutate(r.friendship_id)} disabled={remindMut.isPending}
+                      title={t('friends.resendLeft', { count: r.reminders_left })}
+                      className="text-xs text-vault-accent hover:underline flex items-center gap-1 disabled:opacity-50">
+                      <RefreshCw size={12} /> {t('friends.resend')}
+                    </button>
+                  ) : (
+                    <span className="text-[11px] text-vault-muted/70">{t('friends.resendLimit')}</span>
+                  )}
                   <button onClick={() => removeMut.mutate(r.friendship_id)} className="text-vault-muted hover:text-red-400"><X size={14} /></button>
                 </div>
               </div>

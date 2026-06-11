@@ -4,10 +4,28 @@ from sqlalchemy import select, or_, and_
 from pydantic import BaseModel
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.core.security import get_current_user
 from app.models.user import User, Friendship
+from app.services.email import send_friend_request
 
 router = APIRouter()
+
+MAX_REMINDERS = 2  # cap on re-sent friend-request emails, so we don't flood
+
+
+def _display_name(u: User) -> str:
+    return u.display_name or u.username
+
+
+async def _notify_request(target: User, requester: User, reminder: bool = False) -> None:
+    """Best-effort email telling `target` about a (new or re-sent) friend request."""
+    if not target.email:
+        return
+    try:
+        await send_friend_request(target.email, _display_name(requester), settings.app_url, reminder=reminder)
+    except Exception:
+        pass
 
 
 class FriendRequest(BaseModel):
@@ -56,7 +74,9 @@ async def list_requests(current_user: User = Depends(get_current_user), db: Asyn
         else:
             other = (await db.execute(select(User).where(User.id == f.addressee_id))).scalar_one_or_none()
             if other:
-                outgoing.append({"friendship_id": f.id, **_user_public(other)})
+                sent = f.reminders_sent or 0
+                outgoing.append({"friendship_id": f.id, "reminders_sent": sent,
+                                 "reminders_left": max(0, MAX_REMINDERS - sent), **_user_public(other)})
     return {"incoming": incoming, "outgoing": outgoing}
 
 
@@ -89,7 +109,25 @@ async def send_request(data: FriendRequest, current_user: User = Depends(get_cur
     f = Friendship(requester_id=current_user.id, addressee_id=target.id, status="pending")
     db.add(f)
     await db.flush()
+    await _notify_request(target, current_user)
     return {"message": "Pedido enviado", "friendship_id": f.id, "status": "pending"}
+
+
+@router.post("/{friendship_id}/remind")
+async def remind_request(friendship_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Re-send the friend-request email to the addressee, capped at MAX_REMINDERS."""
+    f = (await db.execute(select(Friendship).where(Friendship.id == friendship_id))).scalar_one_or_none()
+    if not f or f.requester_id != current_user.id or f.status != "pending":
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    if (f.reminders_sent or 0) >= MAX_REMINDERS:
+        raise HTTPException(status_code=429, detail="Limite de lembretes atingido")
+    target = (await db.execute(select(User).where(User.id == f.addressee_id))).scalar_one_or_none()
+    if not target:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    f.reminders_sent = (f.reminders_sent or 0) + 1
+    await _notify_request(target, current_user, reminder=True)
+    return {"message": "Lembrete enviado", "reminders_sent": f.reminders_sent,
+            "reminders_left": MAX_REMINDERS - f.reminders_sent}
 
 
 @router.post("/{friendship_id}/accept")

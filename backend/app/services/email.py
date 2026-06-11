@@ -47,6 +47,30 @@ async def send_password_reset(to: str, reset_url: str) -> bool:
     return await send_email(to, "Redefinir sua senha — VaultSpell", html)
 
 
+async def send_friend_request(to: str, requester_name: str, app_url: str, reminder: bool = False) -> bool:
+    """Notify someone that `requester_name` sent (or re-sent) a friend request."""
+    friends_url = f"{app_url.rstrip('/')}/friends"
+    name = escape(requester_name)
+    lead = f"<strong>{name}</strong> quer ser seu amigo no VaultSpell."
+    if reminder:
+        lead = f"Lembrete: {lead}"
+    html = f"""
+    <div style="font-family:sans-serif;max-width:480px;margin:auto">
+      <h2 style="color:#b8860b">📖 VaultSpell</h2>
+      <p>{lead}</p>
+      <p>
+        <a href="{friends_url}"
+           style="display:inline-block;background:#6366f1;color:#fff;padding:12px 20px;
+                  border-radius:8px;text-decoration:none">Ver pedido</a>
+      </p>
+      <p style="color:#666;font-size:13px">Ou acesse: {friends_url}</p>
+      <p style="color:#666;font-size:13px">Se não quiser, é só ignorar este email.</p>
+    </div>
+    """
+    subject = f"{requester_name} quer ser seu amigo — VaultSpell"
+    return await send_email(to, subject, html)
+
+
 def render_campaign_html(
     *,
     title: str,

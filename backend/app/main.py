@@ -71,6 +71,7 @@ _COLUMN_MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS location_public BOOLEAN DEFAULT FALSE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verify_token VARCHAR(64)",
+    "ALTER TABLE friendships ADD COLUMN IF NOT EXISTS reminders_sent INTEGER DEFAULT 0",
     # Local Scryfall bulk cache: speed up name and set+number lookups.
     "CREATE INDEX IF NOT EXISTS ix_scryfall_cards_lower_name ON scryfall_cards (lower(name))",
     "CREATE INDEX IF NOT EXISTS ix_scryfall_cards_set_cn ON scryfall_cards (set_code, collector_number)",

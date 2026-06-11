@@ -486,7 +486,12 @@
     "noFriends": "Nenhum amigo ainda. Adicione alguém acima 👆",
     "remove": "Remover",
     "sent": "Pedido enviado",
-    "sendError": "Erro ao enviar pedido"
+    "sendError": "Erro ao enviar pedido",
+    "resend": "Reenviar",
+    "resendLeft": "Você ainda pode reenviar {{count}}x",
+    "resendLimit": "Limite de reenvios atingido",
+    "reminderSent": "Lembrete enviado (restam {{left}})",
+    "reminderError": "Erro ao reenviar lembrete"
   },
   "shared": {
     "title": "Compartilhados comigo",

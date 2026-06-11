@@ -486,7 +486,12 @@
     "noFriends": "Aún no tienes amigos. Añade a alguien arriba 👆",
     "remove": "Quitar",
     "sent": "Solicitud enviada",
-    "sendError": "Error al enviar la solicitud"
+    "sendError": "Error al enviar la solicitud",
+    "resend": "Reenviar",
+    "resendLeft": "Aún puedes reenviar {{count}}x",
+    "resendLimit": "Límite de reenvíos alcanzado",
+    "reminderSent": "Recordatorio enviado (quedan {{left}})",
+    "reminderError": "Error al reenviar el recordatorio"
   },
   "shared": {
     "title": "Compartidos conmigo",
