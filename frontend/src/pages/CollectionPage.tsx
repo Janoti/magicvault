@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { collectionApi, bindersApi, decksApi, authApi } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen, Globe, Lock, List, LayoutGrid } from 'lucide-react'
+import { Trash2, Filter, Plus, ChevronLeft, ChevronRight, Pencil, BookMarked, Swords, Download, Upload, Share2, Search, X, BookOpen, Globe, Lock, List, LayoutGrid, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CardPrice from '@/components/cards/CardPrice'
 import CardTile from '@/components/cards/CardTile'
@@ -375,6 +375,12 @@ export default function CollectionPage() {
         <>
           <ValueChart />
           {flags.pnl && <PnL />}
+          {(user?.is_premium || user?.is_admin) && (
+            <Link to="/collection/insights" className="block surface p-4 mb-4 hover:border-vault-accent/40 transition-all group">
+              <h3 className="text-sm font-semibold text-vault-text flex items-center gap-1.5"><Sparkles size={15} className="text-vault-gold" /> {t('col.insightsTitle')} <ChevronRight size={14} className="text-vault-muted group-hover:text-vault-accent transition-colors" /></h3>
+              <p className="text-[11px] text-vault-muted">{t('col.insightsSubtitle')}</p>
+            </Link>
+          )}
           {flags.setCompletion && <SetCompletion />}
           {selectedIds.size > 0 && (
             <div className="surface p-3 mb-3 flex flex-wrap items-center gap-3 border-vault-accent/30">

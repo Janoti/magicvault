@@ -94,6 +94,8 @@
     "pnlValue": "Valor atual",
     "pnlResult": "Resultado",
     "pnlSubtitle": "O que você pagou vs. valor de mercado atual — só pras cartas em que você registrou um custo.",
+    "insightsTitle": "Insights da coleção",
+    "insightsSubtitle": "Suas cartas mais valiosas e quais mais subiram ou caíram desde que você adicionou.",
     "pnlCostSub": "você pagou",
     "pnlValueSub": "mercado agora",
     "pnlResultSub": "lucro / prejuízo",
@@ -219,6 +221,15 @@
     "thPaid": "Pago",
     "thNow": "Agora",
     "thResult": "Resultado"
+  },
+  "insightsPage": {
+    "premiumOnly": "Insights da coleção é um recurso premium.",
+    "goPremium": "Conhecer o premium",
+    "empty": "Adicione cartas com preço à coleção pra ver seus insights.",
+    "topValue": "Cartas mais valiosas",
+    "gainers": "Maiores altas",
+    "losers": "Maiores baixas",
+    "noMovers": "Sem variações registradas ainda."
   },
   "guide": {
     "badge": "Primeiros passos",

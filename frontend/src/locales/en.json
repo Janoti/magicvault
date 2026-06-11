@@ -94,6 +94,8 @@
     "pnlValue": "Current value",
     "pnlResult": "Result",
     "pnlSubtitle": "What you paid vs. current market value — only for cards where you recorded a cost.",
+    "insightsTitle": "Collection insights",
+    "insightsSubtitle": "Your most valuable cards and which ones rose or fell the most since you added them.",
     "pnlCostSub": "you paid",
     "pnlValueSub": "market now",
     "pnlResultSub": "profit / loss",
@@ -219,6 +221,15 @@
     "thPaid": "Paid",
     "thNow": "Now",
     "thResult": "Result"
+  },
+  "insightsPage": {
+    "premiumOnly": "Collection insights is a premium feature.",
+    "goPremium": "See premium",
+    "empty": "Add priced cards to your collection to see your insights.",
+    "topValue": "Most valuable cards",
+    "gainers": "Top gainers",
+    "losers": "Top losers",
+    "noMovers": "No movement recorded yet."
   },
   "guide": {
     "badge": "Getting started",

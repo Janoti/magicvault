@@ -189,6 +189,7 @@ export const collectionApi = {
   cardContext: (scryfallId: string) => api.get(`/api/collection/card-context/${scryfallId}`).then(r => r.data),
   valueHistory: () => api.get('/api/collection/value-history').then(r => r.data),
   pnl: () => api.get('/api/collection/pnl').then(r => r.data),
+  insights: () => api.get('/api/collection/insights').then(r => r.data),
   setCompletion: () => api.get('/api/collection/set-completion').then(r => r.data),
   add: (data: object) => api.post('/api/collection', data).then(r => r.data),
   update: (id: number, data: object) => api.patch(`/api/collection/${id}`, data).then(r => r.data),
