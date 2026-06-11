@@ -851,7 +851,10 @@
     "missingList": "Faltam na sua coleção",
     "complete": "Você tem o deck inteiro!",
     "findInMarket": "Buscar no mercado",
-    "addWishlist": "Adicionar à wishlist"
+    "addWishlist": "Adicionar à wishlist",
+    "tabMissing": "Faltando ({{count}})",
+    "tabOwned": "Já tenho ({{count}})",
+    "noOwned": "Você ainda não tem nenhuma carta deste deck."
   },
   "analysis": {
     "title": "Análise do deck",
@@ -995,6 +998,14 @@
     "makeCommander": "Definir como comandante",
     "unmakeCommander": "Remover comandante",
     "mainDeck": "Main Deck",
+    "filterAllTypes": "Todos os tipos",
+    "filterCreature": "Criaturas",
+    "filterLand": "Terrenos",
+    "filterInstant": "Instantâneos",
+    "filterSorcery": "Feitiços",
+    "filterArtifact": "Artefatos",
+    "filterEnchantment": "Encantamentos",
+    "filterPlaneswalker": "Planeswalkers",
     "deckEmpty": "Deck vazio — adicione cartas para começar",
     "addToDeck": "Adicionar ao Deck",
     "public": "Público",

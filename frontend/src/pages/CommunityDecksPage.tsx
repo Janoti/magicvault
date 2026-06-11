@@ -99,7 +99,9 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
           {!isLoading && groups.length > 0 && (
             <div className="mb-4">
               <div className="flex items-end justify-between gap-3 flex-wrap">
-                <div className="flex items-end gap-1.5 h-12" title={t('community.manaCurve')}>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-vault-accent mb-1">{t('community.manaCurve')}</p>
+                  <div className="flex items-end gap-1.5 h-12">
                   {stats.curve.map((n, i) => (
                     <div key={i} className="flex flex-col items-center gap-0.5">
                       <span className="text-[8px] text-vault-muted leading-none">{n || ''}</span>
@@ -107,6 +109,7 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
                       <span className="text-[8px] text-vault-muted leading-none">{i === 7 ? '7+' : i}</span>
                     </div>
                   ))}
+                  </div>
                 </div>
                 <button onClick={() => setSort((s) => (s === 'name' ? 'cmc' : 'name'))}
                   className="text-[11px] px-2.5 py-1 rounded-lg border border-vault-border text-vault-muted hover:text-vault-text">

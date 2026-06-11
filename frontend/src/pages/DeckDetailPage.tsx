@@ -85,6 +85,7 @@ export default function DeckDetailPage() {
   const { id } = useParams<{ id: string }>()
   const deckId = Number(id)
   const [showSearch, setShowSearch] = useState(false)
+  const [coverageTab, setCoverageTab] = useState<'missing' | 'owned'>('missing')
   const [view, setView] = useState<'grid' | 'list' | 'pile'>('list')
   const [deckSort, setDeckSort] = useState('name')
   const [typeFilter, setTypeFilter] = useState('all')
@@ -538,45 +539,78 @@ export default function DeckDetailPage() {
                       <p className="text-[11px] text-vault-muted">{t('coverage.costToComplete')}</p>
                     </div>
                   </div>
-                  {coverage.summary.missing > 0 ? (
-                    <>
-                      <p className="text-xs font-medium text-vault-muted mb-2">{t('coverage.missingList')}</p>
-                      <div className="max-h-64 overflow-y-auto rounded-xl border border-vault-border divide-y divide-vault-border/40">
-                        {coverage.cards.filter((c: any) => c.missing > 0).map((c: any, i: number) => (
-                          <div key={i} className="flex items-center gap-3 px-3 py-2 hover:bg-vault-card/30">
-                            {c.card?.image_small && (
-                              <img src={c.card.image_small} alt={c.card.name} className="w-6 rounded shadow flex-shrink-0" />
-                            )}
-                            <span className="flex-1 text-sm text-vault-text truncate">
-                              {c.card?.name}
-                              {c.is_sideboard && <span className="ml-1.5 text-[10px] text-vault-muted">SB</span>}
-                              {c.is_commander && <span className="ml-1.5 text-[10px] text-vault-gold">CMD</span>}
-                            </span>
-                            <span className="text-xs font-mono text-vault-muted">{c.owned}/{c.needed}</span>
-                            <span className="text-xs font-mono font-bold text-vault-accent w-10 text-right">−{c.missing}</span>
-                            <span className="text-xs font-mono text-green-400 w-16 text-right">
-                              {c.card?.price_usd > 0 ? money(c.card.price_usd * c.missing) : '—'}
-                            </span>
-                            <div className="flex items-center gap-1 pl-1">
-                              <button
-                                onClick={() => navigate(`/trades?q=${encodeURIComponent(c.card?.name || '')}`)}
-                                title={t('coverage.findInMarket')}
-                                className="text-vault-muted hover:text-vault-accent p-1 rounded hover:bg-vault-accent/10"
-                              ><ShoppingCart size={13} /></button>
-                              <button
-                                onClick={() => c.card?.id && wishlistMutation.mutate(c.card.id)}
-                                disabled={!!wished[c.card?.id]}
-                                title={t('coverage.addWishlist')}
-                                className={`p-1 rounded hover:bg-vault-gold/10 ${wished[c.card?.id] ? 'text-vault-gold' : 'text-vault-muted hover:text-vault-gold'}`}
-                              ><Star size={13} className={wished[c.card?.id] ? 'fill-vault-gold' : ''} /></button>
+                  {(() => {
+                    const missingCards = coverage.cards.filter((c: any) => c.missing > 0)
+                    const ownedCards = coverage.cards.filter((c: any) => c.owned > 0)
+                    const tabCls = (k: string) => `text-xs font-medium px-3 py-1.5 rounded-lg ${coverageTab === k ? 'bg-vault-accent/20 text-vault-accent' : 'text-vault-muted hover:text-vault-text'}`
+                    return (
+                      <>
+                        <div className="flex gap-1 mb-2">
+                          <button onClick={() => setCoverageTab('missing')} className={tabCls('missing')}>{t('coverage.tabMissing', { count: missingCards.length })}</button>
+                          <button onClick={() => setCoverageTab('owned')} className={tabCls('owned')}>{t('coverage.tabOwned', { count: ownedCards.length })}</button>
+                        </div>
+                        {coverageTab === 'owned' ? (
+                          ownedCards.length === 0 ? (
+                            <p className="text-sm text-vault-muted text-center py-4">{t('coverage.noOwned')}</p>
+                          ) : (
+                            <div className="max-h-64 overflow-y-auto rounded-xl border border-vault-border divide-y divide-vault-border/40">
+                              {ownedCards.map((c: any, i: number) => (
+                                <div key={i} className="flex items-center gap-3 px-3 py-2 hover:bg-vault-card/30">
+                                  {c.card?.image_small && (
+                                    <img src={c.card.image_small} alt={c.card.name} className="w-6 rounded shadow flex-shrink-0" />
+                                  )}
+                                  <span className="flex-1 text-sm text-vault-text truncate">
+                                    {c.card?.name}
+                                    {c.is_sideboard && <span className="ml-1.5 text-[10px] text-vault-muted">SB</span>}
+                                    {c.is_commander && <span className="ml-1.5 text-[10px] text-vault-gold">CMD</span>}
+                                  </span>
+                                  <span className="text-xs font-mono font-bold text-green-400 w-12 text-right">{c.owned}/{c.needed}</span>
+                                  <span className="text-xs font-mono text-vault-muted w-16 text-right">
+                                    {c.card?.price_usd > 0 ? money(c.card.price_usd * c.owned) : '—'}
+                                  </span>
+                                </div>
+                              ))}
                             </div>
+                          )
+                        ) : missingCards.length > 0 ? (
+                          <div className="max-h-64 overflow-y-auto rounded-xl border border-vault-border divide-y divide-vault-border/40">
+                            {missingCards.map((c: any, i: number) => (
+                              <div key={i} className="flex items-center gap-3 px-3 py-2 hover:bg-vault-card/30">
+                                {c.card?.image_small && (
+                                  <img src={c.card.image_small} alt={c.card.name} className="w-6 rounded shadow flex-shrink-0" />
+                                )}
+                                <span className="flex-1 text-sm text-vault-text truncate">
+                                  {c.card?.name}
+                                  {c.is_sideboard && <span className="ml-1.5 text-[10px] text-vault-muted">SB</span>}
+                                  {c.is_commander && <span className="ml-1.5 text-[10px] text-vault-gold">CMD</span>}
+                                </span>
+                                <span className="text-xs font-mono text-vault-muted">{c.owned}/{c.needed}</span>
+                                <span className="text-xs font-mono font-bold text-vault-accent w-10 text-right">−{c.missing}</span>
+                                <span className="text-xs font-mono text-green-400 w-16 text-right">
+                                  {c.card?.price_usd > 0 ? money(c.card.price_usd * c.missing) : '—'}
+                                </span>
+                                <div className="flex items-center gap-1 pl-1">
+                                  <button
+                                    onClick={() => navigate(`/trades?q=${encodeURIComponent(c.card?.name || '')}`)}
+                                    title={t('coverage.findInMarket')}
+                                    className="text-vault-muted hover:text-vault-accent p-1 rounded hover:bg-vault-accent/10"
+                                  ><ShoppingCart size={13} /></button>
+                                  <button
+                                    onClick={() => c.card?.id && wishlistMutation.mutate(c.card.id)}
+                                    disabled={!!wished[c.card?.id]}
+                                    title={t('coverage.addWishlist')}
+                                    className={`p-1 rounded hover:bg-vault-gold/10 ${wished[c.card?.id] ? 'text-vault-gold' : 'text-vault-muted hover:text-vault-gold'}`}
+                                  ><Star size={13} className={wished[c.card?.id] ? 'fill-vault-gold' : ''} /></button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-sm text-green-400 text-center py-2">✓ {t('coverage.complete')}</p>
-                  )}
+                        ) : (
+                          <p className="text-sm text-green-400 text-center py-2">✓ {t('coverage.complete')}</p>
+                        )}
+                      </>
+                    )
+                  })()}
                 </>
               )}
             </div>

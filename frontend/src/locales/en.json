@@ -851,7 +851,10 @@
     "missingList": "Missing from your collection",
     "complete": "You own the whole deck!",
     "findInMarket": "Find in the marketplace",
-    "addWishlist": "Add to wishlist"
+    "addWishlist": "Add to wishlist",
+    "tabMissing": "Missing ({{count}})",
+    "tabOwned": "I own ({{count}})",
+    "noOwned": "You don't own any card from this deck yet."
   },
   "analysis": {
     "title": "Deck analysis",
@@ -995,6 +998,14 @@
     "makeCommander": "Set as commander",
     "unmakeCommander": "Remove as commander",
     "mainDeck": "Main Deck",
+    "filterAllTypes": "All types",
+    "filterCreature": "Creatures",
+    "filterLand": "Lands",
+    "filterInstant": "Instants",
+    "filterSorcery": "Sorceries",
+    "filterArtifact": "Artifacts",
+    "filterEnchantment": "Enchantments",
+    "filterPlaneswalker": "Planeswalkers",
     "deckEmpty": "Empty deck — add cards to get started",
     "addToDeck": "Add to Deck",
     "public": "Public",

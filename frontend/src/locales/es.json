@@ -851,7 +851,10 @@
     "missingList": "Faltan en tu colección",
     "complete": "¡Tienes el mazo completo!",
     "findInMarket": "Buscar en el mercado",
-    "addWishlist": "Añadir a la wishlist"
+    "addWishlist": "Añadir a la wishlist",
+    "tabMissing": "Faltan ({{count}})",
+    "tabOwned": "Ya tengo ({{count}})",
+    "noOwned": "Aún no tienes ninguna carta de este mazo."
   },
   "analysis": {
     "title": "Análisis del mazo",
@@ -995,6 +998,14 @@
     "makeCommander": "Definir como comandante",
     "unmakeCommander": "Quitar comandante",
     "mainDeck": "Mazo Principal",
+    "filterAllTypes": "Todos los tipos",
+    "filterCreature": "Criaturas",
+    "filterLand": "Tierras",
+    "filterInstant": "Instantáneos",
+    "filterSorcery": "Conjuros",
+    "filterArtifact": "Artefactos",
+    "filterEnchantment": "Encantamientos",
+    "filterPlaneswalker": "Planeswalkers",
     "deckEmpty": "Mazo vacío — añade cartas para empezar",
     "addToDeck": "Añadir al Mazo",
     "public": "Público",
