@@ -472,6 +472,8 @@ def extract_card_summary(card: Dict[str, Any]) -> Dict[str, Any]:
         "price_eur": float(prices.get("eur") or 0),
         "finishes": card.get("finishes", []),
         "lang": card.get("lang", "en"),
+        # Digital-only (MTG Arena / Alchemy). These have no paper market price.
+        "digital": bool(card.get("digital")),
         "scryfall_uri": card.get("scryfall_uri", ""),
         # Official store page with the live price (TCGplayer in USD, else Cardmarket in EUR).
         "purchase_uri": purchase.get("tcgplayer") or purchase.get("cardmarket") or card.get("scryfall_uri", ""),

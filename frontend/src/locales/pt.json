@@ -729,6 +729,7 @@
     "copyError": "Erro ao copiar o deck"
   },
   "cardInfo": {
+    "digitalOnly": "Carta digital (MTG Arena / Alchemy) — não existe em papel, sem preço de mercado.",
     "inCollection": "Na coleção",
     "paidTitle": "Quanto você pagou (opcional)",
     "paidSaved": "Salvo",

@@ -145,6 +145,11 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
                   {usdFoil > 0 && <span className="text-yellow-400"> / ✦{money(usdFoil)}</span>}
                 </div>
               )}
+              {card.digital && (
+                <div className="text-center text-[11px] text-sky-300/90 bg-sky-500/10 border border-sky-500/30 rounded-lg px-2 py-1.5">
+                  {t('cardInfo.digitalOnly')}
+                </div>
+              )}
 
               {/* Language (view / persist for owned cards) */}
               <div className="flex gap-1.5">
