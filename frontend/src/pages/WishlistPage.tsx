@@ -6,13 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/auth'
-import CardPrice, { useMoney } from '@/components/cards/CardPrice'
+import CardPrice, { useMoney, useUsdBrl } from '@/components/cards/CardPrice'
 import CardInfoModal from '@/components/cards/CardInfoModal'
 import AddToDeckModal from '@/components/collection/AddToDeckModal'
 
 export default function WishlistPage() {
   const qc = useQueryClient()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const isPremium = !!(user?.is_premium || user?.is_admin)
@@ -23,6 +23,13 @@ export default function WishlistPage() {
   const [deckFor, setDeckFor] = useState<any>(null)
   const [infoCard, setInfoCard] = useState<any>(null)
   const money = useMoney()
+  // The target price is shown/entered in the viewer's currency (R$ for PT, $ for EN/ES)
+  // but stored in USD, since the backend compares it against the card's USD price.
+  const rate = useUsdBrl()
+  const brl = (i18n.language || '').toLowerCase().startsWith('pt')
+  const curSym = brl ? 'R$' : '$'
+  const toDisplay = (usd: number) => (brl && rate ? usd * rate : usd)
+  const toUsd = (disp: number) => (brl && rate ? disp / rate : disp)
   const owned = new Set<string>()
 
   // Open our marketplace for a card — premium only.
@@ -192,19 +199,22 @@ export default function WishlistPage() {
                 {/* Target price alert */}
                 {item.target_hit && (
                   <div className="text-xs rounded-lg bg-vault-gold/15 border border-vault-gold/40 text-vault-gold px-3 py-2 flex items-center gap-2 font-medium">
-                    🎯 {t('wl.targetHit', { price: `$${item.max_price.toFixed(2)}` })}
+                    🎯 {t('wl.targetHit', { price: money(item.max_price) })}
                   </div>
                 )}
                 <div className="flex items-center gap-1.5 text-xs text-vault-muted">
-                  <Bell size={12} /> {t('wl.alertWhen')} $
+                  <Bell size={12} /> {t('wl.alertWhen')} {curSym}
                   <input
-                    type="number" step="0.01" min="0" defaultValue={item.max_price ?? ''} placeholder="—"
-                    className="input-field !w-20 !py-1 text-xs"
+                    type="number" step="0.01" min="0" defaultValue={item.max_price != null ? toDisplay(item.max_price).toFixed(2) : ''} placeholder="—"
+                    className="input-field !w-24 !py-1 text-xs"
                     onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
                     onBlur={(e) => {
                       const raw = e.target.value.trim()
-                      if (raw === '' && item.max_price != null) targetMutation.mutate({ id: item.id, clear_target: true })
-                      else { const v = parseFloat(raw); if (!isNaN(v) && v !== item.max_price) targetMutation.mutate({ id: item.id, max_price: v }) }
+                      if (raw === '' && item.max_price != null) { targetMutation.mutate({ id: item.id, clear_target: true }); return }
+                      const disp = parseFloat(raw)
+                      if (isNaN(disp)) return
+                      const usd = toUsd(disp)
+                      if (Math.abs(usd - (item.max_price ?? -1)) > 0.001) targetMutation.mutate({ id: item.id, max_price: usd })
                     }}
                   />
                 </div>
