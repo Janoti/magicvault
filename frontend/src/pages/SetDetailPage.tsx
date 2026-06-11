@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { setsApi, collectionApi } from '@/lib/api'
 import CardTile from '@/components/cards/CardTile'
+import CardInfoModal from '@/components/cards/CardInfoModal'
 import AddCardModal from '@/components/collection/AddCardModal'
 import { ArrowLeft, Layers, ExternalLink, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,6 +15,7 @@ export default function SetDetailPage() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [selectedCard, setSelectedCard] = useState<any>(null)
+  const [infoCard, setInfoCard] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
 
@@ -117,6 +119,7 @@ export default function SetDetailPage() {
               >
                 <CardTile
                   card={card}
+                  onClick={(c) => setInfoCard(c)}
                   onAdd={(c) => { setSelectedCard(c); setShowModal(true) }}
                 />
               </motion.div>
@@ -133,6 +136,8 @@ export default function SetDetailPage() {
           isLoading={addMutation.isPending}
         />
       )}
+
+      {infoCard && <CardInfoModal card={infoCard} onAddToCollection={(c) => { setInfoCard(null); setSelectedCard(c); setShowModal(true) }} onClose={() => setInfoCard(null)} />}
     </div>
   )
 }
