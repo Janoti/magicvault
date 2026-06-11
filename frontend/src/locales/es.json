@@ -561,6 +561,7 @@
     "actions": "Acciones",
     "editEmail": "Editar email",
     "deleteUser": "Eliminar cuenta",
+    "viewProfile": "Ver perfil",
     "confirmDelete": "¿Eliminar la cuenta de {{name}} y TODOS sus datos? Esto no se puede deshacer.",
     "feedbackTitle": "Feedback y bugs",
     "open": "abierto",

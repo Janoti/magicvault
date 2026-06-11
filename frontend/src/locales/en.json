@@ -561,6 +561,7 @@
     "actions": "Actions",
     "editEmail": "Edit email",
     "deleteUser": "Delete account",
+    "viewProfile": "View profile",
     "confirmDelete": "Delete {{name}}'s account and ALL their data? This cannot be undone.",
     "feedbackTitle": "Feedback & bugs",
     "open": "open",

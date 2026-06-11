@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X, Store as StoreIcon, CalendarDays, Activity, Moon, Flag } from 'lucide-react'
+import { Users, Crown, Library, Swords, BookOpen, ShieldCheck, MessageSquare, Check, Pencil, Trash2, Mail, Send, Plus, X, Store as StoreIcon, CalendarDays, Activity, Moon, Flag, ExternalLink } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import Avatar from '@/components/Avatar'
@@ -593,7 +593,12 @@ export default function AdminPage() {
                     <div className="flex items-center gap-3">
                       <Avatar value={u.avatar} size={32} />
                       <div>
-                        <p className="font-medium text-vault-text">{u.display_name || u.username} {self && <span className="text-[10px] text-vault-accent">(você)</span>}</p>
+                        <p className="font-medium">
+                          <Link to={`/u/${u.username}`} target="_blank" rel="noreferrer" title={t('admin.viewProfile')} className="text-vault-text hover:text-vault-accent inline-flex items-center gap-1">
+                            {u.display_name || u.username}<ExternalLink size={11} className="text-vault-muted" />
+                          </Link>
+                          {self && <span className="ml-1 text-[10px] text-vault-accent">(você)</span>}
+                        </p>
                         <p className="text-xs text-vault-muted">{u.email}</p>
                       </div>
                     </div>
