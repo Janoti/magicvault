@@ -1,24 +1,30 @@
 import { useQuery } from '@tanstack/react-query'
 import { setsApi } from '@/lib/api'
 import { Package, Search, ExternalLink } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
-const SET_TYPES = ['core', 'expansion', 'commander', 'draft_innovation', 'masters', 'memorabilia', 'funny']
+const prettyType = (s: string) => (s || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
 export default function SetsPage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
+  const [yearFilter, setYearFilter] = useState('')
   const navigate = useNavigate()
   const { t } = useTranslation()
 
   const { data: sets = [], isLoading } = useQuery({ queryKey: ['sets'], queryFn: setsApi.list })
 
+  // Filter options come from the real data (covers tokens, alchemy, promos, etc.).
+  const types = useMemo(() => [...new Set(sets.map((s: any) => s.set_type).filter(Boolean))].sort() as string[], [sets])
+  const years = useMemo(() => ([...new Set(sets.map((s: any) => s.released_at?.slice(0, 4)).filter(Boolean))] as string[]).sort().reverse(), [sets])
+
   const filtered = sets.filter((s: any) =>
     (!search || s.name.toLowerCase().includes(search.toLowerCase()) || s.code.includes(search.toLowerCase())) &&
-    (!typeFilter || s.set_type === typeFilter)
+    (!typeFilter || s.set_type === typeFilter) &&
+    (!yearFilter || s.released_at?.slice(0, 4) === yearFilter)
   )
 
   return (
@@ -28,16 +34,24 @@ export default function SetsPage() {
         <p className="text-vault-muted text-sm mt-0.5">{t('pages.setsSubtitle')}</p>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-muted" />
           <input className="input-field pl-9" placeholder={t('pages.searchSet')} value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="input-field !w-auto" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
           <option value="">{t('pages.allTypes')}</option>
-          {SET_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          {types.map((ty) => <option key={ty} value={ty}>{prettyType(ty)}</option>)}
+        </select>
+        <select className="input-field !w-auto" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
+          <option value="">{t('pages.allYears')}</option>
+          {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
       </div>
+
+      {!isLoading && (
+        <p className="text-xs text-vault-muted mb-4">{t('pages.setsCount', { count: filtered.length })}</p>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
@@ -65,16 +79,16 @@ export default function SetsPage() {
                     rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
                     className="text-vault-muted hover:text-vault-accent transition-colors shrink-0"
-                    title="Abrir no Scryfall"
+                    title="Scryfall"
                   >
                     <ExternalLink size={14} />
                   </a>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-[10px] uppercase tracking-wider text-vault-muted bg-vault-card px-2 py-0.5 rounded-full">
-                    {set.set_type?.replace('_', ' ')}
+                    {prettyType(set.set_type)}
                   </span>
-                  <span className="text-xs font-mono text-vault-accent">{set.card_count} cartas</span>
+                  <span className="text-xs font-mono text-vault-accent">{t('pages.setCardCount', { count: set.card_count })}</span>
                 </div>
               </div>
             </motion.div>
@@ -82,7 +96,7 @@ export default function SetsPage() {
         </div>
       )}
       {filtered.length > 100 && (
-        <p className="text-center text-vault-muted text-sm mt-4">Mostrando 100 de {filtered.length} sets. Refine a busca.</p>
+        <p className="text-center text-vault-muted text-sm mt-4">{t('pages.setsShowingLimit', { total: filtered.length })}</p>
       )}
     </div>
   )
