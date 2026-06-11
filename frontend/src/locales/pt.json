@@ -879,7 +879,19 @@
     "draw": "Comprar",
     "inHand": "{{count}} na mão",
     "inLibrary": "{{count}} no grimório",
-    "mulligans": "{{count}} mulligan(s)"
+    "inGrave": "{{count}} no cemitério",
+    "mulligans": "{{count}} mulligan(s)",
+    "turn": "Turno {{count}}",
+    "nextTurn": "Próximo turno",
+    "battlefield": "Mesa",
+    "graveyard": "Cemitério",
+    "hand": "Mão",
+    "fieldEmpty": "Jogue cartas da mão aqui.",
+    "handEmpty": "Mão vazia.",
+    "bottomHint": "Mulligan de Londres: clique pra colocar {{count}} carta(s) no fundo do grimório.",
+    "playHint": "Clique numa carta da mão pra jogá-la na mesa.",
+    "toGrave": "Pro cemitério",
+    "toHand": "Pra mão"
   },
   "compare": {
     "title": "Comparar com outro deck",

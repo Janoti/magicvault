@@ -879,7 +879,19 @@
     "draw": "Robar",
     "inHand": "{{count}} en la mano",
     "inLibrary": "{{count}} en la biblioteca",
-    "mulligans": "{{count}} mulligan(s)"
+    "inGrave": "{{count}} en el cementerio",
+    "mulligans": "{{count}} mulligan(s)",
+    "turn": "Turno {{count}}",
+    "nextTurn": "Siguiente turno",
+    "battlefield": "Mesa",
+    "graveyard": "Cementerio",
+    "hand": "Mano",
+    "fieldEmpty": "Juega cartas de tu mano aquí.",
+    "handEmpty": "Mano vacía.",
+    "bottomHint": "Mulligan de Londres: haz clic para poner {{count}} carta(s) al fondo de la biblioteca.",
+    "playHint": "Haz clic en una carta de tu mano para jugarla a la mesa.",
+    "toGrave": "Al cementerio",
+    "toHand": "A la mano"
   },
   "compare": {
     "title": "Comparar con otro mazo",

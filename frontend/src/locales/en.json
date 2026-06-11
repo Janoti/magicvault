@@ -879,7 +879,19 @@
     "draw": "Draw",
     "inHand": "{{count}} in hand",
     "inLibrary": "{{count}} in library",
-    "mulligans": "{{count}} mulligan(s)"
+    "inGrave": "{{count}} in graveyard",
+    "mulligans": "{{count}} mulligan(s)",
+    "turn": "Turn {{count}}",
+    "nextTurn": "Next turn",
+    "battlefield": "Battlefield",
+    "graveyard": "Graveyard",
+    "hand": "Hand",
+    "fieldEmpty": "Play cards from your hand here.",
+    "handEmpty": "Empty hand.",
+    "bottomHint": "London mulligan: click to put {{count}} card(s) on the bottom of your library.",
+    "playHint": "Click a card in your hand to play it to the battlefield.",
+    "toGrave": "To graveyard",
+    "toHand": "To hand"
   },
   "compare": {
     "title": "Compare with another deck",
