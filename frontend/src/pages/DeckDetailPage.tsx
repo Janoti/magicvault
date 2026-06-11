@@ -8,7 +8,7 @@ import { useFlags } from '@/lib/flags'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
 import CardInfoModal from '@/components/cards/CardInfoModal'
-import CardPrice from '@/components/cards/CardPrice'
+import CardPrice, { useMoney } from '@/components/cards/CardPrice'
 import DeckAnalysis from '@/components/decks/DeckAnalysis'
 import DeckCompare from '@/components/decks/DeckCompare'
 import DeckSuggestions from '@/components/decks/DeckSuggestions'
@@ -107,6 +107,7 @@ export default function DeckDetailPage() {
   const [infoCard, setInfoCard] = useState<any>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const { t, i18n } = useTranslation()
+  const money = useMoney()
   const qc = useQueryClient()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
@@ -604,7 +605,7 @@ export default function DeckDetailPage() {
           <p className="text-xs text-vault-muted">{t('detail.mainCardsLabel')}</p>
         </div>
         <div className="surface p-4 text-center">
-          <p className="text-2xl font-display font-bold text-green-400">${totalValue.toFixed(2)}</p>
+          <p className="text-2xl font-display font-bold text-green-400">{money(totalValue)}</p>
           <p className="text-xs text-vault-muted">{t('detail.totalValue')}</p>
         </div>
         <div className="surface p-4 text-center">
