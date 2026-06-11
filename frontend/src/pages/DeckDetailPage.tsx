@@ -548,7 +548,7 @@ export default function DeckDetailPage() {
                       <p className="text-[11px] text-vault-muted">{t('coverage.missingCards')}</p>
                     </div>
                     <div className="rounded-xl border border-vault-border bg-vault-card/40 p-3 text-center">
-                      <p className="text-xl font-display font-bold text-green-400">${coverage.summary.missing_cost.toFixed(2)}</p>
+                      <p className="text-xl font-display font-bold text-green-400">{money(coverage.summary.missing_cost)}</p>
                       <p className="text-[11px] text-vault-muted">{t('coverage.costToComplete')}</p>
                     </div>
                   </div>
@@ -568,8 +568,8 @@ export default function DeckDetailPage() {
                             </span>
                             <span className="text-xs font-mono text-vault-muted">{c.owned}/{c.needed}</span>
                             <span className="text-xs font-mono font-bold text-vault-accent w-10 text-right">−{c.missing}</span>
-                            <span className="text-xs font-mono text-green-400 w-14 text-right">
-                              {c.card?.price_usd > 0 ? `$${(c.card.price_usd * c.missing).toFixed(2)}` : '—'}
+                            <span className="text-xs font-mono text-green-400 w-16 text-right">
+                              {c.card?.price_usd > 0 ? money(c.card.price_usd * c.missing) : '—'}
                             </span>
                             <div className="flex items-center gap-1 pl-1">
                               <button
