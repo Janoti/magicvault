@@ -177,7 +177,7 @@ export default function CreateListingModal({ onClose, onCreated }: { onClose: ()
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-72 overflow-y-auto">
                 {grid.map(g => (
                   <button key={g.key} onClick={() => pick(g.card, g.entry)} className="rounded-lg overflow-hidden border border-vault-border hover:border-vault-accent" title={g.card?.name}>
-                    {g.card?.image_small ? <img src={g.card.image_small} alt={g.card.name} className="w-full" loading="lazy" /> : <div className="p-2 text-[11px]">{g.card?.name}</div>}
+                    {g.card?.image_normal || g.card?.image_small ? <img src={g.card.image_normal || g.card.image_small} alt={g.card.name} className="w-full" loading="lazy" /> : <div className="p-2 text-[11px]">{g.card?.name}</div>}
                   </button>
                 ))}
               </div>

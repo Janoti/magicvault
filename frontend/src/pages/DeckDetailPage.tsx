@@ -65,7 +65,7 @@ function PileView({ entries, t }: { entries: any[]; t: any }) {
             {buckets[k].map((e: any, i: number) => (
               <div key={e.id} className="absolute left-0 right-0" style={{ top: i * OFFSET }}>
                 {e.card?.image_normal || e.card?.image_small ? (
-                  <img src={e.card.image_small || e.card.image_normal} alt={e.card.name} className="w-full rounded-lg shadow-md border border-black/40" />
+                  <img src={e.card.image_normal || e.card.image_small} alt={e.card.name} className="w-full rounded-lg shadow-md border border-black/40" />
                 ) : (
                   <div className="aspect-[63/88] rounded-lg bg-vault-card border border-vault-border flex items-center justify-center p-1 text-[9px] text-center">{e.card?.name}</div>
                 )}
