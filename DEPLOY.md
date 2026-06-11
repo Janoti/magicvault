@@ -26,21 +26,30 @@ Navegador ──HTTPS──> vaultspell.com (VPS)
 ## Deploy é manual (não há auto-deploy)
 
 Um `git push` pro GitHub é só a **fonte do código** — ele **não** publica nada.
-Pra subir uma versão nova, é preciso atualizar o VPS:
+Pra subir uma versão nova:
 
 ```bash
-ssh <user>@<ip-do-vps>          # acesso ao servidor
-cd <caminho-do-repo-no-vps>     # ex.: /opt/magicvault ou ~/magicvault
-git pull                        # traz os commits novos
-./deploy.sh                     # script de deploy do servidor
+# 1) na máquina de dev
+git push origin main
+
+# 2) no VPS
+ssh -p <porta> root@<ip-do-vps>
+cd /opt/vaultspell      # repo de produção
+./deploy.sh
 ```
 
-O script de deploy do servidor faz, em resumo, `git pull` + rebuild + restart dos
-containers (`docker compose up -d --build`). Ajuste o nome/caminho do script
-conforme o que está no VPS.
+O `deploy.sh` (mora no servidor, fora do versionamento) faz:
 
-> Fluxo de trabalho: commit local → `git push origin main` → SSH no VPS → `git pull` →
-> rodar o script de deploy.
+```bash
+git pull --ff-only
+docker compose -f docker-compose.prod.yml up -d --build
+docker image prune -f
+docker compose -f docker-compose.prod.yml ps
+```
+
+Ou seja: **commit local → push → SSH no VPS → `./deploy.sh`**. O `docker-compose.prod.yml`
+também é local do servidor. Como o deploy usa `git pull --ff-only`, sempre faça push
+antes (e não reescreva histórico já publicado).
 
 ## Variáveis de ambiente
 
