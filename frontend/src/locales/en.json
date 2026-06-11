@@ -734,6 +734,7 @@
   },
   "cardInfo": {
     "digitalOnly": "Digital-only card (MTG Arena / Alchemy) — no paper printing, no market price.",
+    "buyBrazil": "Buy in Brazil (Liga Magic)",
     "inCollection": "In collection",
     "paidTitle": "What you paid (optional)",
     "paidSaved": "Saved",

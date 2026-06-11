@@ -48,7 +48,7 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
   acquiredCurrency?: string | null
   foil?: boolean     // render a holographic sheen over the art
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const money = useMoney()
@@ -176,6 +176,11 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
                   : t('cardInfo.notInMarket')}
               </button>
 
+              <a href={`https://www.ligamagic.com.br/?view=cards/card&card=${encodeURIComponent(card.name)}`} target="_blank" rel="noreferrer noopener"
+                className="w-full text-sm rounded-lg px-3 py-2 flex items-center gap-2 justify-center border border-vault-border text-vault-muted hover:text-vault-text">
+                {t('cardInfo.buyBrazil')} <ExternalLink size={13} />
+              </a>
+
               {card.scryfall_uri && (
                 <a href={card.scryfall_uri} target="_blank" rel="noreferrer noopener"
                   className="w-full text-sm rounded-lg px-3 py-2 flex items-center gap-2 justify-center border border-vault-border text-vault-muted hover:text-vault-text">
@@ -277,10 +282,13 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
               {/* Rulings (official interactions) */}
               {flags.cardRulings && rulings.length > 0 && (
                 <div className="pt-2">
-                  <p className="text-[11px] uppercase tracking-wide text-vault-muted mb-1.5">{t('cardInfo.rulings')}</p>
-                  <ul className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  <p className="text-[11px] uppercase tracking-wide text-vault-muted mb-2">{t('cardInfo.rulings')}</p>
+                  <ul className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
                     {rulings.map((r: any, i: number) => (
-                      <li key={i} className="text-xs text-vault-muted leading-relaxed border-l-2 border-vault-border pl-2">{r.comment}</li>
+                      <li key={i} className="text-[13px] text-vault-text/90 leading-relaxed border-l-2 border-vault-accent/40 pl-3">
+                        {r.published_at && <span className="block text-[10px] text-vault-muted mb-0.5">{new Date(r.published_at + 'T00:00:00').toLocaleDateString(i18n.language)}</span>}
+                        {r.comment}
+                      </li>
                     ))}
                   </ul>
                 </div>
