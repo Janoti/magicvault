@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/auth'
-import CardPrice from '@/components/cards/CardPrice'
+import CardPrice, { useMoney } from '@/components/cards/CardPrice'
+import CardInfoModal from '@/components/cards/CardInfoModal'
 import AddToDeckModal from '@/components/collection/AddToDeckModal'
 
 export default function WishlistPage() {
@@ -20,6 +21,8 @@ export default function WishlistPage() {
   const [searching, setSearching] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [deckFor, setDeckFor] = useState<any>(null)
+  const [infoCard, setInfoCard] = useState<any>(null)
+  const money = useMoney()
   const owned = new Set<string>()
 
   // Open our marketplace for a card — premium only.
@@ -92,7 +95,7 @@ export default function WishlistPage() {
         {items.length > 0 && (
           <div className="surface px-4 py-2 text-right">
             <p className="text-xs text-vault-muted">{t('pages.wlEstValue')}</p>
-            <p className="font-mono font-bold text-green-400 text-lg">${totalValue.toFixed(2)}</p>
+            <p className="font-mono font-bold text-green-400 text-lg">{money(totalValue)}</p>
           </div>
         )}
       </div>
@@ -113,9 +116,11 @@ export default function WishlistPage() {
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mt-3">
             {results.map((c: any) => (
               <div key={c.id} className="relative group">
-                {c.image_small ? <img src={c.image_small} alt={c.name} className="w-full rounded-lg" loading="lazy" /> : <div className="p-2 text-[11px]">{c.name}</div>}
+                {c.image_normal || c.image_small
+                  ? <img src={c.image_normal || c.image_small} alt={c.name} onClick={() => setInfoCard(c)} className="w-full rounded-lg cursor-pointer transition-transform hover:scale-[1.03]" loading="lazy" />
+                  : <div onClick={() => setInfoCard(c)} className="aspect-[63/88] rounded-lg bg-vault-card flex items-center justify-center p-2 text-[11px] text-center cursor-pointer">{c.name}</div>}
                 <button
-                  onClick={() => addMutation.mutate(c)}
+                  onClick={(e) => { e.stopPropagation(); addMutation.mutate(c) }}
                   disabled={owned.has(c.id)}
                   className={`absolute inset-x-1 bottom-1 text-[10px] py-1 rounded flex items-center justify-center gap-1 ${owned.has(c.id) ? 'bg-vault-gold/80 text-black' : 'bg-vault-accent text-white opacity-0 group-hover:opacity-100'} transition-opacity`}
                 >
@@ -145,8 +150,10 @@ export default function WishlistPage() {
             <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.04, 0.3) }}>
               <div className="surface p-4 hover:border-vault-gold/30 transition-all flex flex-col gap-3 h-full">
                 <div className="flex gap-3">
-                  {item.card?.image_small && (
-                    <img src={item.card.image_small} alt={item.card.name} className="w-14 rounded-lg shadow-lg flex-shrink-0" />
+                  {(item.card?.image_normal || item.card?.image_small) && (
+                    <img src={item.card.image_normal || item.card.image_small} alt={item.card.name}
+                      onClick={() => setInfoCard(item.card)}
+                      className="w-16 rounded-lg shadow-lg flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-vault-gold/40 transition-all" />
                   )}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-vault-text text-sm truncate">{item.card?.name || '...'}</h3>
@@ -233,6 +240,8 @@ export default function WishlistPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {infoCard && <CardInfoModal card={infoCard} onClose={() => setInfoCard(null)} />}
 
       {deckFor && (
         <AddToDeckModal
