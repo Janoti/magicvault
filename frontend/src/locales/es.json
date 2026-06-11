@@ -720,6 +720,9 @@
     "viewOnArchidekt": "Ver en Archidekt",
     "viewCard": "Ver detalles de la carta",
     "updatedAt": "Actualizado en Archidekt",
+    "manaCurve": "Curva de maná (sin tierras)",
+    "sortByName": "Ordenar: A–Z",
+    "sortByCmc": "Ordenar: coste",
     "poweredBy": "Decks vía Archidekt",
     "copy": "Copiar a mis decks",
     "copyLogin": "Inicia sesión para copiar",
@@ -879,6 +882,17 @@
     "cat_wipe": "Remoción masiva",
     "cat_interaction": "Interacción",
     "cat_finisher": "Finalizador"
+  },
+  "cardTypes": {
+    "Creature": "Criatura",
+    "Land": "Tierra",
+    "Instant": "Instantáneo",
+    "Sorcery": "Conjuro",
+    "Artifact": "Artefacto",
+    "Enchantment": "Encantamiento",
+    "Planeswalker": "Planeswalker",
+    "Battle": "Batalla",
+    "Kindred": "Tribal"
   },
   "addCards": {
     "tabCollection": "Colección",

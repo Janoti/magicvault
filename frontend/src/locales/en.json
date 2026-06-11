@@ -720,6 +720,9 @@
     "viewOnArchidekt": "View on Archidekt",
     "viewCard": "View card details",
     "updatedAt": "Updated on Archidekt",
+    "manaCurve": "Mana curve (lands excluded)",
+    "sortByName": "Sort: A–Z",
+    "sortByCmc": "Sort: mana value",
     "poweredBy": "Decks via Archidekt",
     "copy": "Copy to my decks",
     "copyLogin": "Log in to copy",
@@ -879,6 +882,17 @@
     "cat_wipe": "Board wipe",
     "cat_interaction": "Interaction",
     "cat_finisher": "Finisher"
+  },
+  "cardTypes": {
+    "Creature": "Creature",
+    "Land": "Land",
+    "Instant": "Instant",
+    "Sorcery": "Sorcery",
+    "Artifact": "Artifact",
+    "Enchantment": "Enchantment",
+    "Planeswalker": "Planeswalker",
+    "Battle": "Battle",
+    "Kindred": "Kindred"
   },
   "addCards": {
     "tabCollection": "Collection",

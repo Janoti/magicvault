@@ -33,6 +33,8 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
     onError: (e: any) => alert(e?.response?.data?.detail || t('community.copyError')),
   })
 
+  const [sort, setSort] = useState<'name' | 'cmc'>('name')
+
   // Group cards by category, preserving a sensible order (Commander first).
   const groups = useMemo(() => {
     if (!deck?.cards) return []
@@ -40,8 +42,23 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
     for (const c of deck.cards) { if (!m.has(c.category)) m.set(c.category, []); m.get(c.category)!.push(c) }
     const entries = [...m.entries()]
     entries.sort((a, b) => (a[0] === 'Commander' ? -1 : b[0] === 'Commander' ? 1 : a[0].localeCompare(b[0])))
-    for (const [, list] of entries) list.sort((a, b) => a.name.localeCompare(b.name))
+    const byCmc = (a: any, b: any) => (a.cmc ?? 0) - (b.cmc ?? 0) || a.name.localeCompare(b.name)
+    for (const [, list] of entries) list.sort(sort === 'cmc' ? byCmc : (a, b) => a.name.localeCompare(b.name))
     return entries
+  }, [deck, sort])
+
+  // Mana curve (lands excluded) and type counts — from fields we already fetch.
+  const stats = useMemo(() => {
+    const curve = [0, 0, 0, 0, 0, 0, 0, 0]
+    const types: Record<string, number> = {}
+    for (const c of deck?.cards || []) {
+      const qty = c.qty || 1
+      const tp = c.type || 'Other'
+      types[tp] = (types[tp] || 0) + qty
+      if (tp === 'Land') continue
+      curve[Math.min(Math.max(0, Math.floor(c.cmc ?? 0)), 7)] += qty
+    }
+    return { curve, max: Math.max(1, ...curve), types: Object.entries(types).sort((a, b) => b[1] - a[1]) }
   }, [deck])
 
   const total = deck?.cards?.reduce((s: number, c: any) => s + (c.qty || 1), 0) || 0
@@ -61,6 +78,7 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
               <h3 className="font-display text-xl font-bold text-vault-gold pr-8">{deck.name}</h3>
               <p className="text-xs text-vault-muted mt-1 flex items-center gap-3 flex-wrap">
                 <span>{deck.format}</span>
+                {deck.colors?.length > 0 && <ColorPips colors={deck.colors} />}
                 {deck.owner && (
                   <span className="flex items-center gap-1.5">·
                     {deck.owner_avatar && <img src={deck.owner_avatar} alt="" className="w-4 h-4 rounded-full" />}
@@ -77,6 +95,30 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
         <div className="relative overflow-y-auto p-5">
           {deck?.description && (
             <p className="text-xs text-vault-muted/90 mb-4 whitespace-pre-line line-clamp-5 border-l-2 border-vault-border pl-3">{deck.description}</p>
+          )}
+          {!isLoading && groups.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-end justify-between gap-3 flex-wrap">
+                <div className="flex items-end gap-1.5 h-12" title={t('community.manaCurve')}>
+                  {stats.curve.map((n, i) => (
+                    <div key={i} className="flex flex-col items-center gap-0.5">
+                      <span className="text-[8px] text-vault-muted leading-none">{n || ''}</span>
+                      <div className="w-3.5 bg-vault-accent/60 rounded-sm" style={{ height: `${(n / stats.max) * 32 + 2}px` }} />
+                      <span className="text-[8px] text-vault-muted leading-none">{i === 7 ? '7+' : i}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setSort((s) => (s === 'name' ? 'cmc' : 'name'))}
+                  className="text-[11px] px-2.5 py-1 rounded-lg border border-vault-border text-vault-muted hover:text-vault-text">
+                  {sort === 'cmc' ? t('community.sortByCmc') : t('community.sortByName')}
+                </button>
+              </div>
+              {stats.types.length > 0 && (
+                <p className="text-[11px] text-vault-muted mt-2">
+                  {stats.types.map(([tp, n]) => `${t(`cardTypes.${tp}`, tp)} ${n}`).join('  ·  ')}
+                </p>
+              )}
+            </div>
           )}
           {isLoading ? (
             <div className="py-10 text-center"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin mx-auto" /></div>

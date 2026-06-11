@@ -114,6 +114,7 @@ async def get_deck(deck_id: int) -> dict | None:
         "format": FORMATS.get(data.get("deckFormat"), "Other"),
         "views": data.get("viewCount") or 0,
         "art": data.get("featured") or None,
+        "colors": _colors(data.get("colors")),
         "description": data.get("description") or None,
         "owner": owner.get("username"),
         "owner_avatar": owner.get("avatar"),
