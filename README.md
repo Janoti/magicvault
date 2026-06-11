@@ -4,12 +4,10 @@ A full-featured manager for your **Magic: The Gathering** collection — track c
 build themed binders and decks, watch real-time prices, and import/export your
 collection. Card data and prices come from the free [Scryfall API](https://scryfall.com/docs/api).
 
-### 🔗 Live app: **[magicvault.onrender.com](https://magicvault.onrender.com/)**
+### 🔗 Live app: **[vaultspell.com](https://vaultspell.com/)**
 
 > Free to use — sign up, build your collection, and share decks, binders, or your
 > whole collection with friends or via a public link.
->
-> *(Hosted on Render's free tier, so the first load may take a few seconds to wake up.)*
 
 ## 🧰 Stack
 
@@ -77,9 +75,9 @@ cd frontend && npm install && npm run dev
 
 VaultSpell ships as a **single web service**: FastAPI serves the built React SPA
 and the API on one origin (no CORS). The root `Dockerfile` builds the frontend
-into `/app/static`, and [`render.yaml`](./render.yaml) declares the web service,
-PostgreSQL, and Redis on [Render](https://render.com). Every push to `main`
-auto-deploys. Full guide in [`DEPLOY.md`](./DEPLOY.md).
+into `/app/static`, and PostgreSQL + Redis run alongside via `docker compose` on a
+**dedicated VPS** (vaultspell.com). Deploy is manual (SSH in, `git pull`, run the
+deploy script). Full guide in [`DEPLOY.md`](./DEPLOY.md).
 
 ## 🔌 API endpoints
 

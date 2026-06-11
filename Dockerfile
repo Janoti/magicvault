@@ -31,5 +31,5 @@ COPY backend/ .
 COPY --from=frontend /fe/dist ./static
 
 EXPOSE 8000
-# Render injects $PORT; default to 8000 for local runs.
+# $PORT can be injected by the host; default to 8000 for local runs.
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -9,7 +9,7 @@ ainda — é o plano acordado.
 - Coleção → binder
 - **Importar/Exportar CSV (formato grimdeck)** ← item antigo do README, já feito
 - Valor da carta na coleção (preço Scryfall) + título "Coleção de {username}"
-- Deploy single-service no Render (Dockerfile + render.yaml)
+- Deploy single-service em VPS dedicado (Dockerfile + docker compose)
 
 ---
 
@@ -34,7 +34,7 @@ ainda — é o plano acordado.
   - `price_points(scryfall_id, price_usd, price_usd_foil, captured_at)` —
     snapshots diários das cartas rastreadas (união de coleção + wishlist).
   - `notifications(user_id, type, title, body, data_json, read, created_at)`.
-- **Job (Render Cron Job, 1x/dia):** `POST /api/internal/price-refresh`
+- **Job (cron no VPS, 1x/dia):** `POST /api/internal/price-refresh`
   (protegido por header secreto).
   - Coleta scryfall_ids distintos de todas as coleções + wishlists.
   - Busca preços no Scryfall, grava `price_points`.
