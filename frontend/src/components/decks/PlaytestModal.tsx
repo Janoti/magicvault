@@ -29,6 +29,7 @@ export default function PlaytestModal({ mainboard, onClose }: { mainboard: any[]
   const [turn, setTurn] = useState(1)
   const [mulligans, setMulligans] = useState(0)
   const [toBottom, setToBottom] = useState(0) // London: cards still to bottom after a mulligan
+  const [preview, setPreview] = useState<{ card: any; x: number; y: number } | null>(null) // hover zoom
 
   // Fresh game: shuffle, draw 7, reset every zone.
   const reset = useCallback(() => {
@@ -80,7 +81,10 @@ export default function PlaytestModal({ mainboard, onClose }: { mainboard: any[]
   const Card = ({ slot, onClick, badge }: { slot: Slot; onClick?: () => void; badge?: ReactNode }) => {
     const c = slot.card
     return (
-      <div className="relative group">
+      <div className="relative group"
+        onMouseEnter={(e) => setPreview({ card: c, x: e.clientX, y: e.clientY })}
+        onMouseMove={(e) => setPreview({ card: c, x: e.clientX, y: e.clientY })}
+        onMouseLeave={() => setPreview(null)}>
         <div onClick={onClick} className={`cursor-pointer transition-transform ${slot.tapped ? 'rotate-90' : ''}`}>
           {c?.image_normal || c?.image_small ? (
             <img src={c.image_normal || c.image_small} alt={c.name} className="w-full rounded-lg shadow-lg" loading="lazy" />
@@ -128,7 +132,7 @@ export default function PlaytestModal({ mainboard, onClose }: { mainboard: any[]
           {field.length === 0 ? (
             <div className="rounded-xl border border-dashed border-vault-border/60 py-8 text-center text-xs text-vault-muted">{t('playtest.fieldEmpty')}</div>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2">
               {field.map((s) => (
                 <Card key={s.uid} slot={s} onClick={() => setField((f) => f.map((x) => x.uid === s.uid ? { ...x, tapped: !x.tapped } : x))}
                   badge={
@@ -146,7 +150,7 @@ export default function PlaytestModal({ mainboard, onClose }: { mainboard: any[]
           {hand.length === 0 ? (
             <div className="rounded-xl border border-dashed border-vault-border/60 py-8 text-center text-xs text-vault-muted">{t('playtest.handEmpty')}</div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2 min-h-[160px]">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 min-h-[160px]">
               {hand.map((s, i) => (
                 <motion.div key={s.uid} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                   <Card slot={s} onClick={() => onHandCard(s.uid)}
@@ -167,6 +171,20 @@ export default function PlaytestModal({ mainboard, onClose }: { mainboard: any[]
           <button onClick={nextTurn} disabled={toBottom > 0} className="btn-primary flex items-center gap-2 text-sm disabled:opacity-40 ml-auto"><ChevronRight size={15} /> {t('playtest.nextTurn')}</button>
         </div>
       </motion.div>
+
+      {/* Hover zoom: large readable preview that follows the cursor. */}
+      {preview && (preview.card?.image_large || preview.card?.image_normal || preview.card?.image_small) && (() => {
+        const W = 300, H = 419
+        let left = preview.x + 24
+        if (left + W + 8 > window.innerWidth) left = preview.x - W - 24
+        left = Math.max(8, left)
+        const top = Math.min(Math.max(8, preview.y - H / 2), window.innerHeight - H - 8)
+        return (
+          <div className="fixed z-[60] pointer-events-none" style={{ left, top }}>
+            <img src={preview.card.image_large || preview.card.image_normal || preview.card.image_small} alt="" className="w-[300px] rounded-xl shadow-2xl ring-1 ring-black/50" />
+          </div>
+        )
+      })()}
     </div>
   )
 }
