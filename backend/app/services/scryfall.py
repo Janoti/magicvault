@@ -96,53 +96,6 @@ async def _local_by_set_collector(set_code: str, number: str, lang: str = "en") 
         return None
 
 
-async def _best_prices_by_oracle(oracle_ids: List[str]) -> Dict[str, dict]:
-    """For each oracle_id, the best available price block (prefers English, paper)."""
-    out: Dict[str, dict] = {}
-    ids = list({o for o in oracle_ids if o})
-    if not ids:
-        return out
-    try:
-        from sqlalchemy import select
-        from app.core.database import AsyncSessionLocal
-        from app.models.user import ScryfallCard
-        async with AsyncSessionLocal() as db:
-            rows = (await db.execute(
-                select(ScryfallCard.oracle_id, ScryfallCard.data).where(
-                    ScryfallCard.oracle_id.in_(ids),
-                    ScryfallCard.data["prices"]["usd"].astext.isnot(None),
-                ).order_by(
-                    ScryfallCard.oracle_id,
-                    (ScryfallCard.lang == "en").desc(),
-                    ScryfallCard.data["digital"].astext,
-                )
-            )).all()
-        for oid, data in rows:
-            if oid and oid not in out:
-                out[oid] = (data or {}).get("prices") or {}
-    except Exception:
-        return {}
-    return out
-
-
-async def _backfill_prices(cards: List[Dict[str, Any]]) -> None:
-    """Fill missing USD prices from the same card's English printing (local cache).
-    Localized/foreign printings frequently have no price on Scryfall."""
-    missing = [c for c in cards if c and not (c.get("prices") or {}).get("usd")]
-    if not missing:
-        return
-    best = await _best_prices_by_oracle([c.get("oracle_id") for c in missing])
-    for c in missing:
-        p = best.get(c.get("oracle_id"))
-        if not p:
-            continue
-        pr = c.setdefault("prices", {})
-        if not pr.get("usd"):
-            pr["usd"] = p.get("usd")
-        if not pr.get("usd_foil"):
-            pr["usd_foil"] = p.get("usd_foil")
-
-
 def _has_search_operators(query: str) -> bool:
     """Scryfall advanced syntax (t:, c:, cmc<=3, set:, "exact") must use the API."""
     return any(ch in query for ch in (":", "<", ">", "=", '"'))
@@ -236,7 +189,6 @@ async def get_cards_bulk(scryfall_ids: List[str]) -> Dict[str, Dict[str, Any]]:
         for card in data.get("data", []):
             result[card["id"]] = card
             await cache_set(f"scryfall:card:{card['id']}", card)
-    await _backfill_prices(list(result.values()))
     return result
 
 
@@ -269,12 +221,10 @@ async def get_card_by_id(scryfall_id: str) -> Optional[Dict[str, Any]]:
 
     local = await _local_by_id(scryfall_id)
     if local:
-        await _backfill_prices([local])
         await cache_set(cache_key, local)
         return local
 
     data = await _get(f"{BASE}/cards/{scryfall_id}")
-    await _backfill_prices([data])
     await cache_set(cache_key, data)
     return data
 
