@@ -5,6 +5,7 @@ Endpoints used:
   - GET /api/decks/v3/?deckFormat={id}&orderBy={order}&page={n}&pageSize={n}
   - GET /api/decks/{id}/
 """
+import json
 import logging
 import httpx
 
@@ -23,6 +24,22 @@ FORMATS: dict[int, str] = {
 }
 ORDERS = {"popular": "-viewCount", "recent": "-createdAt", "updated": "-updatedAt"}
 PAGE_SIZE = 24
+
+
+def _plain_description(desc: str | None) -> str | None:
+    """Archidekt stores the description as a Quill Delta JSON ({"ops":[...]}).
+    Flatten it to plain text; pass through anything that's already plain text."""
+    if not desc:
+        return None
+    s = desc.strip()
+    if s.startswith("{") and '"ops"' in s:
+        try:
+            ops = json.loads(s).get("ops", [])
+            text = "".join(op["insert"] for op in ops if isinstance(op.get("insert"), str)).strip()
+            return text or None
+        except Exception:
+            return None  # malformed rich text — better nothing than raw JSON
+    return desc
 
 
 def _colors(c: dict | None) -> list[str]:
@@ -115,7 +132,7 @@ async def get_deck(deck_id: int) -> dict | None:
         "views": data.get("viewCount") or 0,
         "art": data.get("featured") or None,
         "colors": _colors(data.get("colors")),
-        "description": data.get("description") or None,
+        "description": _plain_description(data.get("description")),
         "owner": owner.get("username"),
         "owner_avatar": owner.get("avatar"),
         "updated_at": data.get("updatedAt"),

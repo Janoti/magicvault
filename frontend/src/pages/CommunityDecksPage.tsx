@@ -93,7 +93,7 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
           ) : null}
         </div>
         <div className="relative overflow-y-auto p-5">
-          {deck?.description && (
+          {deck?.description && !deck.description.trimStart().startsWith('{') && (
             <p className="text-xs text-vault-muted/90 mb-4 whitespace-pre-line line-clamp-5 border-l-2 border-vault-border pl-3">{deck.description}</p>
           )}
           {!isLoading && groups.length > 0 && (
