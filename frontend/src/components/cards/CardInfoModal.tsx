@@ -39,13 +39,14 @@ function ManaCost({ cost }: { cost?: string }) {
   )
 }
 
-export default function CardInfoModal({ card: initialCard, onClose, onAddToCollection, entryId, acquiredPrice: initialAcquired, acquiredCurrency: initialCurrency }: {
+export default function CardInfoModal({ card: initialCard, onClose, onAddToCollection, entryId, acquiredPrice: initialAcquired, acquiredCurrency: initialCurrency, foil = false }: {
   card: any
   onClose: () => void
   onAddToCollection?: (card: any) => void
   entryId?: number   // when set (collection), switching language persists the printing
   acquiredPrice?: number | null
   acquiredCurrency?: string | null
+  foil?: boolean     // render a holographic sheen over the art
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -132,7 +133,12 @@ export default function CardInfoModal({ card: initialCard, onClose, onAddToColle
           <div className="p-4 sm:p-6 grid md:grid-cols-[200px_1fr] gap-4 sm:gap-6">
             {/* Left: image + actions */}
             <div className="space-y-3">
-              {image && <img src={image} alt={card.name} className="w-full max-w-[200px] mx-auto md:max-w-none rounded-xl shadow-lg" />}
+              {image && (
+                <div className="relative group w-full max-w-[200px] mx-auto md:max-w-none">
+                  <img src={image} alt={card.name} className="w-full rounded-xl shadow-lg" />
+                  {foil && <div className="foil-shine" />}
+                </div>
+              )}
               {(usd > 0 || usdFoil > 0) && (
                 <div className="text-center text-sm font-mono">
                   {usd > 0 && <span className="text-green-400">{money(usd)}</span>}

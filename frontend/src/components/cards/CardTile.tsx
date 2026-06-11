@@ -26,6 +26,8 @@ interface CardTileProps {
   onClick?: (card: any) => void
   showActions?: boolean
   compact?: boolean
+  /** Render a holographic foil sheen over the art (for foil copies). */
+  foil?: boolean
 }
 
 const rarityColors: Record<string, string> = {
@@ -40,7 +42,7 @@ const colorMap: Record<string, string> = {
   W: '☀️', U: '💧', B: '💀', R: '🔥', G: '🌲',
 }
 
-export default function CardTile({ card, onAdd, onWishlist, onClick, showActions = true, compact = false }: CardTileProps) {
+export default function CardTile({ card, onAdd, onWishlist, onClick, showActions = true, compact = false, foil = false }: CardTileProps) {
   const { t } = useTranslation()
   const [hovered, setHovered] = useState(false)
   const [imgError, setImgError] = useState(false)
@@ -75,6 +77,9 @@ export default function CardTile({ card, onAdd, onWishlist, onClick, showActions
             <p className="text-xs text-vault-muted text-center mt-1">{card.set?.toUpperCase()}</p>
           </div>
         )}
+
+        {/* Holographic sheen for foil copies. */}
+        {foil && <div className="foil-shine" />}
 
         {/* Hover actions — a slim bar at the bottom so the art stays visible. */}
         {showActions && hovered && (onAdd || onWishlist) && (
