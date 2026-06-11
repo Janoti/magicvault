@@ -878,6 +878,18 @@
     "cat_interaction": "Interaction",
     "cat_finisher": "Finisher"
   },
+  "addCards": {
+    "tabCollection": "Collection",
+    "tabBinders": "Binders",
+    "tabSearch": "Search",
+    "searchPlaceholder": "Search a card on Scryfall...",
+    "filterPlaceholder": "Filter by name...",
+    "typeToSearch": "Type at least 2 letters to search.",
+    "noResults": "No cards found.",
+    "noCollection": "No cards in your collection (or none match the filter).",
+    "pickBinder": "Pick a binder",
+    "binderEmpty": "Binder is empty (or nothing matches the filter)."
+  },
   "playtest": {
     "title": "Playtest",
     "newHand": "New hand",

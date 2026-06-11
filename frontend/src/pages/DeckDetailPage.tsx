@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { decksApi, cardsApi, wishlistApi } from '@/lib/api'
+import { decksApi, wishlistApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
-import { ArrowLeft, Plus, Trash2, Search, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText, Wand2, Pencil } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Crown, Shield, Share2, Library, BarChart3, GitCompareArrows, Globe, Lock, Download, Copy, Check, Sparkles, X, ShoppingCart, Star, List, LayoutGrid, Dices, ScrollText, Wand2, Pencil } from 'lucide-react'
 import { useFlags } from '@/lib/flags'
 import { motion, AnimatePresence } from 'framer-motion'
 import CardTile from '@/components/cards/CardTile'
@@ -13,6 +13,7 @@ import DeckAnalysis from '@/components/decks/DeckAnalysis'
 import DeckCompare from '@/components/decks/DeckCompare'
 import DeckSuggestions from '@/components/decks/DeckSuggestions'
 import PlaytestModal from '@/components/decks/PlaytestModal'
+import AddCardsModal from '@/components/decks/AddCardsModal'
 import ShareModal from '@/components/sharing/ShareModal'
 import { useTranslation } from 'react-i18next'
 
@@ -84,9 +85,6 @@ export default function DeckDetailPage() {
   const { id } = useParams<{ id: string }>()
   const deckId = Number(id)
   const [showSearch, setShowSearch] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const [searching, setSearching] = useState(false)
   const [view, setView] = useState<'grid' | 'list' | 'pile'>('list')
   const [deckSort, setDeckSort] = useState('name')
   const [typeFilter, setTypeFilter] = useState('all')
@@ -166,18 +164,6 @@ export default function DeckDetailPage() {
     mutationFn: (scryfallId: string) => wishlistApi.add({ scryfall_id: scryfallId, quantity: 1 }),
     onSuccess: (_d, scryfallId) => { setWished(w => ({ ...w, [scryfallId]: true })); qc.invalidateQueries({ queryKey: ['wishlist'] }) },
   })
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchQuery.trim()) return
-    setSearching(true)
-    try {
-      const data = await cardsApi.search(searchQuery)
-      setSearchResults(data.cards || [])
-    } finally {
-      setSearching(false)
-    }
-  }
 
   // Group cards by type
   const mainboardRaw = deck?.cards?.filter((c: any) => !c.is_sideboard && !c.is_commander) || []
@@ -786,56 +772,7 @@ export default function DeckDetailPage() {
       {/* Add card modal */}
       <AnimatePresence>
         {showSearch && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowSearch(false)} />
-            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-              className="relative z-10 bg-vault-surface border border-vault-border rounded-2xl p-6 w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-xl font-bold text-vault-gold">{t('detail.addToDeck')}</h2>
-                <button onClick={() => setShowSearch(false)} className="text-vault-muted hover:text-vault-text">✕</button>
-              </div>
-
-              <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-                <input className="input-field flex-1" placeholder={t('detail.searchCard')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-                <button type="submit" className="btn-primary flex items-center gap-2">
-                  <Search size={14} /> {t('search.button')}
-                </button>
-              </form>
-
-              <div className="flex-1 overflow-y-auto">
-                {searching ? (
-                  <div className="flex justify-center py-8">
-                    <div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {searchResults.map((card: any) => (
-                      <div key={card.id} className="relative">
-                        <CardTile card={card} showActions={false} />
-                        <div className="flex gap-1 mt-1">
-                          <button
-                            onClick={() => addCardMutation.mutate({ scryfall_id: card.id, quantity: 1 })}
-                            className="flex-1 text-[10px] btn-primary py-1"
-                          >+ Main</button>
-                          <button
-                            onClick={() => addCardMutation.mutate({ scryfall_id: card.id, quantity: 1, is_sideboard: true })}
-                            className="flex-1 text-[10px] btn-ghost py-1 border border-vault-border"
-                          >Side</button>
-                          {deck?.format === 'commander' && (
-                            <button
-                              onClick={() => addCardMutation.mutate({ scryfall_id: card.id, quantity: 1, is_commander: true })}
-                              className="text-[10px] px-2 btn-ghost py-1 border border-vault-gold/30 text-vault-gold"
-                            >CMD</button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
+          <AddCardsModal deckId={deckId} format={deck?.format} onClose={() => setShowSearch(false)} />
         )}
       </AnimatePresence>
     </div>
