@@ -87,7 +87,7 @@ export default function DeckAnalysis({ deckId }: { deckId: number }) {
           <p className="text-xs font-medium text-vault-muted mb-2">{t('analysis.types')}</p>
           <div className="space-y-1">
             {types.map(([type, n]) => (
-              <div key={type} className="flex items-center justify-between text-sm">
+              <div key={type} className="flex items-center justify-between gap-4 text-sm max-w-[16rem]">
                 <span className="text-vault-text">{t(`analysis.type_${type}`, type)}</span>
                 <span className="font-mono text-vault-muted">{n}</span>
               </div>
@@ -101,7 +101,7 @@ export default function DeckAnalysis({ deckId }: { deckId: number }) {
           ) : (
             <div className="space-y-1">
               {cats.map(k => (
-                <div key={k} className="flex items-center justify-between text-sm">
+                <div key={k} className="flex items-center justify-between gap-4 text-sm max-w-[16rem]">
                   <span className="text-vault-text">{CAT_META[k].icon} {t(`analysis.cat_${k}`)}</span>
                   <span className="font-mono text-vault-muted">{data.categories[k]}</span>
                 </div>
