@@ -5,8 +5,9 @@ import { useQuery, useInfiniteQuery, useMutation } from '@tanstack/react-query'
 import { Eye, X, ExternalLink, Layers, Flame, Clock, Copy } from 'lucide-react'
 import { useSeo } from '@/components/Seo'
 import PublicPage from '@/components/PublicPage'
-import { communityApi } from '@/lib/api'
+import { communityApi, cardsApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
+import CardInfoModal from '@/components/cards/CardInfoModal'
 
 const COLOR_HEX: Record<string, string> = { W: '#f4e6b8', U: '#3b82c4', B: '#5b5563', R: '#d6584f', G: '#4ca766' }
 
@@ -20,10 +21,12 @@ function ColorPips({ colors }: { colors: string[] }) {
 }
 
 function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const [infoId, setInfoId] = useState<string | null>(null)
   const { data: deck, isLoading } = useQuery({ queryKey: ['community-deck', id], queryFn: () => communityApi.deck(id) })
+  const { data: infoCard } = useQuery({ queryKey: ['card-by-id', infoId], queryFn: () => cardsApi.getById(infoId as string), enabled: !!infoId })
   const copyMut = useMutation({
     mutationFn: () => communityApi.copyDeck(id),
     onSuccess: (r: any) => { onClose(); navigate(`/decks/${r.id}`) },
@@ -58,14 +61,23 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
               <h3 className="font-display text-xl font-bold text-vault-gold pr-8">{deck.name}</h3>
               <p className="text-xs text-vault-muted mt-1 flex items-center gap-3 flex-wrap">
                 <span>{deck.format}</span>
-                {deck.owner && <span>· {deck.owner}</span>}
+                {deck.owner && (
+                  <span className="flex items-center gap-1.5">·
+                    {deck.owner_avatar && <img src={deck.owner_avatar} alt="" className="w-4 h-4 rounded-full" />}
+                    {deck.owner}
+                  </span>
+                )}
                 <span className="flex items-center gap-1"><Eye size={12} /> {deck.views.toLocaleString()}</span>
+                {deck.updated_at && <span className="flex items-center gap-1" title={t('community.updatedAt')}><Clock size={12} /> {new Date(deck.updated_at).toLocaleDateString(i18n.language)}</span>}
                 <span>· {total} {t('community.cards')}</span>
               </p>
             </>
           ) : null}
         </div>
         <div className="relative overflow-y-auto p-5">
+          {deck?.description && (
+            <p className="text-xs text-vault-muted/90 mb-4 whitespace-pre-line line-clamp-5 border-l-2 border-vault-border pl-3">{deck.description}</p>
+          )}
           {isLoading ? (
             <div className="py-10 text-center"><div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin mx-auto" /></div>
           ) : groups.length === 0 ? (
@@ -79,7 +91,11 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
                     {list.map((c: any, i: number) => (
                       <li key={`${c.scryfall_id}-${i}`} className="text-sm text-vault-text flex gap-2">
                         <span className="text-vault-muted tabular-nums">{c.qty}×</span>
-                        <a href={`https://scryfall.com/card/${c.scryfall_id || ''}`} target="_blank" rel="noreferrer noopener" className="hover:text-vault-accent truncate">{c.name}</a>
+                        {c.scryfall_id ? (
+                          <button onClick={() => setInfoId(c.scryfall_id)} title={t('community.viewCard')} className="hover:text-vault-accent truncate text-left">{c.name}</button>
+                        ) : (
+                          <span className="truncate">{c.name}</span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -107,6 +123,7 @@ function DeckDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
           </div>
         )}
       </div>
+      {infoCard && <CardInfoModal card={infoCard} onClose={() => setInfoId(null)} />}
     </div>
   )
 }

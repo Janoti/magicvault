@@ -718,6 +718,8 @@
     "cards": "cards",
     "deckEmpty": "Couldn't load this deck.",
     "viewOnArchidekt": "View on Archidekt",
+    "viewCard": "View card details",
+    "updatedAt": "Updated on Archidekt",
     "poweredBy": "Decks via Archidekt",
     "copy": "Copy to my decks",
     "copyLogin": "Log in to copy",

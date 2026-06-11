@@ -117,6 +117,8 @@ async def get_deck(deck_id: int) -> dict | None:
         "description": data.get("description") or None,
         "owner": owner.get("username"),
         "owner_avatar": owner.get("avatar"),
+        "updated_at": data.get("updatedAt"),
+        "created_at": data.get("createdAt"),
         "url": f"https://archidekt.com/decks/{data.get('id')}",
         "cards": cards,
     }
