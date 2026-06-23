@@ -26,10 +26,19 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    if (err.response?.status === 401) {
+    const url: string = err.config?.url || ''
+    // Don't hijack the login/register requests: let those pages surface the
+    // error (e.g. "credenciais inválidas") instead of wiping state + reloading.
+    const isAuthAttempt =
+      url.includes('/api/auth/login') || url.includes('/api/auth/register')
+    if (err.response?.status === 401 && !isAuthAttempt) {
+      // Clear BOTH token sources: the raw key the request interceptor reads AND
+      // the zustand persisted store the route guards read. Clearing only one
+      // desyncs them and traps the app in a /login <-> /collection reload loop.
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      localStorage.removeItem('magicvault-auth')
+      if (window.location.pathname !== '/login') window.location.href = '/login'
     }
     return Promise.reject(err)
   }
